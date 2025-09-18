@@ -1,95 +1,114 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  // índice do ícone ativo (null = nenhum)
+  const [activeIcon, setActiveIcon] = useState<number | null>(null);
+  // modal (continua do seu exemplo)
+  const [showModal, setShowModal] = useState<boolean>(true);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+  // Agora o array icons armazena os caminhos dos ícones novamente,
+  // mas vamos usá-los dentro de uma tag <img> para renderizá-los corretamente.
+  const icons = ['/icons-notif.svg', 'icons-chat.svg', 'icons-pin.svg', 'icons-people.svg'];
+  
+  // A cor que queremos para os ícones é branca, mas como os ícones são SVGs,
+  // precisamos usar CSS para mudar a cor. O uso da tag <img> não permite 
+  // essa alteração direta, por isso vamos assumir que os ícones já são brancos.
+  // Uma alternativa seria usar um componente que renderiza o SVG com a cor desejada,
+  // mas para resolver o erro atual, esta é a forma mais simples.
+  const iconColor = "#fff"; // Branco
+
+  return (
+    <>
+      {/* O conteúdo que recebe o blur */}
+      <div className={showModal ? "app-root blurred" : "app-root"}>
+        {/* Sidebar amarela fixa à esquerda */}
+        <aside className="sidebar">
+          {/* QUADRADO VERMELHO -> LOGO */}
+          <div className="logo-box">
+            {/* substitua a imagem em public/logo.png */}
+            <img src="/logo-branca.png" alt="Logo" className="logo-img" />
+          </div>
+
+          {/* RETÂNGULO ROXO -> painel de ícones */}
+          <div className="icon-panel">
+            {icons.map((iconPath, i) => (
+              <button
+                key={i}
+                className={`icon-btn ${activeIcon === i ? "active" : ""}`}
+                onClick={() => setActiveIcon(i)}
+                aria-label={`Ícone ${i}`}
+                title={`Ícone ${i}`}
+              >
+                {/* Usamos a tag <img> para carregar o SVG a partir do seu caminho.
+                  Isso resolve o erro de compilação e exibe os ícones corretamente.
+                  Para que eles sejam brancos, você precisará garantir que os 
+                  arquivos SVG originais já tenham a cor branca.
+                */}
+                <img src={iconPath} alt={`Ícone ${i}`} className="icon-symbol" />
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        {/* Main area do mapa */}
+        <main className="map-area">
+          {/* Search bar (movida um pouco para a esquerda) */}
+          <div className="search-box">
+            <input className="search-input" placeholder="Pesquise aqui" />
+            <button className="search-btn">🔎</button>
+          </div>
+
+          {/* Chips / filtros (movidos para a esquerda) */}
+          <div className="chips">
+            <span className="chip">Jiu Jitsu</span>
+            <span className="chip">T.I</span>
+            <span className="chip">Centro Cultural</span>
+            <span className="chip">Biblioteca</span>
+          </div>
+
+          {/* Foto de perfil no canto direito (com bolinha vermelha) */}
+          <div className="profile-wrapper">
+            <img src="/profile.png" alt="Perfil" className="profile-img" />
+            <div className="notif-dot" />
+          </div>
+
+          {/* Mapa (fundo) */}
+          <div className="map" role="img" aria-label="Mapa de fundo" />
+        </main>
+      </div>
+
+      {/* Modal (igual ao anterior) */}
+      {showModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <button
+              className="modal-exit"
+              onClick={() => setShowModal(false)}
+              aria-label="Fechar"
+            >
+              ✕
+            </button>
+
+            <h1 className="modal-title">
+              Olá, Seja Bem Vindo a OportunityFam!
+            </h1>
+            <hr className="modal-hr" />
+
+            <p className="modal-text">
+              Aqui você vai encontrar as melhores instituições para o seu filho.
+            </p>
+
+            <p className="modal-question">Deseja cadastrar seu filho agora?</p>
+
+            <div className="modal-actions">
+              <button className="btn btn-outline">Não</button>
+              <button className="btn btn-primary">Sim</button>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      )}
+    </>
   );
 }

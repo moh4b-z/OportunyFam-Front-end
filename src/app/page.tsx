@@ -8,16 +8,8 @@ export default function Home() {
   // modal (continua do seu exemplo)
   const [showModal, setShowModal] = useState<boolean>(true);
 
-  // Agora o array icons armazena os caminhos dos ícones novamente,
-  // mas vamos usá-los dentro de uma tag <img> para renderizá-los corretamente.
   const icons = ['/icons-notif.svg', 'icons-chat.svg', 'icons-pin.svg', 'icons-people.svg'];
-  
-  // A cor que queremos para os ícones é branca, mas como os ícones são SVGs,
-  // precisamos usar CSS para mudar a cor. O uso da tag <img> não permite 
-  // essa alteração direta, por isso vamos assumir que os ícones já são brancos.
-  // Uma alternativa seria usar um componente que renderiza o SVG com a cor desejada,
-  // mas para resolver o erro atual, esta é a forma mais simples.
-  const iconColor = "#fff"; // Branco
+
 
   return (
     <>
@@ -33,7 +25,7 @@ export default function Home() {
 
           {/* RETÂNGULO ROXO -> painel de ícones */}
           <div className="icon-panel">
-            {icons.map((iconPath, i) => (
+            {icons.map((ic, i) => (
               <button
                 key={i}
                 className={`icon-btn ${activeIcon === i ? "active" : ""}`}
@@ -41,12 +33,7 @@ export default function Home() {
                 aria-label={`Ícone ${i}`}
                 title={`Ícone ${i}`}
               >
-                {/* Usamos a tag <img> para carregar o SVG a partir do seu caminho.
-                  Isso resolve o erro de compilação e exibe os ícones corretamente.
-                  Para que eles sejam brancos, você precisará garantir que os 
-                  arquivos SVG originais já tenham a cor branca.
-                */}
-                <img src={iconPath} alt={`Ícone ${i}`} className="icon-symbol" />
+                <img src={ic} alt={`Ícone ${i}`} className="icon-symbol" />
               </button>
             ))}
           </div>

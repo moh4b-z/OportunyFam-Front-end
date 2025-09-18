@@ -1,284 +1,313 @@
-
-:root{
---yellow: #f6a623;
---dark-modal: #3d3434; /* tom do card cinza-escuro */
---light-text: #fff;
+/* Variáveis globais */
+:root {
+  --yellow: #f6a623;
+  --dark-modal: #3d3434; /* tom do card cinza-escuro */
+  --light-text: #fff;
 }
 
-html,body,#__next{
-  height:100%;
-  }
+/* Base e estrutura da página */
+html,
+body,
+#__next {
+  height: 100%;
+}
 
-  body{
-    margin:0;
-    font-family: Inter, system-ui, Arial, sans-serif;
-    background: #fff;
-    }
-    
-    
-    /* Container raiz que será borrada */
-    .app-root{
-    min-height:100vh;
-    display:flex;
-    position:relative;
-    overflow:hidden;
-    }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, Arial, sans-serif;
+  background: #fff;
+}
 
-    /* quando modal estiver aberto, adicionamos blur */
-.app-root.blurred{
+/* Container raiz que será borrada */
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* quando modal estiver aberto, adicionamos blur */
+.app-root.blurred {
   filter: blur(6px);
   transition: filter 240ms ease;
   pointer-events: none; /* evita clicks no fundo enquanto modal aberto */
-  }
-  
-  
-  /* Sidebar amarela fixa */
-  .sidebar{
-  width:72px;
-  background:var(--yellow);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding-top:18px;
-  position:fixed;
-  left:0;top:0;bottom:0;
-  z-index:5;
-  }
-
-  .logo{
-    width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,0.08);
-    display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:24px;
-    }
-    
-    
-    .icons{display:flex;flex-direction:column;gap:20px;align-items:center}
-    .icon-btn{background:transparent;border:0;font-size:20px;cursor:pointer}
-    
-    
-    /* área do mapa — ocupa espaço à direita da sidebar */
-    .map-area{
-    margin-left:72px; /* cria espaço para a sidebar fixa */
-    width:calc(100% - 72px);
-    height:100vh;
-    position:relative;
-    }
-    
-    
-    /* O elemento que mostra a imagem do mapa — usa a imagem em /public/map.png */
-    .map{
-    position:absolute;inset:0; /* top:0; left:0; right:0; bottom:0 */
-    background-image: url('/map.png');
-    background-size: cover; /* cobre toda a área */
-    background-position: center center;
-    filter: saturate(0.9) brightness(0.98);
-    }
-
-    /* Search box (estilizado) */
-.search-box{
-  position:absolute;left:120px;top:18px;display:flex;align-items:center;gap:8px;z-index:6;
-  }
-  .search-input{
-  width:360px;padding:12px 16px;border-radius:26px;border:2px solid rgba(0,0,0,0.08);outline:none;box-shadow:0 2px 6px rgba(0,0,0,0.06);
-  }
-  .search-btn{padding:10px 12px;border-radius:50%;border:0;cursor:pointer}
-  
-  
-  /* Chips central-top */
-  .chips{position:absolute;left:50%;transform:translateX(-50%);top:24px;display:flex;gap:8px;z-index:6}
-  .chip{background:#222;border-radius:16px;padding:8px 12px;color:#fff;font-size:13px}
-  
-  
-  /* Avatar amarelo no canto direito */
-  .avatar-circle{position:absolute;right:20px;top:18px;width:44px;height:44px;border-radius:50%;background:var(--yellow);z-index:6;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
-  
-  
-  /* Modal overlay/centering */
-  .modal-overlay{
-  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:30;
-  /* conteudo visual do modal não tem fundo escuro pra não interferir com o screenshot — se quiser um sombreado, ajuste abaixo */
-  background: rgba(0,0,0,0.15);
-  }
-  
-  
-  .modal-card{
-  width:680px;max-width:92vw;background:var(--dark-modal);color:var(--light-text);padding:26px;border-radius:8px;position:relative;box-shadow:0 8px 30px rgba(0,0,0,0.5);
-  }
-
-  .modal-exit{position:absolute;right:18px;top:12px;background:transparent;border:0;color:var(--yellow);font-size:20px;cursor:pointer}
-
-
-.modal-title{margin:6px 0 10px 0;font-size:22px}
-.modal-hr{border:0;height:2px;background:transparent;border-bottom:1px solid rgba(246,166,35,0.7);margin:8px 0 18px 0}
-.modal-text{color:rgba(255,255,255,0.85);line-height:1.5}
-.modal-question{text-align:center;margin:18px 0 12px 0}
-.modal-actions{display:flex;gap:14px;justify-content:center}
-
-
-.btn{padding:10px 26px;border-radius:20px;border:0;cursor:pointer}
-.btn-outline{background:#fff;color:#333}
-.btn-primary{background:var(--yellow);color:#fff}
-
-
-/* Responsividade simples */
-@media (max-width:800px){
-.modal-card{width:92vw}
-.search-input{width:220px}
 }
 
-
-
-
-
-/* Sidebar - ajustes para logo e painel de ícones */
-.sidebar{
-  width:72px;
-  background:var(--yellow);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding-top:12px;
-  position:fixed;
-  left:0;top:0;bottom:0;
-  z-index:50;
+/*
+  ================
+  Componente Sidebar
+  ================
+*/
+.sidebar {
+  width: 72px;
+  background: var(--yellow);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 12px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 50;
 }
 
-/* quadrado para a logo (substitui .logo) */
-.logo-box{
-  width:48px;
-  height:48px;
-  border-radius:8px;
-  background:transparent;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin-bottom:18px;
-  overflow:hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-.logo-img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
+.logo-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* painel roxo contendo os ícones */
-.icon-panel{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-  padding:8px;
-  border-radius:10px;
-  border:2px solid rgba(255, 255, 255, 0.18); /* sutil borda roxa */
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.icon-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.04);
 }
 
-/* botões de ícone - estilo base */
-.icon-btn{
-  width:44px;
-  height:44px;
-  border-radius:10px;
-  border:0;
-  background:transparent;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
-  cursor:pointer;
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
   transition: all 160ms ease;
-  color:rgba(0,0,0,0.75);
+  color: rgba(0, 0, 0, 0.75);
 }
 
-/* ícone ativo (quando clicado) */
-.icon-btn.active{
-  background: var(--purple-border); /* muda o fundo */
-  color: #fff;                   /* muda a cor do ícone */
+.icon-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
   transform: translateX(2px);
-  box-shadow: 0 6px 14px rgba(123,79,179,0.15);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
 }
 
-/* ícone hover (apenas visual) */
-.icon-btn:hover{
+.icon-btn:hover {
   transform: translateX(2px);
 }
 
-/* map-area permanece igual, mas ajustamos search e chips para mover para esquerda */
-.map-area{
-  margin-left:72px;
-  width:calc(100% - 72px);
-  height:100vh;
-  position:relative;
+/*
+  ================
+  Componente Map Area
+  ================
+*/
+.map-area {
+  margin-left: 72px; /* cria espaço para a sidebar fixa */
+  width: calc(100% - 72px);
+  height: 100vh;
+  position: relative;
 }
 
-/* Search box deslocado um pouco para a esquerda (ajuste esses valores conforme preferir) */
-.search-box{
-  position:absolute;
-  left:100px; /* <-- reduzi de 120px para 100px (move para a esquerda) */
-  top:18px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  z-index:6;
+.map {
+  position: absolute;
+  inset: 0; /* top:0; left:0; right:0; bottom:0 */
+  background-image: url("/map.png");
+  background-size: cover; /* cobre toda a área */
+  background-position: center center;
+  filter: saturate(0.9) brightness(0.98);
 }
 
-/* aumente ou diminua largura conforme quiser */
-.search-input{
-  width:360px;
-  padding:12px 16px;
-  border-radius:26px;
-  border:2px solid rgba(0,0,0,0.08);
-  outline:none;
-  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+/*
+  ================
+  Search box e chips
+  ================
+*/
+.search-box {
+  position: absolute;
+  left: 100px;
+  top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 6;
 }
 
-/* Chips (filtros) movidos mais para a esquerda */
-.chips{
-  position:absolute;
-  left:44%; /* <-- alterado de 50% para 44% para deslocar para esquerda */
-  transform:translateX(-50%);
-  top:24px;
-  display:flex;
-  gap:8px;
-  z-index:6;
+.search-input {
+  width: 360px;
+  padding: 12px 16px;
+  border-radius: 26px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-/* resto das regras de chip */
-.chip{background:#222;border-radius:16px;padding:8px 12px;color:#fff;font-size:13px}
-
-/* Foto de perfil no canto direito, com bolinha de notificação vermelha */
-.profile-wrapper{
-  position:absolute;
-  right:18px; /* talvez ajuste para alinhar ao seu design */
-  top:14px;
-  width:48px;
-  height:48px;
-  border-radius:50%;
-  overflow:hidden;
-  z-index:6;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-  background:var(--yellow);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.profile-img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
+.search-btn {
+  padding: 10px 12px;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
 }
 
-/* bolinha de notificação vermelha */
-.notif-dot{
-  position:absolute;
-  right:6px;
-  top:6px;
-  width:12px;
-  height:12px;
-  background:#ff3b30;
-  border-radius:50%;
-  border:2px solid #fff;
-  box-shadow:0 2px 6px rgba(0,0,0,0.2);
-  z-index:8;
+.chips {
+  position: absolute;
+  left: 44%;
+  transform: translateX(-50%);
+  top: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 6;
+}
+
+.chip {
+  background: #222;
+  border-radius: 16px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 13px;
+}
+
+/*
+  ================
+  Componente Perfil
+  ================
+*/
+.profile-wrapper {
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 6;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  background: var(--yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.notif-dot {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  background: #ff3b30;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 8;
+}
+
+/*
+  ================
+  Componente Modal
+  ================
+*/
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.modal-card {
+  width: 680px;
+  max-width: 92vw;
+  background: var(--dark-modal);
+  color: var(--light-text);
+  padding: 26px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-exit {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  background: transparent;
+  border: 0;
+  color: var(--yellow);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal-title {
+  margin: 6px 0 10px 0;
+  font-size: 22px;
+}
+
+.modal-hr {
+  border: 0;
+  height: 2px;
+  background: transparent;
+  border-bottom: 1px solid rgba(246, 166, 35, 0.7);
+  margin: 8px 0 18px 0;
+}
+
+.modal-text {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+
+.modal-question {
+  text-align: center;
+  margin: 18px 0 12px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 10px 26px;
+  border-radius: 20px;
+  border: 0;
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: #fff;
+  color: #333;
+}
+
+.btn-primary {
+  background: var(--yellow);
+  color: #fff;
+}
+
+/* Responsividade simples */
+@media (max-width: 800px) {
+  .modal-card {
+    width: 92vw;
+  }
+  .search-input {
+    width: 220px;
+  }
 }

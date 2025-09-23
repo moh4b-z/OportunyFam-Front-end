@@ -1,12 +1,16 @@
 'use client'
 
 import Image from 'next/image'
+import CardLogin from './components/Card'
 
 export default function Home() {
 	return (
 		<main>
 			<div className="background_image">
-				<Image src="/img/pres_image-1.png" alt="pres_image-1" width={500} height={300} className="pres_image" id="pres_image-1" />
+				{/* <Image src="/img/pres_image-1.png" alt="pres_image-1" fill className="pres_image" id="pres_image-1" /> */}
+			</div>
+			<div>
+				<CardLogin />
 			</div>
 		</main>
 	)

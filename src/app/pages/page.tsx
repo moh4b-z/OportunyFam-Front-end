@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   // índice do ícone ativo (null = nenhum)
   const [activeIcon, setActiveIcon] = useState<number | null>(null);
-  // modal (continua do seu exemplo)
+  // modal
   const [showModal, setShowModal] = useState<boolean>(true);
 
   const icons = ['/icons-notif.svg', 'icons-chat.svg', 'icons-pin.svg', 'icons-people.svg'];
-
 
   return (
     <>
@@ -19,7 +19,6 @@ export default function Home() {
         <aside className="sidebar">
           {/* QUADRADO VERMELHO -> LOGO */}
           <div className="logo-box">
-            {/* substitua a imagem em public/logo.png */}
             <img src="/logo-branca.png" alt="Logo" className="logo-img" />
           </div>
 
@@ -41,13 +40,13 @@ export default function Home() {
 
         {/* Main area do mapa */}
         <main className="map-area">
-          {/* Search bar (movida um pouco para a esquerda) */}
+          {/* Search bar */}
           <div className="search-box">
             <input className="search-input" placeholder="Pesquise aqui" />
             <button className="search-btn">🔎</button>
           </div>
 
-          {/* Chips / filtros (movidos para a esquerda) */}
+          {/* Chips / filtros */}
           <div className="chips">
             <span className="chip">Jiu Jitsu</span>
             <span className="chip">T.I</span>
@@ -55,7 +54,7 @@ export default function Home() {
             <span className="chip">Biblioteca</span>
           </div>
 
-          {/* Foto de perfil no canto direito (com bolinha vermelha) */}
+          {/* Foto de perfil */}
           <div className="profile-wrapper">
             <img src="/profile.png" alt="Perfil" className="profile-img" />
             <div className="notif-dot" />
@@ -63,10 +62,17 @@ export default function Home() {
 
           {/* Mapa (fundo) */}
           <div className="map" role="img" aria-label="Mapa de fundo" />
+
+          {/* Link para acessar a Home do Filho */}
+          <div style={{ marginTop: 20 }}>
+            <Link href="/filho" className="btn btn-primary">
+              Ir para Home do Filho
+            </Link>
+          </div>
         </main>
       </div>
 
-      {/* Modal (igual ao anterior) */}
+      {/* Modal */}
       {showModal && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <div className="modal-card">

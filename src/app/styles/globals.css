@@ -60,15 +60,27 @@ main {
 .inputs {
 	width: 100%;
 	margin-top: 32px;
-	background-color: blue;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
 }
 
 .input_container {
 	display: flex;
 	align-items: center;
 	background-color: gray;
-	padding: 12px;
+	border-radius: 7px;
+	padding: 16px;
 	gap: 12px;
+
+	& img {
+		width: 23px;
+		height: 23px;
+	}
+
+	& img:last-child {
+		width: 200px;
+	}
 }
 
 /* Container raiz que será borrada */

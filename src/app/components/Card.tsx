@@ -14,8 +14,12 @@ export default function CardLogin() {
 	return (
 		<div className="card_container">
 			<div className="switch_buttons">
-				<p>Login</p>
-				<p>Registre-se</p>
+				<div className="switch_login">
+					<p>Login</p>
+				</div>
+				<div className="switch_register">
+					<p>Registre-se</p>
+				</div>
 			</div>
 
 			<div className="inputs">
@@ -52,14 +56,16 @@ export default function CardLogin() {
 			</div>
 
 			<div className="divider">
-				<div className="line"></div>
+				<div></div>
 				<p>Or login with</p>
-				<div className="line"></div>
+				<div></div>
 			</div>
 
 			<div className="container_google_box">
-				<img src="/icons-google.svg" alt="google icon" />
-				<p>Google</p>
+				<button>
+					<img src="/icons-google.svg" alt="google icon" />
+					<p>Google</p>
+				</button>
 			</div>
 
 			<div className="login_btn">

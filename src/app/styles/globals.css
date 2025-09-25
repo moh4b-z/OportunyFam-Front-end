@@ -51,8 +51,7 @@ main {
 	display: flex;
 	justify-content: space-around;
 	width: 100%;
-	background-color: red;
-	box-shadow: 4px 4px 3px rgba(0, 0, 0, 0.26);
+	box-shadow: 4px 4px 3px rgba(0, 0, 0, 0.25);
 	padding: 12px;
 	border-radius: 26px;
 }
@@ -68,19 +67,63 @@ main {
 .input_container {
 	display: flex;
 	align-items: center;
-	background-color: gray;
-	border-radius: 7px;
-	padding: 16px;
+	box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.15);
+	border: 1px solid #000;
+	border-radius: 8px;
+	padding: 14px;
 	gap: 12px;
+	position: relative;
 
 	& img {
 		width: 23px;
 		height: 23px;
+
+		&:nth-child(2) {
+			position: absolute;
+			right: 16px;
+			cursor: pointer;
+		}
 	}
 
-	& img:last-child {
-		width: 200px;
+	& input {
+		border: none;
+		width: 80%;
+		outline: none;
+		font-size: 0.9rem;
 	}
+
+	&:has(input:focus) {
+		border: 1px solid var(--yellow);
+	}
+}
+
+.login_opt {
+	margin-top: 16px;
+	display: flex;
+	width: 100%;
+	justify-content: space-between;
+}
+
+.remember_me {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+
+	& input {
+		width: 17px;
+		height: 17px;
+	}
+
+	& label {
+		font-size: 0.9rem;
+	}
+}
+
+.forgot_password {
+	color: #000;
+	font-size: 0.9rem;
+	text-decoration: none;
+	color: var(--yellow);
 }
 
 /* Container raiz que será borrada */

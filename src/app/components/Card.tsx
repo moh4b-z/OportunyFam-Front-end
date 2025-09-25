@@ -45,7 +45,9 @@ export default function CardLogin() {
 					<label htmlFor="remember_me">Lembre-se de mim</label>
 				</div>
 				<div>
-					<Link href={'/'}>Esqueceu a senha?</Link>
+					<Link href={'/'} className="forgot_password">
+						Esqueceu sua senha?
+					</Link>
 				</div>
 			</div>
 

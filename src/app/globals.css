@@ -1,3 +1,13 @@
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
 /* Variáveis globais */
 :root {
   /* Cores do código que você forneceu */
@@ -17,9 +27,6 @@
   --bg-card-dark: #2c2c2c;
   --border-dark: #444;
   --text-dark-theme: #e0e0e0;
-
-
-  
 }
 
 /* Base e estrutura da página */
@@ -65,9 +72,9 @@ body.dark {
 }
 
 /*
-  ================
-  Componente Sidebar
-  ================
+  ================
+  Componente Sidebar
+  ================
 */
 .sidebar {
   width: 90px;
@@ -87,7 +94,7 @@ body.dark {
 .logo-placeholder {
   width: 60px;
   height: 60px;
-  background-color:none;
+  background-color: none;
   border-radius: 8px;
   margin-bottom: 30px;
   display: flex;
@@ -141,9 +148,9 @@ body.dark {
 }
 
 /*
-  ================
-  Componente Map Area
-  ================
+  ================
+  Componente Map Area
+  ================
 */
 .map-area {
   margin-left: 90px;
@@ -164,9 +171,9 @@ body.dark {
 }
 
 /*
-  ================
-  Header, Search box e chips
-  ================
+  ================
+  Header, Search box e chips
+  ================
 */
 .main-header {
   display: flex;
@@ -259,9 +266,9 @@ body.dark .chip {
 }
 
 /*
-  ================
-  Componente Perfil
-  ================
+  ================
+  Componente Perfil
+  ================
 */
 .profile-wrapper {
   position: relative;
@@ -301,9 +308,9 @@ body.dark .chip {
 }
 
 /*
-  ================
-  Componente Modal
-  ================
+  ================
+  Componente Modal
+  ================
 */
 .modal-overlay {
   position: fixed;
@@ -384,9 +391,9 @@ body.dark .chip {
 }
 
 /*
-  ================
-  Menu do Perfil
-  ================
+  ================
+  Menu do Perfil
+  ================
 */
 .profile-menu {
   position: absolute;
@@ -442,9 +449,9 @@ body.dark .menu-divider {
 }
 
 /*
-  ================
-  Seletor de Tema (Switch)
-  ================
+  ================
+  Seletor de Tema (Switch)
+  ================
 */
 .switch {
   position: relative;
@@ -497,6 +504,50 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+/*
+  ================
+  Modal de Termos e Condições (Lateral Esquerdo)
+  ================
+*/
+/* Adicionado estilos para o modal de termos posicionado à esquerda */
+.terms-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 90px; /* Espaço para a sidebar que permanece visível */
+}
+
+.terms-modal-card {
+  width: 45%;
+  max-width: 600px;
+  min-width: 400px;
+  height: 90vh;
+  background: var(--dark-modal);
+  color: var(--light-text);
+  padding: 26px;
+  border-radius: 8px;
+  margin-left: 20px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Animações */
 @keyframes fadeInFromTop {
   from {
@@ -513,5 +564,10 @@ input:checked + .slider:before {
 @media (max-width: 800px) {
   .modal-card {
     width: 92vw;
+  }
+
+  .terms-modal-card {
+    width: 80%;
+    min-width: 300px;
   }
 }

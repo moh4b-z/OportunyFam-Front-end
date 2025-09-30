@@ -8,6 +8,7 @@ export default function Home() {
   const [searchFocused, setSearchFocused] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [theme, setTheme] = useState("light")
+  const [showTermsModal, setShowTermsModal] = useState(false)
 
   const chips = [
     { label: "Jiu Jitsu", active: false },
@@ -110,7 +111,13 @@ export default function Home() {
                   </label>
                 </div>
                 <hr className="menu-divider" />
-                <div className="menu-item">
+                <div
+                  className="menu-item"
+                  onClick={() => {
+                    setShowTermsModal(true)
+                    setIsProfileMenuOpen(false)
+                  }}
+                >
                   <span>Termos e Condições</span>
                 </div>
                 <div className="menu-item">
@@ -141,6 +148,51 @@ export default function Home() {
             <div className="modal-actions">
               <button className="btn btn-outline">Não</button>
               <button className="btn btn-primary">Sim</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTermsModal && (
+        <div className="terms-modal-overlay" role="dialog" aria-modal="true">
+          <div className="terms-modal-card">
+            <button className="modal-exit" onClick={() => setShowTermsModal(false)} aria-label="Fechar">
+              ✕
+            </button>
+
+            <h1 className="modal-title">Termos e Condições</h1>
+            <hr className="modal-hr" />
+
+            <div className="modal-text">
+              <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>1. Aceitação dos Termos</h3>
+              <p>
+                Ao acessar e usar a plataforma OportunityFam, você concorda em cumprir e estar vinculado aos seguintes
+                termos e condições de uso.
+              </p>
+
+              <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>2. Uso da Plataforma</h3>
+              <p>
+                A plataforma OportunityFam é destinada a ajudar pais e responsáveis a encontrar as melhores instituições
+                educacionais e de desenvolvimento para seus filhos.
+              </p>
+
+              <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>3. Privacidade</h3>
+              <p>
+                Respeitamos sua privacidade e nos comprometemos a proteger suas informações pessoais de acordo com nossa
+                Política de Privacidade.
+              </p>
+
+              <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>4. Responsabilidades do Usuário</h3>
+              <p>
+                Você é responsável por manter a confidencialidade de sua conta e senha, e por todas as atividades que
+                ocorram sob sua conta.
+              </p>
+
+              <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>5. Modificações</h3>
+              <p>
+                Reservamo-nos o direito de modificar estes termos a qualquer momento. As alterações entrarão em vigor
+                imediatamente após a publicação na plataforma.
+              </p>
             </div>
           </div>
         </div>

@@ -30,6 +30,10 @@ export default function Home() {
 
   const handleAcceptTerms = () => {
     setTermsAccepted(true)
+    setTimeout(() => {
+      setShowTermsModal(false)
+      setTermsAccepted(false)
+    }, 3000)
   }
 
   const handleCloseTermsModal = () => {
@@ -165,7 +169,7 @@ export default function Home() {
 
       {showTermsModal && (
         <div className="terms-modal-overlay" role="dialog" aria-modal="true">
-          <div className="terms-modal-card">
+          <div className={theme === "dark" ? "terms-modal-card dark" : "terms-modal-card"}>
             <div className="terms-modal-header">
               <button className="terms-back-btn" onClick={handleCloseTermsModal} aria-label="Voltar">
                 <svg

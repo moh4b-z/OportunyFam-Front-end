@@ -7,10 +7,14 @@ export default function Home() {
 	return (
 		<main>
 			<div className="background_image">
-				{/* <Image src="/img/pres_image-1.png" alt="pres_image-1" fill className="pres_image" id="pres_image-1" /> */}
+				<Image src="/img/pres_image-1.png" alt="pres_image-1" fill className="pres_image" id="pres_image-1" />
 			</div>
-			<div>
-				<CardLogin />
+			<div className="container_form">
+				<div className="text_presentation">
+					<h1>Crie sua conta e junte-se a nós</h1>
+					<h2>Estamos felizes em ter você por aqui</h2>
+					{/* <CardLogin /> */}
+				</div>
 			</div>
 		</main>
 	)

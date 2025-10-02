@@ -1,4 +1,4 @@
-import { MouseEventHandler } from 'react'
+import { useState } from 'react'
 
 interface InputProps {
 	srcImage: string
@@ -12,29 +12,22 @@ interface InputProps {
 }
 
 export default function Input({ srcImage, extImage, extImageName, inputName, placeholder, type = 'text', value, onChange }: InputProps) {
-	const handlePasswordClick = (e: React.MouseEvent<HTMLImageElement>) => {
-		const targetElement = e.currentTarget as HTMLImageElement
-		const parentElement = targetElement.parentElement
-		const inputElement = parentElement?.querySelector('input') as HTMLInputElement
-		inputElement.type = 'text'
-
-		// if (inputElement.type === 'password' && targetElement.alt === 'eye-off icon') {
-		// 	inputElement.type = 'text'
-		// 	targetElement.src = '/icons-eye-on.svg'
-		// 	targetElement.alt = 'eye-on icon'
-		// } else if (inputElement.type === 'text' && targetElement.alt === 'eye-on icon') {
-		// 	inputElement.type = 'password'
-		// 	targetElement.src = '/icons-eye-off.svg'
-		// 	targetElement.alt = 'eye-off icon'
-		// }
-	}
+	const [showPassword, setShowPassword] = useState(false)
+	const inputType = type === 'password' ? (showPassword ? 'text' : 'password') : type
 
 	return (
 		<div className="input_container">
 			<img src={srcImage} alt={`${inputName} icon`} />
-			{extImage != undefined && <img src={extImage} alt={`${extImageName} icon`} onClick={handlePasswordClick}></img>}
+			{extImage && type === 'password' && (
+				<img
+					src={showPassword ? '/icons-eye-on.svg' : '/icons-eye-off.svg'}
+					alt={showPassword ? 'eye-on icon' : 'eye-off icon'}
+					onClick={() => setShowPassword(!showPassword)}
+					style={{ cursor: 'pointer' }}
+				/>
+			)}
 
-			<input type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+			<input type={inputType} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
 		</div>
 	)
 }

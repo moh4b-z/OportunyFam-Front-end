@@ -2,20 +2,59 @@
 
 import { useState } from "react"
 
+// SVG de exemplo para o novo ícone (Lupa - Search)
+// Você pode substituir por qualquer outro SVG de sua preferência.
+const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="m21 21-4.34-4.34" />
+    <circle cx="11" cy="11" r="8" />
+  </svg>
+)
 
-/**********************
- * Sempre colocar essa linha no código pra colocar a imagem
- * <img src="/img/logo.png"
- ********************/
+// SVG de exemplo para o botão (Seta para cima)
+// Substitua por um ícone de sua preferência, como um ícone de perfil ou configurações
+const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="m5 12 7-7 7 7" />
+    <path d="M12 19V5" />
+  </svg>
+)
+
 
 export default function BarraLateral() {
   const [activeIcon, setActiveIcon] = useState<string | null>(null)
+
+  const handleIconClick = (iconName: string) => {
+    setActiveIcon(activeIcon === iconName ? null : iconName)
+  }
 
   return (
     <aside className="sidebar">
       {/* Logo */}
       <div className="logo-placeholder">
-      <img src="/img/logo.png" alt="OportunityFam Logo" className="logo-img" />
+        <img src="/img/logo.png" alt="OportunityFam Logo" className="logo-img" />
       </div>
 
       {/* Ícones de navegação */}
@@ -23,7 +62,7 @@ export default function BarraLateral() {
         {/* Ícone de notificação */}
         <button
           className={`icon-btn ${activeIcon === "notification" ? "active" : ""}`}
-          onClick={() => setActiveIcon(activeIcon === "notification" ? null : "notification")}
+          onClick={() => handleIconClick("notification")}
           aria-label="Notificações"
         >
           <svg
@@ -45,7 +84,7 @@ export default function BarraLateral() {
         {/* Ícone de mensagens */}
         <button
           className={`icon-btn ${activeIcon === "messages" ? "active" : ""}`}
-          onClick={() => setActiveIcon(activeIcon === "messages" ? null : "messages")}
+          onClick={() => handleIconClick("messages")}
           aria-label="Mensagens"
         >
           <svg
@@ -66,7 +105,7 @@ export default function BarraLateral() {
         {/* Ícone de localização */}
         <button
           className={`icon-btn ${activeIcon === "location" ? "active" : ""}`}
-          onClick={() => setActiveIcon(activeIcon === "location" ? null : "location")}
+          onClick={() => handleIconClick("location")}
           aria-label="Localização"
         >
           <svg
@@ -88,7 +127,7 @@ export default function BarraLateral() {
         {/* Ícone de comunidade */}
         <button
           className={`icon-btn ${activeIcon === "community" ? "active" : ""}`}
-          onClick={() => setActiveIcon(activeIcon === "community" ? null : "community")}
+          onClick={() => handleIconClick("community")}
           aria-label="Comunidade"
         >
           <svg
@@ -107,6 +146,50 @@ export default function BarraLateral() {
             <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
+        </button>
+
+        {/* NOVO ÍCONE */}
+        <button
+          className={`icon-btn ${activeIcon === "new-feature" ? "active" : ""}`}
+          onClick={() => handleIconClick("new-feature")}
+          aria-label="Nova Funcionalidade"
+        >
+          <SearchIcon />
+        </button>
+      </div>
+      
+      {/* Espaçador para empurrar a seção de baixo */}
+      <div className="spacer" />
+
+      {/* NOVA SEÇÃO INFERIOR */}
+      <div className="sidebar-bottom">
+        {/* Ícone customizado (área para foto/svg) */}
+        <div className="bottom-icon-placeholder" aria-label="Ícone de Usuário">
+          {/* Adicione o SVG/Imagem aqui. Estou usando um SVG de exemplo */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="bottom-icon-svg"
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+
+        {/* Botão abaixo do ícone */}
+        <button
+          className="bottom-action-btn"
+          onClick={() => console.log("Botão de ação clicado")}
+          aria-label="Configurações/Ação Principal"
+        >
+          <ArrowUpIcon />
         </button>
       </div>
     </aside>

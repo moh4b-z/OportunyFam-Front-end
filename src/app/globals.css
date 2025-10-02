@@ -324,16 +324,20 @@ body.dark .chip {
 }
 
 .modal-card {
-  width: 680px;
-  max-width: 92vw;
-  min-width: 400px;
-  height: 100vh;
+  /* MODIFICADO: Ajustado para o tamanho e proporção da imagem */
+  width: auto; /* Deixa o max-width guiar o tamanho */
+  max-width: 420px; /* Tamanho máximo para replicar o look estreito */
+  min-width: 300px; /* Evita que fique muito pequeno */
+  height: auto; /* Altura baseada no conteúdo */
+  max-height: 90vh; /* Limite de altura para telas pequenas */
+  overflow-y: auto; /* Para garantir que o conteúdo seja scrollável se for muito alto */
   background: var(--dark-modal);
   color: var(--light-text);
   padding: 26px;
   border-radius: 8px;
   position: relative;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+
 }
 
 .modal-exit {
@@ -796,4 +800,71 @@ input:checked + .slider:before {
     width: 80%;
     min-width: 300px;
   }
+}
+
+
+
+/*
+  ================
+  NOVOS ESTILOS PARA BARRA LATERAL INFERIOR
+  ================
+*/
+/* Espaçador para empurrar o conteúdo para baixo */
+.spacer {
+  flex-grow: 1; /* Faz com que ocupe todo o espaço disponível */
+}
+
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Espaço entre o ícone e o botão */
+  padding-top: 30px; /* Adiciona um espaço superior, se necessário */
+}
+
+/* Área para colocar a foto/SVG no canto inferior */
+.bottom-icon-placeholder {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.2); /* Fundo sutil */
+  border-radius: 50%; /* Circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden; 
+  border: 2px solid white; /* Borda para destaque */
+}
+
+.bottom-icon-placeholder:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.bottom-icon-svg {
+  color: white; /* Cor do SVG interno */
+  width: 60%;
+  height: 60%;
+}
+
+/* O botão abaixo do ícone */
+.bottom-action-btn {
+  width: 50px;
+  height: 50px;
+  background-color: var(--soft-yellow); /* Cor de destaque */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
+}
+
+.bottom-action-btn:hover {
+  transform: translateY(-2px);
+  background-color: #f0b956; /* Uma cor um pouco mais clara no hover */
 }

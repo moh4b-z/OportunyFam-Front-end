@@ -152,7 +152,7 @@ export default function Home() {
               ✕
             </button>
 
-            <h1 className="modal-title">Olá, Seja Bem Vindo a OportunityFam!</h1>
+            <h1 className="modal-title">Olá, Seja Bem Vindo a OportunyFam!</h1>
             <hr className="modal-hr" />
 
             <p className="modal-text">Aqui você vai encontrar as melhores instituições para o seu filho.</p>
@@ -340,7 +340,7 @@ export default function Home() {
               </button>
 
               {termsAccepted && (
-                <div className="terms-success-message">Obrigada por aceitar os Termos da OportunyFam</div>
+                <div className="terms-success-message">Obrigada por aceitar os Termos da OportunyFam!</div>
               )}
             </div>
           </div>

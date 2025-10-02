@@ -13,8 +13,8 @@ export default function Home() {
 				<div className="text_presentation">
 					<h1>Crie sua conta e junte-se a nós</h1>
 					<h2>Estamos felizes em ter você por aqui</h2>
-					{/* <CardLogin /> */}
 				</div>
+				<CardLogin />
 			</div>
 		</main>
 	)

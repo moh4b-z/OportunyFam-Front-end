@@ -1,6 +1,6 @@
 import Input from './Input'
-import { useState } from 'react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 export default function CardLogin() {
 	const [email, setEmail] = useState('')
@@ -33,8 +33,8 @@ export default function CardLogin() {
 				/>
 				<Input
 					srcImage="/icons-lock.svg"
-					extImage="/icons-eye.svg"
-					extImageName="eye"
+					extImage="/icons-eye-off.svg"
+					extImageName="eye-off"
 					inputName="Senha"
 					placeholder="**********"
 					type="password"

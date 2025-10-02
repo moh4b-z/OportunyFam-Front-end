@@ -69,10 +69,38 @@ main {
 	background-color: #fff;
 	border-radius: 18px;
 	box-shadow: 6px 6px 10px rgba(0, 0, 0, 0.26);
-	padding: 42px;
+	padding: 36px;
 	margin-top: 24px;
 	transform: translateX(996px);
 	animation: slideIn 1s ease-out 0.2s forwards;
+	position: relative;
+	overflow: hidden;
+}
+
+.card_login,
+.card_questions {
+	opacity: 0;
+	transform: translateX(-556px);
+	pointer-events: none;
+	transition: all 0.4s ease;
+	position: absolute;
+}
+
+.card_login.form_active,
+.card_questions.form_active {
+	opacity: 1;
+	transform: translateX(0);
+	pointer-events: auto;
+}
+
+.card_login {
+	margin-top: 24px;
+}
+
+.card_questions {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .switch_buttons {
@@ -81,10 +109,11 @@ main {
 	justify-content: space-between;
 	width: 100%;
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-	padding: 18px;
+	padding: 12px;
 	border-radius: 28px;
 	font-weight: 500;
 	font-size: 1.2rem;
+	position: relative;
 
 	& div {
 		width: 50%;
@@ -94,18 +123,42 @@ main {
 		color: rgba(0, 0, 0, 0.65);
 	}
 
-	& .switch_loginnnn {
+	& .switch_highlight {
 		border-radius: 26px;
 		background-color: #fff;
-		margin: -16px;
+		width: 50%;
+		height: 90%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-		cursor: pointer;
 	}
 
-	& .switch_register {
+	& .switch_login,
+	.switch_register {
+		& p {
+			z-index: 1;
+		}
+	}
+
+	& .switch_highlight {
+		&.login {
+			position: absolute;
+			transform: translateX(-10px);
+			bottom: 2.2px;
+			transition: transform 0.3s;
+		}
+
+		&.register {
+			position: absolute;
+			transform: translateX(210px);
+			bottom: 2.2px;
+			transition: transform 0.3s;
+		}
+	}
+
+	.active {
+		font-weight: bold;
 	}
 }
 
@@ -310,7 +363,7 @@ main {
 }
 
 .question_section {
-	margin-bottom: 40px;
+	margin: 42px 32px;
 }
 
 .question_title {

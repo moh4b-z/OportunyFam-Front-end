@@ -56,11 +56,12 @@ export default function Home() {
 
   return (
     <>
-      {/* O 'blurred' será aplicado se *qualquer* modal estiver aberto */}
-      <div className={showModal || showSearchModal || showTermsModal ? "app-root blurred" : "app-root"}>
-        {/* Passando a nova função para abrir o modal para o componente BarraLateral */}
-        <BarraLateral onSearchClick={handleOpenSearchModal} />
+      {/* CORREÇÃO: BarraLateral movida para fora do wrapper de conteúdo, garantindo que NUNCA seja borrada */}
+      <BarraLateral onSearchClick={handleOpenSearchModal} />
 
+      {/* O novo wrapper que será borrado (app-content-wrapper) */}
+      <div className={showModal || showSearchModal || showTermsModal ? "app-content-wrapper blurred" : "app-content-wrapper"}>
+        
         {/* ... (Restante do código main/header mantido) */}
         <main className="map-area">
           <header className="main-header">
@@ -184,7 +185,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* NOVO Modal de Busca (Adicionado) */}
+      {/* NOVO Modal de Busca (Ajustado no CSS para ficar à esquerda e comprido) */}
       {showSearchModal && (
         <div className="search-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="search-modal-title">
           <div className="search-modal-card">
@@ -199,7 +200,7 @@ export default function Home() {
             <p className="search-modal-content">
               Conteúdo do seu novo modal de busca aqui.
               <br />
-              Este modal tem tamanho médio e está centralizado na tela.
+              **Este modal agora está posicionado à esquerda (ao lado da barra lateral) e com altura total.**
             </p>
             {/* Você pode adicionar aqui o formulário de busca, resultados, etc. */}
 

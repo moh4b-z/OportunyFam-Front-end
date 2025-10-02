@@ -1,49 +1,33 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 
 // SVG de exemplo para o novo ícone (Lupa - Search)
-// Você pode substituir por qualquer outro SVG de sua preferência.
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="m21 21-4.34-4.34" />
-    <circle cx="11" cy="11" r="8" />
-  </svg>
-)
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="m21 21-4.34-4.34" />
+      <circle cx="11" cy="11" r="8" />
+    </svg>
+  )
 
-// SVG de exemplo para o botão (Seta para cima)
-// Substitua por um ícone de sua preferência, como um ícone de perfil ou configurações
-const ArrowUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="m5 12 7-7 7 7" />
-    <path d="M12 19V5" />
-  </svg>
-)
+  interface BarraLateralProps {
+    onSearchClick?: () => void // Mantida
+  }
 
-
-export default function BarraLateral() {
+export default function BarraLateral({ onSearchClick }: BarraLateralProps) {
   const [activeIcon, setActiveIcon] = useState<string | null>(null)
 
   const handleIconClick = (iconName: string) => {
@@ -148,50 +132,25 @@ export default function BarraLateral() {
           </svg>
         </button>
 
-        {/* NOVO ÍCONE */}
         <button
           className={`icon-btn ${activeIcon === "new-feature" ? "active" : ""}`}
-          onClick={() => handleIconClick("new-feature")}
-          aria-label="Nova Funcionalidade"
+          onClick={() => {
+            handleIconClick("new-feature")
+            onSearchClick?.()
+          }}
+          aria-label="Buscar Instituições"
         >
           <SearchIcon />
         </button>
       </div>
-      
+
       {/* Espaçador para empurrar a seção de baixo */}
       <div className="spacer" />
 
-      {/* NOVA SEÇÃO INFERIOR */}
-      <div className="sidebar-bottom">
-        {/* Ícone customizado (área para foto/svg) */}
-        <div className="bottom-icon-placeholder" aria-label="Ícone de Usuário">
-          {/* Adicione o SVG/Imagem aqui. Estou usando um SVG de exemplo */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="bottom-icon-svg"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </div>
-
-        {/* Botão abaixo do ícone */}
-        <button
-          className="bottom-action-btn"
-          onClick={() => console.log("Botão de ação clicado")}
-          aria-label="Configurações/Ação Principal"
-        >
-          <ArrowUpIcon />
-        </button>
-      </div>
+      {/* Removida toda a seção sidebar-bottom que continha:
+          - bottom-icon-placeholder (ícone de usuário)
+          - bottom-action-btn (botão com seta para cima)
+          Esses eram os dois ícones dentro do círculo azul escuro */}
     </aside>
   )
 }

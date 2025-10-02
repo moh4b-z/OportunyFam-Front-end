@@ -4,13 +4,17 @@ import { useState, useEffect } from "react"
 import BarraLateral from "@/app/component/barralateral"
 
 export default function Home() {
+  // Estado para o modal de Boas-vindas (Mantido)
   const [showModal, setShowModal] = useState<boolean>(true)
+  // Estado para o NOVO modal de busca (Adicionado)
+  const [showSearchModal, setShowSearchModal] = useState<boolean>(false) 
   const [searchFocused, setSearchFocused] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [theme, setTheme] = useState("light")
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
 
+  // ... (Restante dos chips e useEffect mantidos)
   const chips = [
     { label: "Jiu Jitsu", active: false },
     { label: "T.I", active: false },
@@ -40,12 +44,24 @@ export default function Home() {
     setShowTermsModal(false)
     setTermsAccepted(false)
   }
+  // Função para abrir o novo modal
+  const handleOpenSearchModal = () => {
+    setShowSearchModal(true)
+  }
+  // Função para fechar o novo modal
+  const handleCloseSearchModal = () => {
+    setShowSearchModal(false)
+  }
+
 
   return (
     <>
-      <div className={showModal ? "app-root blurred" : "app-root"}>
-        <BarraLateral />
+      {/* O 'blurred' será aplicado se *qualquer* modal estiver aberto */}
+      <div className={showModal || showSearchModal || showTermsModal ? "app-root blurred" : "app-root"}>
+        {/* Passando a nova função para abrir o modal para o componente BarraLateral */}
+        <BarraLateral onSearchClick={handleOpenSearchModal} />
 
+        {/* ... (Restante do código main/header mantido) */}
         <main className="map-area">
           <header className="main-header">
             <div className={`search-and-chips ${searchFocused ? "search-and-chips-active" : ""}`}>
@@ -145,6 +161,7 @@ export default function Home() {
         </main>
       </div>
 
+      {/* Modal de Boas-vindas (Mantido) */}
       {showModal && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <div className="modal-card">
@@ -167,9 +184,37 @@ export default function Home() {
         </div>
       )}
 
+      {/* NOVO Modal de Busca (Adicionado) */}
+      {showSearchModal && (
+        <div className="search-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="search-modal-title">
+          <div className="search-modal-card">
+            {/* Botão "X" para fechar a tela */}
+            <button className="search-modal-exit" onClick={handleCloseSearchModal} aria-label="Fechar modal de busca">
+              ✕
+            </button>
+
+            <h2 id="search-modal-title" className="search-modal-title">Buscar Instituições</h2>
+            <hr className="search-modal-hr" />
+
+            <p className="search-modal-content">
+              Conteúdo do seu novo modal de busca aqui.
+              <br />
+              Este modal tem tamanho médio e está centralizado na tela.
+            </p>
+            {/* Você pode adicionar aqui o formulário de busca, resultados, etc. */}
+
+            <div className="search-modal-actions">
+              <button className="btn btn-primary" onClick={handleCloseSearchModal}>Entendi</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Termos e Condições (Mantido) */}
       {showTermsModal && (
         <div className="terms-modal-overlay" role="dialog" aria-modal="true">
           <div className={theme === "dark" ? "terms-modal-card dark" : "terms-modal-card"}>
+            {/* ... (Conteúdo do modal de Termos mantido) */}
             <div className="terms-modal-header">
               <button className="terms-back-btn" onClick={handleCloseTermsModal} aria-label="Voltar">
                 <svg

@@ -803,68 +803,138 @@ input:checked + .slider:before {
 }
 
 
-
 /*
-  ================
-  NOVOS ESTILOS PARA BARRA LATERAL INFERIOR
-  ================
+  ================
+  Novo Modal de Busca (Tamanho Médio, Centralizado)
+  ================
 */
-/* Espaçador para empurrar o conteúdo para baixo */
-.spacer {
-  flex-grow: 1; /* Faz com que ocupe todo o espaço disponível */
+
+.search-modal-overlay {
+position: fixed;
+inset: 0;
+display: flex;
+align-items: center; /* Centraliza verticalmente */
+justify-content: center; /* Centraliza horizontalmente */
+z-index: 35; /* Z-index entre o modal de boas-vindas (30) e o de termos (40) */
+background: rgba(0, 0, 0, 0.25); /* Overlay um pouco mais escuro */
 }
 
-.sidebar-bottom {
+.search-modal-card {
+/* Tamanho Médio */
+width: 90%;
+max-width: 600px; /* Definindo o "tamanho médio" */
+max-height: 80vh;
+overflow-y: auto;
+background: var(--bg-card); /* Usa a cor do tema (branco/escuro) */
+color: var(--text-dark);
+padding: 30px;
+border-radius: 12px;
+position: relative;
+box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+transition: background 0.3s ease;
+}
+
+/* Estilos do tema escuro para o novo modal */
+body.dark .search-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+.search-modal-exit {
+position: absolute;
+right: 15px;
+top: 15px;
+background: transparent;
+border: 0;
+color: var(--text-gray); /* Cor para o X (cinza escuro) */
+font-size: 24px;
+line-height: 1;
+cursor: pointer;
+transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.search-modal-exit:hover {
+color: var(--red-orange);
+transform: rotate(90deg);
+}
+
+.search-modal-title {
+margin: 0 0 10px 0;
+font-size: 24px;
+font-weight: 700;
+}
+
+.search-modal-hr {
+border: 0;
+height: 1px;
+background-color: var(--border-color);
+margin: 10px 0 20px 0;
+}
+
+/* Estilos do tema escuro para o divisor */
+body.dark .search-modal-hr {
+background-color: var(--border-dark);
+}
+
+.search-modal-content {
+font-size: 16px;
+line-height: 1.6;
+color: var(--text-gray);
+margin-bottom: 30px;
+}
+
+/* Estilos do tema escuro para o conteúdo */
+body.dark .search-modal-content {
+color: var(--text-dark-theme);
+}
+
+.search-modal-actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px; /* Espaço entre o ícone e o botão */
-  padding-top: 30px; /* Adiciona um espaço superior, se necessário */
+  justify-content: flex-end;
 }
 
-/* Área para colocar a foto/SVG no canto inferior */
-.bottom-icon-placeholder {
-  width: 50px;
-  height: 50px;
-  background-color: rgba(255, 255, 255, 0.2); /* Fundo sutil */
-  border-radius: 50%; /* Circular */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  overflow: hidden; 
-  border: 2px solid white; /* Borda para destaque */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.bottom-icon-placeholder:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.bottom-icon-svg {
-  color: white; /* Cor do SVG interno */
-  width: 60%;
-  height: 60%;
+@keyframes fadeInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-/* O botão abaixo do ícone */
-.bottom-action-btn {
-  width: 50px;
-  height: 50px;
-  background-color: var(--soft-yellow); /* Cor de destaque */
-  color: white;
-  border: none;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
-}
+/* Responsividade */
+@media (max-width: 800px) {
+  .modal-card {
+    width: 92vw;
+  }
 
-.bottom-action-btn:hover {
-  transform: translateY(-2px);
-  background-color: #f0b956; /* Uma cor um pouco mais clara no hover */
+  .terms-modal-card {
+    width: 80%;
+    min-width: 300px;
+  }
 }

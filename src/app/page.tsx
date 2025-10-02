@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import BarraLateral from "@/app/component/barralateral"
+import InstitutionDetailModal from "@/app/componentes/InstitutionDetailModal";
 
 export default function Home() {
   // Estado para o modal de Boas-vindas (Mantido)

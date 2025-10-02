@@ -340,7 +340,7 @@ export default function Home() {
               </button>
 
               {termsAccepted && (
-                <div className="terms-success-message">Obrigada por aceitar os Termos da OportunityFam</div>
+                <div className="terms-success-message">Obrigada por aceitar os Termos da OportunyFam</div>
               )}
             </div>
           </div>

@@ -1,0 +1,222 @@
+// 1. IMPORTAÇÃO DO CSS
+// Certifique-se de que o caminho está correto para onde você salvou o arquivo CSS.
+
+
+// Importações de React e outros (supondo que já existem)
+import React, { useState } from 'react';
+
+// Tipos (apenas um exemplo, ajuste conforme seu código)
+interface Activity {
+  name: string;
+  count: number;
+}
+
+interface JoinFormData {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+// O componente, que provavelmente recebe props para controlar o modal e o formulário
+interface JoinModalProps {
+  showJoinModal: boolean;
+  handleCloseJoinModal: () => void;
+  // Outras props do formulário (que você precisa definir no seu código real)
+}
+
+const availableActivities: Activity[] = [
+  { name: "Futebol", count: 15 },
+  { name: "Basquete", count: 7 },
+  { name: "Badminton", count: 20 },
+];
+
+const ModalContent: React.FC<JoinModalProps> = ({ showJoinModal, handleCloseJoinModal }) => {
+  // Exemplo de estados para o formulário e dropdown (você deve ter isso no seu componente pai ou hook)
+  const [joinFormData, setJoinFormData] = useState<JoinFormData>({ name: '', email: '', phone: '' });
+  const [showActivitiesDropdown, setShowActivitiesDropdown] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState('');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  const handleJoinFormChange = (field: keyof JoinFormData, value: string) => {
+    setJoinFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleActivitySelect = (name: string) => {
+    setSelectedActivity(name);
+    setShowActivitiesDropdown(false);
+    setShowSuccessMessage(true); // Exemplo de lógica
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+  };
+    
+  return (
+    <>
+      {/* O botão que você clica para abrir o modal estaria aqui, se fosse parte deste componente */}
+      {/* <button onClick={() => setShowJoinModal(true)}>Faça Parte</button> */}
+
+      {/* Modal "Faça parte" */}
+      {showJoinModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="join-modal-card">
+            {/* O modal-exit foi removido no meu CSS anterior, mas mantido no TSX: */}
+            {/* Se você não precisa do '✕' conforme a imagem, pode removê-lo. Mantive ele comentado pois ele estava no seu TSX original. */}
+            {/* <button className="modal-exit" onClick={handleCloseJoinModal} aria-label="Fechar">
+              ✕
+            </button> */}
+
+            <h1 className="join-modal-title">Faça parte</h1>
+
+            <div className="join-form">
+              {/* Campo Nome */}
+              <div className="join-input-group">
+                <div className="join-input-icon">
+                  {/* Ícone de Pessoa/Nome (Ajustado para ícone AA da imagem original) */}
+                  <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>AA</span>
+                </div>
+                <input
+                  type="text"
+                  className="join-input"
+                  placeholder="Nome"
+                  value={joinFormData.name}
+                  onChange={(e) => handleJoinFormChange('name', e.target.value)}
+                />
+              </div>
+
+              {/* Campo Email */}
+              <div className="join-input-group">
+                <div className="join-input-icon">
+                  {/* Ícone de Email */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  className="join-input"
+                  placeholder="Email"
+                  value={joinFormData.email}
+                  onChange={(e) => handleJoinFormChange('email', e.target.value)}
+                />
+              </div>
+
+              {/* Campo Telefone */}
+              <div className="join-input-group">
+                <div className="join-input-icon">
+                  {/* Ícone de Telefone */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6.7-6.7A19.79 19.79 0 0 1 2 4.18V2.18a2 2 0 0 1 2-2h3.18a2 2 0 0 1 2 1.72 17.5 17.5 0 0 0 .58 3.42c.16.59-.14 1.25-.76 1.54l-1.4 1.23a17.65 17.65 0 0 0 6.7 6.7l1.23-1.4a2 2 0 0 1 1.54-.76c.72.16 1.44.27 2.16.33a2 2 0 0 1 1.72 2z"/>
+                  </svg>
+                </div>
+                <input
+                  type="tel"
+                  className="join-input"
+                  placeholder="11 99999-9999"
+                  value={joinFormData.phone}
+                  onChange={(e) => handleJoinFormChange('phone', e.target.value)}
+                />
+              </div>
+
+              {/* Dropdown Atividades */}
+              <div className="join-input-group">
+                <div className="join-input-icon">
+                  {/* Ícone de Check/Visto - Simula o checkmark da imagem */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#28a745' }}>
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div className="join-dropdown-wrapper">
+                  <button
+                    className="join-dropdown-button"
+                    onClick={() => setShowActivitiesDropdown(!showActivitiesDropdown)}
+                  >
+                    {selectedActivity || "Atividades disponíveis"}
+                    <svg 
+                      className={`join-dropdown-arrow ${showActivitiesDropdown ? 'rotated' : ''}`}
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  
+                  {showActivitiesDropdown && (
+                    <div className="join-dropdown-menu">
+                      {availableActivities.map((activity, index) => (
+                        <div 
+                          key={index}
+                          className="join-activity-item"
+                          onClick={() => handleActivitySelect(activity.name)}
+                        >
+                          <div className="join-activity-icon">
+                            {/* Ícones de Esportes - Manter os ícones SVG mais simples para simular */}
+                            {activity.name === "Futebol" && (
+                              <span style={{ color: 'var(--primary-color)' }}>⚽</span> 
+                            )}
+                            {activity.name === "Basquete" && (
+                              <span style={{ color: 'var(--primary-color)' }}>🏀</span>
+                            )}
+                            {activity.name === "Badminton" && (
+                              <span style={{ color: 'var(--primary-color)' }}>🏸</span>
+                            )}
+                          </div>
+                          <span className="join-activity-name">{activity.name}</span>
+                          <span className="join-activity-count">{activity.count}</span>
+                          <svg 
+                            className="join-activity-arrow"
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Mensagem de Sucesso */}
+              {showSuccessMessage && (
+                <div className="join-success-message">
+                  Atividade Escolhida com Sucesso
+                </div>
+              )}
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="join-modal-actions">
+              <button className="join-btn-back" onClick={handleCloseJoinModal}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Voltar
+              </button>
+              <button className="join-btn-advance">
+                Avançar
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default ModalContent;

@@ -214,6 +214,7 @@ body.dark {
 }
 
 .search-and-chips {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 15px;
@@ -1228,4 +1229,136 @@ body.dark .gallery-title {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+
+
+
+
+
+/*
+ * ===============================================
+ * NOVO: Estilos para o Dropdown de Resultados da Busca (Design Card Moderno)
+ * ===============================================
+ */
+
+/* Item de opção individual (Card) */
+.search-result-card {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px; /* Mais padding para ser mais comprido/alto */
+  font-size: 16px;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 10px; /* Borda arredondada */
+  margin: 8px 10px; /* Espaço entre os cartões */
+  background: var(--bg-light); /* Fundo claro para se destacar */
+  border: 1px solid var(--border-color); /* Borda sutil */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra sutil de card */
+  /* Garante que o nome não seja cortado - O nome agora tem espaço total */
+}
+
+/* Estilos para o tema escuro */
+body.dark .search-result-card {
+  color: var(--text-dark-theme);
+  background: #2c2c2c; /* Fundo escuro sutil */
+  border-color: #444;
+}
+
+/* Efeito ao passar o mouse ou selecionar */
+.search-result-card:hover,
+.search-result-card.selected-card {
+  background-color: var(--bg-hover-light); /* Fundo sutil */
+  border-color: var(--orange); /* Borda Laranja */
+  transform: translateY(-2px); /* Efeito de elevação sutil */
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.2); /* Sombra laranja */
+}
+
+body.dark .search-result-card:hover,
+body.dark .search-result-card.selected-card {
+  background-color: #383838;
+}
+
+/* ------------------------------------------------ */
+/* ELEMENTOS INTERNOS DO CARD */
+/* ------------------------------------------------ */
+
+/* 1. Bloco da Logo (Esquerda) */
+.card-logo-block {
+  width: 50px; /* Aumentado */
+  height: 50px;
+  min-width: 50px; 
+  border-radius: 8px; /* Quadrado arredondado */
+  background-color: rgba(74, 144, 226, 0.15); /* Fundo azul suave */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+}
+
+/* 2. Conteúdo Central (Nome e Subtítulo) */
+.card-main-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Ocupa o máximo de espaço */
+    margin-right: 10px;
+}
+
+/* Nome da Instituição - NUNCA CORTA (se couber na largura do input) */
+.card-name-full {
+  font-weight: 700; /* Mais destaque */
+  font-size: 17px;
+  color: var(--text-darker);
+  /* Removido white-space/overflow para mostrar o nome completo */
+}
+
+body.dark .card-name-full {
+    color: var(--text-dark-theme);
+}
+
+/* Subtítulo */
+.card-subtitle {
+    font-size: 13px;
+    color: var(--text-muted); /* Cinza suave */
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+/* 3. Bloco de Avaliação (Direita) */
+.card-rating-block {
+  display: flex;
+  flex-direction: column; /* Estrelas em cima do texto 5.0 */
+  align-items: flex-end; /* Alinha tudo à direita */
+  min-width: 70px;
+}
+
+.card-star-icons {
+    display: flex;
+    gap: 1px;
+    color: var(--soft-yellow); /* Estrelas amarelas */
+}
+
+.star-icon-option {
+  width: 16px; /* Estrelas um pouco maiores */
+  height: 16px;
+}
+
+.card-rating-text {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--soft-yellow); /* Cor do texto de avaliação */
+    margin-top: 2px;
+}
+
+/* AJUSTE FINAL: Remover padding do contêiner para que os cards tenham a margem */
+.search-results-dropdown {
+  position: absolute;
+  top: 100%; /* Pula 100% da altura da barra de busca */
+  /* Ajuste a largura e as margens para que ele fique centralizado ou alinhado */
+  left: 0; 
+  right: auto; /* Ou use right: 0 se quiser que ele se expanda da direita para a esquerda */
+  width: 100%; /* Ocupa 100% da largura do .search-and-chips */
+  z-index: 10; /* Garante que fique acima de outros elementos */
+  /* ... o resto dos estilos que definem a aparência dos cards ... */
 }

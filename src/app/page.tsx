@@ -2,20 +2,94 @@
 
 import { useState, useEffect } from "react"
 import BarraLateral from "@/app/component/barralateral"
-import InstitutionDetailModal from "@/app/componentes/InstitutionDetailModal";
 
+// ========================================================
+// COMPONENTES DE RESULTADO DE BUSCA (MANTIDOS)
+// ========================================================
+const StarIcon = () => (
+    <svg className="star-icon-option" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+);
+
+interface SearchResultOptionProps {
+  name: string;
+  onClick: () => void;
+  isSelected: boolean;
+}
+
+const SearchResultOption = ({ name, onClick, isSelected }: SearchResultOptionProps) => {
+  return (
+    <div
+      className={`search-result-card ${isSelected ? "selected-card" : ""}`}
+      onClick={onClick}
+    >
+      {/* 1. Logo (Canto Esquerdo) */}
+      <div className="card-logo-block">
+        {/* Placeholder SVG Gota (Logo Água Viva) */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="#4a90e2" /* Azul mais vibrante */
+          stroke="#3478c8"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 2.69l5.66 5.66c3.12 3.12 3.12 8.19 0 11.31-3.12 3.12-8.19 3.12-11.31 0L12 2.69z" />
+        </svg>
+      </div>
+
+      {/* 2. Conteúdo Principal (Nome e Subtítulo) */}
+      <div className="card-main-content">
+        {/* Nome Completo da Instituição */}
+        <span className="card-name-full">{name}</span>
+        {/* Subtítulo informativo */}
+        <span className="card-subtitle">Instituição de Ensino e Social</span>
+      </div>
+
+      {/* 3. Avaliação (Canto Direito) */}
+      <div className="card-rating-block">
+        <div className="card-star-icons">
+            <StarIcon /><StarIcon /><StarIcon /><StarIcon /><StarIcon />
+        </div>
+        <span className="card-rating-text">5.0</span>
+      </div>
+    </div>
+  );
+}
+
+
+// ========================================================
+// COMPONENTE PRINCIPAL HOME
+// ========================================================
 export default function Home() {
-  // Estado para o modal de Boas-vindas (Mantido)
   const [showModal, setShowModal] = useState<boolean>(true)
-  // Estado para o NOVO modal de busca (Adicionado)
-  const [showSearchModal, setShowSearchModal] = useState<boolean>(false) 
+  const [showSearchModal, setShowSearchModal] = useState<boolean>(false)
   const [searchFocused, setSearchFocused] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [theme, setTheme] = useState("light")
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
 
-  // ... (Restante dos chips e useEffect mantidos)
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [selectedInstitution, setSelectedInstitution] = useState<string | null>(null)
+
+  const institutions = [
+    { name: "Instituição Água Viva", key: "agua-viva" },
+  ];
+
+  const filteredInstitutions = institutions.filter(inst =>
+    inst.name.toLowerCase().includes(searchTerm.toLowerCase()) && searchTerm.trim() !== ""
+  );
+
+  const handleInstitutionClick = (key: string) => {
+    setSelectedInstitution(key)
+    setShowSearchModal(true)
+    setSearchFocused(false);
+    setSearchTerm("");
+  }
+
   const chips = [
     { label: "Jiu Jitsu", active: false },
     { label: "T.I", active: false },
@@ -45,28 +119,29 @@ export default function Home() {
     setShowTermsModal(false)
     setTermsAccepted(false)
   }
-  // Função para abrir o novo modal
+  
   const handleOpenSearchModal = () => {
-    setShowSearchModal(true)
+    // Não faz nada aqui por enquanto
   }
-  // Função para fechar o novo modal
+  
   const handleCloseSearchModal = () => {
     setShowSearchModal(false)
+    setSelectedInstitution(null);
   }
 
 
   return (
     <>
-      {/* CORREÇÃO: BarraLateral movida para fora do wrapper de conteúdo, garantindo que NUNCA seja borrada */}
       <BarraLateral onSearchClick={handleOpenSearchModal} />
 
-      {/* O novo wrapper que será borrado (app-content-wrapper) */}
       <div className={showModal || showSearchModal || showTermsModal ? "app-content-wrapper blurred" : "app-content-wrapper"}>
-        
-        {/* ... (Restante do código main/header mantido) */}
+
         <main className="map-area">
           <header className="main-header">
+            {/* O contêiner principal da busca deve ter position: relative; no CSS */}
             <div className={`search-and-chips ${searchFocused ? "search-and-chips-active" : ""}`}>
+              
+              {/* Onde a barra de busca realmente está */}
               <div className={`search-box ${searchFocused ? "search-box-active" : ""}`}>
                 <svg
                   className="search-icon"
@@ -86,10 +161,34 @@ export default function Home() {
                 <input
                   className="search-input"
                   placeholder="Pesquise aqui"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
+                  onBlur={() => {
+                    // Delay para permitir o clique no resultado
+                    setTimeout(() => setSearchFocused(false), 200);
+                  }}
                 />
               </div>
+
+              {/* =================================================== */}
+              {/* BLOCO MOVIDO: AGORA ESTÁ FORA DO search-box */}
+              {/* =================================================== */}
+              {searchFocused && filteredInstitutions.length > 0 && (
+                <div className="search-results-dropdown">
+                  {filteredInstitutions.map((inst) => (
+                    <SearchResultOption
+                      key={inst.key}
+                      name={inst.name}
+                      isSelected={selectedInstitution === inst.key}
+                      onClick={() => handleInstitutionClick(inst.key)}
+                    />
+                  ))}
+                </div>
+              )}
+              {/* =================================================== */}
+              {/* FIM DO BLOCO MOVIDO */}
+              {/* =================================================== */}
 
               <div className="chips">
                 {chips.map((chip, i) => (
@@ -187,154 +286,112 @@ export default function Home() {
       )}
 
 
-
-
-
-
-
-
-
-
-
-
-      
-
-        {/* NOVO Modal de Busca: Instituição Detalhe (Ajustado no CSS para ficar à esquerda e comprido) */}
-     {showSearchModal && (
-      <div className="search-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="inst-agua-viva-title">
-        <div className="search-modal-card">
-          {/* O 'x' pode ser mantido ou removido. Na imagem ele foi removido, então vamos manter um botão genérico para fechar */}
+      {/* Modal de Detalhe da Instituição (Mantido) */}
+      {showSearchModal && selectedInstitution === "agua-viva" && (
+        <div className="search-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="inst-agua-viva-title">
+          <div className="search-modal-card">
             <button className="search-modal-exit" onClick={handleCloseSearchModal} aria-label="Fechar tela de detalhes">
-            ✕
-          </button>
+              ✕
+            </button>
 
-          {/* =============================================== */}
-              {/* 1. CABEÇALHO (Logo, Título e Avaliação) */}
-{/* =============================================== */}
-<div className="inst-header">
-<div className="inst-logo-circle">
- {/* Icone/Logo da Água Viva - Placeholder SVG simples para o desenho de gota */}
-<svg
-xmlns="http://www.w3.org/2000/svg"
-width="30"
-height="30"
-viewBox="0 0 24 24"
-fill="#3498db" /* Azul da gota */
-stroke="#2980b9"
-strokeWidth="1.5"
-strokeLinecap="round"
-strokeLinejoin="round"
-className="inst-logo-img"
->
-<path d="M12 2.69l5.66 5.66c3.12 3.12 3.12 8.19 0 11.31-3.12 3.12-8.19 3.12-11.31 0L12 2.69z" />
-</svg>
-</div>
+            {/* =============================================== */}
+            {/* 1. CABEÇALHO (Logo, Título e Avaliação) */}
+            {/* =============================================== */}
+            <div className="inst-header">
+              <div className="inst-logo-circle">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="30"
+                  height="30"
+                  viewBox="0 0 24 24"
+                  fill="#3498db"
+                  stroke="#2980b9"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="inst-logo-img"
+                >
+                  <path d="M12 2.69l5.66 5.66c3.12 3.12 3.12 8.19 0 11.31-3.12 3.12-8.19 3.12-11.31 0L12 2.69z" />
+                </svg>
+              </div>
 
-<div className="inst-info">
-<h2 id="inst-agua-viva-title" className="inst-title">Inst. Água Viva</h2>
-<p className="inst-subtitle">Instituição de Ensino</p>
- <div className="inst-rating">
-{/* Estrelas de 5.0 */}
-{[...Array(5)].map((_, i) => (
-<svg key={i} className="star-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-))}
- <span className="rating-text">5.0</span>
-<span className="rating-text">({(450).toLocaleString("pt-BR")})</span>
- </div>
-</div>
-</div>
+              <div className="inst-info">
+                <h2 id="inst-agua-viva-title" className="inst-title">Inst. Água Viva</h2>
+                <p className="inst-subtitle">Instituição de Ensino</p>
+                <div className="inst-rating">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="star-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                  ))}
+                  <span className="rating-text">5.0</span>
+                  <span className="rating-text">({(450).toLocaleString("pt-BR")})</span>
+                </div>
+              </div>
+            </div>
 
+            {/* 2. BOTÕES DE AÇÃO */}
+            <div className="inst-actions">
+              <button className="btn-orange-outline">Sobre nós</button>
+              <button className="btn-orange-outline">Faça parte</button>
+              <button className="btn-orange-outline">Associados</button>
+            </div>
 
-{/* =============================================== */}
- {/* 2. BOTÕES DE AÇÃO */}
-{/* =============================================== */}
-<div className="inst-actions">
- <button className="btn-orange-outline">Sobre nós</button>
-<button className="btn-orange-outline">Faça parte</button>
-<button className="btn-orange-outline">Associados</button>
- </div>
+            {/* 3. DESCRIÇÃO */}
+            <div className="inst-description-block interactive-card">
+              <p className="inst-description-text">
+                A Rede Água Viva pela Mudança Social reúne organizações que atuam com o esporte como fator de desenvolvimento humano. Na busca por trazer visibilidade ao trabalho das organizações e evidenciar o poder transformador do ensino.
+              </p>
+            </div>
 
- {/* =============================================== */}
-{/* 3. DESCRIÇÃO (A Rede Água Viva...) */}
-{/* Aplicando a classe 'interactive-card' para o hover */}
-{/* =============================================== */}
-<div className="inst-description-block interactive-card">
-<p className="inst-description-text">
-A Rede Água Viva pela Mudança Social reúne organizações que atuam com o esporte como fator de desenvolvimento humano. Na busca por trazer visibilidade ao trabalho das organizações e evidenciar o poder transformador do ensino.
-</p>
- </div>
+            {/* 4. NOSSAS INFORMAÇÕES */}
+            <div className="info-block interactive-card">
+              <h3 className="info-title">Nossas Informações</h3>
 
-  {/* =============================================== */}
-{/* 4. NOSSAS INFORMAÇÕES */}
- {/* Aplicando a classe 'interactive-card' para o hover */}
-{/* =============================================== */}
-<div className="info-block interactive-card">
-<h3 className="info-title">Nossas Informações</h3>
-
- <div className="info-item">
- {/* Ícone de Localização */}
- <svg className="info-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" /></svg>
- <span className="info-value">
-R. Interna Grupo Bandeirante, 29 - Vila Militar, Barueri - SP, 06442-130
-</span>
- </div>
+              <div className="info-item">
+                <svg className="info-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                <span className="info-value">
+                  R. Interna Grupo Bandeirante, 29 - Vila Militar, Barueri - SP, 06442-130
+                </span>
+              </div>
 
 
-<div className="info-item">
-{/* Ícone de Telefone */}
-<svg className="info-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6.7-6.7A19.79 19.79 0 0 1 2 4.18V2.18a2 2 0 0 1 2-2h3.18a2 2 0 0 1 2 1.72 17.5 17.5 0 0 0 .58 3.42c.16.59-.14 1.25-.76 1.54l-1.4 1.23a17.65 17.65 0 0 0 6.7 6.7l1.23-1.4a2 2 0 0 1 1.54-.76c.72.16 1.44.27 2.16.33a2 2 0 0 1 1.72 2z" /></svg>
-<span className="info-value">(11) 9999-9900</span>
- </div>
+              <div className="info-item">
+                <svg className="info-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6.7-6.7A19.79 19.79 0 0 1 2 4.18V2.18a2 2 0 0 1 2-2h3.18a2 2 0 0 1 2 1.72 17.5 17.5 0 0 0 .58 3.42c.16.59-.14 1.25-.76 1.54l-1.4 1.23a17.65 17.65 0 0 0 6.7 6.7l1.23-1.4a2 2 0 0 1 1.54-.76c.72.16 1.44.27 2.16.33a2 2 0 0 1 1.72 2z" /></svg>
+                <span className="info-value">(11) 9999-9900</span>
+              </div>
 
-<div className="info-item">
-{/* Ícone de Relógio */}
-<svg className="info-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-<span className="info-value">
-<span className="info-status-open">Aberto</span>, Fecha às 16:00
-</span>
- </div>
+              <div className="info-item">
+                <svg className="info-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                <span className="info-value">
+                  <span className="info-status-open">Aberto</span>, Fecha às 16:00
+                </span>
+              </div>
 
- </div>
+            </div>
 
-{/* =============================================== */}
-{/* 5. CONHEÇA NOSSA INSTITUIÇÃO (Galeria de Fotos) */}
-{/* =============================================== */}
-<h3 className="gallery-title">Conheça nossa instituição</h3>
+            {/* 5. GALERIA DE FOTOS */}
+            <h3 className="gallery-title">Conheça nossa instituição</h3>
 
- <div className="gallery-container">
-{/* Card de Imagem 1 (Aplicando a classe 'interactive-card' para o hover) */}
-<div className="gallery-card interactive-card">
-<div className="gallery-image" role="img" aria-label="Foto da Instituição 1" />
-</div>
+            <div className="gallery-container">
+              <div className="gallery-card interactive-card">
+                <div className="gallery-image" role="img" aria-label="Foto da Instituição 1" />
+              </div>
 
+              <div className="gallery-card interactive-card">
+                <div className="gallery-image" role="img" aria-label="Foto da Instituição 2" />
+              </div>
 
-{/* Card de Imagem 2 (Aplicando a classe 'interactive-card' para o hover) */}
-<div className="gallery-card interactive-card">
- <div className="gallery-image" role="img" aria-label="Foto da Instituição 2" />
-</div>
-
- {/* Card de Imagem 3 (Aplicando a classe 'interactive-card' para o hover) */}
- <div className="gallery-card interactive-card">
- <div className="gallery-image" role="img" aria-label="Foto da Instituição 3" />
- </div>
- </div>
- </div>
-</div>
-)}
-
-
-
-
-
-
-
-
+              <div className="gallery-card interactive-card">
+                <div className="gallery-image" role="img" aria-label="Foto da Instituição 3" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Termos e Condições (Mantido) */}
       {showTermsModal && (
         <div className="terms-modal-overlay" role="dialog" aria-modal="true">
           <div className={theme === "dark" ? "terms-modal-card dark" : "terms-modal-card"}>
-            {/* ... (Conteúdo do modal de Termos mantido) */}
             <div className="terms-modal-header">
               <button className="terms-back-btn" onClick={handleCloseTermsModal} aria-label="Voltar">
                 <svg

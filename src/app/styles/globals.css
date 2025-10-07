@@ -18,6 +18,7 @@ body,
 #__next {
 	height: 100dvh;
 	width: 100dvw;
+	overflow: hidden;
 	background-color: #fff;
 }
 
@@ -78,7 +79,7 @@ main {
 }
 
 .card_login,
-.card_questions {
+.card_register {
 	opacity: 0;
 	transform: translateX(-556px);
 	pointer-events: none;
@@ -87,17 +88,18 @@ main {
 }
 
 .card_login.form_active,
-.card_questions.form_active {
+.card_register.form_active {
 	opacity: 1;
 	transform: translateX(0);
 	pointer-events: auto;
 }
 
 .card_login {
-	margin-top: 24px;
+	margin-top: 36px;
 }
 
-.card_questions {
+.card_questions,
+.card_register {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -146,14 +148,14 @@ main {
 			position: absolute;
 			transform: translateX(-10px);
 			bottom: 2.2px;
-			transition: transform 0.3s;
+			transition: transform 0.4s;
 		}
 
 		&.register {
 			position: absolute;
 			transform: translateX(210px);
 			bottom: 2.2px;
-			transition: transform 0.3s;
+			transition: transform 0.4s;
 		}
 	}
 
@@ -280,7 +282,7 @@ main {
 
 		&:hover {
 			background-color: rgba(128, 128, 128, 0.205);
-			transition: 0.3s;
+			transition: 0.4s;
 		}
 	}
 
@@ -312,7 +314,7 @@ main {
 
 		&:hover {
 			background-color: #df941c;
-			transition: 0.3s;
+			transition: 0.4s;
 		}
 	}
 }
@@ -385,7 +387,7 @@ main {
 	border-radius: 16px;
 	padding: 16px;
 	cursor: pointer;
-	transition: all 0.3s ease;
+	transition: all 0.4s ease;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -422,7 +424,7 @@ main {
 	justify-content: space-between;
 	align-items: center;
 	width: 80%;
-	margin-top: -16px;
+	margin-top: -12px;
 }
 
 .btn_back,
@@ -432,12 +434,20 @@ main {
 	border-radius: 8px;
 	font-size: 16px;
 	cursor: pointer;
-	transition: all 0.3s ease;
+	transition: all 0.4s ease;
 	background: transparent;
 }
 
 .btn_back {
-	color: #666;
+	color: #000;
+	cursor: pointer;
+	transition: color 0.18s ease, opacity 0.18s ease;
+
+	&:disabled {
+		color: #9aa0a6;
+		cursor: not-allowed;
+		opacity: 0.7;
+	}
 }
 
 .btn_back:hover {
@@ -452,4 +462,53 @@ main {
 
 .btn_next:hover {
 	background: #fff8f0;
+}
+
+.step_active,
+.step_inactive {
+	transition: all 0.4s ease;
+}
+
+.step_active {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.step_inactive {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.card_responsible {
+	width: 80%;
+	display: flex;
+	flex-direction: column;
+	margin-top: 36px;
+	position: absolute;
+}
+
+.questions_responsible {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding-right: 8px;
+}
+
+.questions_responsible::-webkit-scrollbar {
+	width: 8px;
+}
+
+.questions_responsible::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+
+.questions_responsible::-webkit-scrollbar-thumb {
+	background: #ff9800;
+	border-radius: 10px;
+}
+
+.questions_responsible::-webkit-scrollbar-thumb:hover {
+	background: #df941c;
 }

@@ -75,7 +75,7 @@ const ModalContent: React.FC<JoinModalProps> = ({ showJoinModal, handleCloseJoin
                 <input
                   type="text"
                   className="join-input"
-                  placeholder="Nome"
+                  placeholder="Nome do Responsável"
                   value={joinFormData.name}
                   onChange={(e) => handleJoinFormChange('name', e.target.value)}
                 />

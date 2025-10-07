@@ -367,27 +367,26 @@ export default function Home() {
               </div>
 
             </div>
+      {/* 5. GALERIA DE FOTOS */}
+             <h3 className="gallery-title">Conheça nossa instituição</h3>
 
-            {/* 5. GALERIA DE FOTOS */}
-            <h3 className="gallery-title">Conheça nossa instituição</h3>
-
-            <div className="gallery-container">
-              <div className="gallery-card interactive-card">
-                <div className="gallery-image" role="img" aria-label="Foto da Instituição 1" />
+              <div className="gallery-container">
+                <div className="gallery-card interactive-card">
+                 <div className="gallery-image image-1" role="img" aria-label="Foto da Instituição 1" />
               </div>
 
               <div className="gallery-card interactive-card">
-                <div className="gallery-image" role="img" aria-label="Foto da Instituição 2" />
+                <div className="gallery-image image-2" role="img" aria-label="Foto da Instituição 2" />
               </div>
 
               <div className="gallery-card interactive-card">
-                <div className="gallery-image" role="img" aria-label="Foto da Instituição 3" />
+                <div className="gallery-image image-3" role="img" aria-label="Foto da Instituição 3" />
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+              </div>
+           </div>
+         </div>
+       )
+     }
       {/* Modal de Termos e Condições (Mantido) */}
       {showTermsModal && (
         <div className="terms-modal-overlay" role="dialog" aria-modal="true">

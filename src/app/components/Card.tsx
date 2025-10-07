@@ -4,12 +4,30 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 export default function CardSystem() {
-	const [email, setEmail] = useState<string>('')
-	const [password, setPassword] = useState<string>('')
-	const [name, setName] = useState<string>('')
-	const [phone, setPhone] = useState<string>('')
-	const [dateOfBirth, setDateOfBirth] = useState<string>('')
-	const [selectedOption, setSelectedOption] = useState('responsavel')
+	const [loginEmail, setLoginEmail] = useState<string>('')
+	const [responsableRegisterEmail, setResponsableRegisterEmail] = useState<string>('')
+	const [kidRegisterEmail, setKidRegisterEmail] = useState<string>('')
+	const [ongRegisterEmail, setOngRegisterEmail] = useState<string>('')
+	const [loginPassword, setLoginPassword] = useState<string>('')
+	const [responsableRegisterPassword, setResponsableRegisterPassword] = useState<string>('')
+	const [kidRegisterPassword, setKidRegisterPassword] = useState<string>('')
+	const [ongRegisterPassword, setOngRegisterPassword] = useState<string>('')
+	const [confirmResponsablePassword, setConfirmResponsablePassword] = useState<string>('')
+	const [confirmKidPassword, setConfirmKidPassword] = useState<string>('')
+	const [confirmOngPassword, setConfirmOngPassword] = useState<string>('')
+	const [responsableName, setResponsableName] = useState<string>('')
+	const [kidName, setKidName] = useState<string>('')
+	const [ongName, setOngName] = useState<string>('')
+	const [responsablePhone, setResponsablePhone] = useState<string>('')
+	const [kidPhone, setKidPhone] = useState<string>('')
+	const [ongPhone, setOngPhone] = useState<string>('')
+	const [responsableDateOfBirth, setResponsableDateOfBirth] = useState<string>('')
+	const [kidDateOfBirth, setKidDateOfBirth] = useState<string>('')
+	const [responsableCpf, setResponsableCpf] = useState<string>('')
+	const [kidCpf, setKidCpf] = useState<string>('')
+	const [kidCpfResponsable, setKidCpfResponsable] = useState<string>('')
+	const [responsableAddress, setResponsableAddress] = useState<string>('')
+	const [selectedOption, setSelectedOption] = useState<string>('responsavel')
 	const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
 	const [step, setStep] = useState<number>(0)
 	const canGoBack = step > 0
@@ -29,8 +47,8 @@ export default function CardSystem() {
 	}
 
 	const handleSubmit = () => {
-		console.log('Email:', email)
-		console.log('Senha:', password)
+		console.log('Email:', loginEmail)
+		console.log('Senha:', loginPassword)
 	}
 
 	return (
@@ -43,8 +61,8 @@ export default function CardSystem() {
 						inputName="Email"
 						placeholder="exemplo123@gmail.com"
 						type="email"
-						value={email}
-						onChange={setEmail}
+						value={loginEmail}
+						onChange={setLoginEmail}
 					/>
 					<Input
 						srcImage="/icons-lock.svg"
@@ -52,8 +70,8 @@ export default function CardSystem() {
 						inputName="Senha"
 						placeholder="**********"
 						type="password"
-						value={password}
-						onChange={setPassword}
+						value={loginPassword}
+						onChange={setLoginPassword}
 					/>
 				</div>
 
@@ -153,32 +171,216 @@ export default function CardSystem() {
 									inputName="Nome"
 									placeholder="Lucas Ribeiro"
 									type="text"
-									value={name}
-									onChange={setName}
+									value={responsableName}
+									onChange={setResponsableName}
 								/>
 								<Input
 									srcImage="/icons-email.svg"
 									inputName="Email"
 									placeholder="exemplo123@gmail.com"
 									type="email"
-									value={email}
-									onChange={setEmail}
+									value={responsableRegisterEmail}
+									onChange={setResponsableRegisterEmail}
 								/>
 								<Input
 									srcImage="/icons-phone.svg"
 									inputName="Telefone"
 									placeholder="(11) 99999-9999"
 									type="tel"
-									value={phone}
-									onChange={setPhone}
+									value={responsablePhone}
+									onChange={setResponsablePhone}
 								/>
 								<Input
 									srcImage="/icons-date.svg"
 									inputName="Telefone"
 									placeholder="(11) 99999-9999"
 									type="date"
-									value={dateOfBirth}
-									onChange={setDateOfBirth}
+									value={responsableDateOfBirth}
+									onChange={setResponsableDateOfBirth}
+								/>
+								<Input
+									srcImage="/icons-card.svg"
+									inputName="CPF"
+									placeholder="000.000.000-00"
+									type="text"
+									value={responsableCpf}
+									onChange={setResponsableCpf}
+								/>
+								<Input
+									srcImage="/icons-pin_orange.svg"
+									inputName="CEP"
+									placeholder="01001-000"
+									type="text"
+									value={responsableAddress}
+									onChange={setResponsableAddress}
+								/>
+								<Input
+									srcImage="/icons-lock.svg"
+									extImage="/icons-eye-off.svg"
+									inputName="Senha"
+									placeholder="Senha"
+									type="password"
+									value={responsableRegisterPassword}
+									onChange={setResponsableRegisterPassword}
+								/>
+								<Input
+									srcImage="/icons-lock.svg"
+									extImage="/icons-eye-off.svg"
+									inputName="Confirmar senha"
+									placeholder="Confirmar senha"
+									type="password"
+									value={confirmResponsablePassword}
+									onChange={setConfirmResponsablePassword}
+								/>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{selectedOption === 'crianca' && (
+					<div className={`card_kid ${step === 1 && activeTab === 'register' ? 'step_active' : 'step_inactive'}`}>
+						<div className="questions_kid">
+							<div className="inputs">
+								<Input
+									srcImage="/icons-name.svg"
+									inputName="Nome"
+									placeholder="Lucas Ribeiro"
+									type="text"
+									value={kidName}
+									onChange={setKidName}
+								/>
+								<Input
+									srcImage="/icons-email.svg"
+									inputName="Email"
+									placeholder="exemplo123@gmail.com"
+									type="email"
+									value={kidRegisterEmail}
+									onChange={setKidRegisterEmail}
+								/>
+								<Input
+									srcImage="/icons-phone.svg"
+									inputName="Telefone"
+									placeholder="(11) 99999-9999"
+									type="tel"
+									value={kidPhone}
+									onChange={setKidPhone}
+								/>
+								<Input
+									srcImage="/icons-date.svg"
+									inputName="Telefone"
+									placeholder="(11) 99999-9999"
+									type="date"
+									value={kidDateOfBirth}
+									onChange={setKidDateOfBirth}
+								/>
+								<Input
+									srcImage="/icons-card.svg"
+									inputName="CPF"
+									placeholder="000.000.000-00"
+									type="text"
+									value={kidCpf}
+									onChange={setKidCpf}
+								/>
+								<Input
+									srcImage="/icons-card.svg"
+									inputName="CPF do responsável"
+									placeholder="000.000.000-00"
+									type="text"
+									value={kidCpfResponsable}
+									onChange={setKidCpfResponsable}
+								/>
+								<Input
+									srcImage="/icons-lock.svg"
+									extImage="/icons-eye-off.svg"
+									inputName="Senha"
+									placeholder="Senha"
+									type="password"
+									value={kidRegisterPassword}
+									onChange={setKidRegisterPassword}
+								/>
+								<Input
+									srcImage="/icons-lock.svg"
+									extImage="/icons-eye-off.svg"
+									inputName="Confirmar senha"
+									placeholder="Confirmar senha"
+									type="password"
+									value={confirmKidPassword}
+									onChange={setConfirmKidPassword}
+								/>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{selectedOption === 'ong' && (
+					<div className={`card_ong ${step === 1 && activeTab === 'register' ? 'step_active' : 'step_inactive'}`}>
+						<div className="questions_ong">
+							<div className="inputs">
+								<Input
+									srcImage="/icons-name.svg"
+									inputName="Nome"
+									placeholder="Nome da instituição"
+									type="text"
+									value={responsableName}
+									onChange={setResponsableName}
+								/>
+								<Input
+									srcImage="/icons-email.svg"
+									inputName="Email"
+									placeholder="exemplo123@gmail.com"
+									type="email"
+									value={responsableRegisterEmail}
+									onChange={setResponsableRegisterEmail}
+								/>
+								<Input
+									srcImage="/icons-phone.svg"
+									inputName="Telefone"
+									placeholder="(11) 99999-9999"
+									type="tel"
+									value={responsablePhone}
+									onChange={setResponsablePhone}
+								/>
+								<Input
+									srcImage="/icons-date.svg"
+									inputName="Telefone"
+									placeholder="(11) 99999-9999"
+									type="date"
+									value={responsableDateOfBirth}
+									onChange={setResponsableDateOfBirth}
+								/>
+								<Input
+									srcImage="/icons-card.svg"
+									inputName="CPF"
+									placeholder="000.000.000-00"
+									type="text"
+									value={responsableCpf}
+									onChange={setResponsableCpf}
+								/>
+								<Input
+									srcImage="/icons-pin_orange.svg"
+									inputName="CEP"
+									placeholder="01001-000"
+									type="text"
+									value={responsableAddress}
+									onChange={setResponsableAddress}
+								/>
+								<Input
+									srcImage="/icons-lock.svg"
+									extImage="/icons-eye-off.svg"
+									inputName="Senha"
+									placeholder="Senha"
+									type="password"
+									value={responsableRegisterPassword}
+									onChange={setResponsableRegisterPassword}
+								/>
+								<Input
+									srcImage="/icons-lock.svg"
+									extImage="/icons-eye-off.svg"
+									inputName="Confirmar senha"
+									placeholder="Confirmar senha"
+									type="password"
+									value={confirmResponsablePassword}
+									onChange={setConfirmResponsablePassword}
 								/>
 							</div>
 						</div>

@@ -8,6 +8,25 @@ export default function CardSystem() {
 	const [senha, setSenha] = useState('')
 	const [selectedOption, setSelectedOption] = useState('responsavel')
 	const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
+	const [step, setStep] = useState<number>(0) // etapa atual do formulário
+	const canGoBack = step > 0 // verifica se pode voltar
+
+	// função para avançar para a próxima etapa
+	const handleNext = () => {
+		if (step === 0) {
+			if (!selectedOption) {
+				alert('Por favor, selecione uma opção antes de continuar.')
+				return
+			}
+			setStep(step + 1)
+			return
+		}
+	}
+
+	const handleBack = () => {
+		if (!canGoBack) return
+		setStep(step - 1)
+	}
 
 	const handleSubmit = () => {
 		console.log('Email:', email)
@@ -131,8 +150,4 @@ export default function CardSystem() {
 			</div>
 		</div>
 	)
-}
-
-export function CardQuestions() {
-	return <div className="card_container"></div>
 }

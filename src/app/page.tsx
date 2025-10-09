@@ -66,6 +66,7 @@ export default function Home() {
   const [showSearchModal, setShowSearchModal] = useState<boolean>(false)
   const [showJoinModal, setShowJoinModal] = useState<boolean>(false)
   const [showRegistrationModal, setShowRegistrationModal] = useState<boolean>(false)
+  const [showAboutModal, setShowAboutModal] = useState<boolean>(false)
   const [searchFocused, setSearchFocused] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [theme, setTheme] = useState("light")
@@ -153,6 +154,14 @@ export default function Home() {
   const handleOpenJoinModal = () => {
     setShowJoinModal(true)
     setShowSearchModal(false)
+  }
+
+  const handleOpenAboutModal = () => {
+    setShowAboutModal(true)
+  }
+
+  const handleCloseAboutModal = () => {
+    setShowAboutModal(false)
   }
 
   const handleCloseJoinModal = () => {
@@ -422,7 +431,7 @@ export default function Home() {
 
             {/* 2. BOTÕES DE AÇÃO */}
             <div className="inst-actions">
-              <button className="btn-orange-outline">Sobre nós</button>
+              <button className="btn-orange-outline" onClick={handleOpenAboutModal}>Sobre nós</button>
               <button className="btn-orange-outline" onClick={handleOpenJoinModal}>Faça parte</button>
               <button className="btn-orange-outline">Associados</button>
             </div>
@@ -479,6 +488,46 @@ export default function Home() {
          </div>
        )
      }
+      {/* Modal Sobre Nós */}
+      {showAboutModal && (
+        <div className="about-modal-overlay" role="dialog" aria-modal="true">
+          <div className="about-modal-card">
+            <button className="about-modal-exit" onClick={handleCloseAboutModal} aria-label="Fechar">
+              ✕
+            </button>
+
+            <div className="about-hero">
+              <div className="about-video-frame">
+                <iframe
+                  className="about-video"
+                  src="https://www.youtube.com/embed/7joj8ohz1Ik?si=Gr9tdi4CLBN6E7Sv"
+                  title="Instituto Água Viva - Vídeo"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+
+            <div className="about-content">
+              <h2 className="about-title">Conheça o Instituto Água Viva</h2>
+              <p className="about-text">
+                Criado em 2015, o Instituto Água Viva é uma organização social que atua no Sertão
+                nordestino, promovendo transformação por meio da educação, saúde, esportes e
+                empreendedorismo social.
+              </p>
+              <a
+                className="about-cta"
+                href="https://www.institutoaguaviva.org.br/?gad_source=1&gad_campaignid=22771344172&gbraid=0AAAAADP45zJt-9xMyf7nkRQzYTrX6DglC&gclid=CjwKCAjwup3HBhAAEiwA7euZukAJ1X0nZbqFJfVy2lczhdJgRqUZFoYOrhXlWnwO6nh3RRbwi7K5JBoCMdoQAvD_BwE"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Clique aqui para conhecer o Instituto Água Viva
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Modal de Termos e Condições (Mantido) */}
       {showTermsModal && (
         <div className="terms-modal-overlay" role="dialog" aria-modal="true">

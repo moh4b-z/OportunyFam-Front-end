@@ -829,6 +829,98 @@ body.dark .terms-card-text {
 
 /*
  * ===============================================
+ * Modal Sobre Nós (About) - Novo
+ * ===============================================
+ */
+
+.about-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-modal-card {
+  width: min(1000px, 88vw);
+  background: #ffffff;
+  color: var(--text-dark);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.about-modal-exit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #fff;
+  border: 2px solid var(--border-color);
+  color: var(--orange);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Hero com vídeo: proporções e moldura laranja/azul para combinar com a imagem */
+.about-hero {
+  background: #0f3d74; /* azul de fundo semelhante ao screenshot */
+  padding: 34px 34px 40px 34px;
+}
+
+.about-video-frame {
+  background: transparent;
+  border: 10px solid #2fb9dc; /* moldura azul clara da imagem */
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.about-video {
+  display: block;
+  width: 100%;
+  height: 520px; /* aproximado ao tamanho do vídeo do screenshot */
+  border: 0;
+}
+
+.about-content {
+  padding: 28px 34px 36px 34px;
+}
+
+.about-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: #163f76;
+}
+
+.about-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3f3f3f;
+  margin: 0 0 18px 0;
+}
+
+.about-cta {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--orange) 0%, var(--soft-yellow) 100%);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(244,162,97,0.35);
+}
+
+body.dark .about-modal-card { background: var(--bg-card-dark); color: var(--text-dark-theme); }
+body.dark .about-modal-exit { background: var(--bg-card-dark); border-color: var(--border-dark); }
+body.dark .about-hero { background: #0b2e59; }
+
+/*
+ * ===============================================
  * FIX: Novo Modal de Busca (Esquerda e Comprido)
  * ===============================================
  */

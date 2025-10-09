@@ -72,6 +72,7 @@ export default function Home() {
   const [theme, setTheme] = useState("light")
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [showAssociadosModal, setShowAssociadosModal] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(null)
@@ -164,12 +165,21 @@ export default function Home() {
     setShowAboutModal(false)
   }
 
+  const handleOpenAssociadosModal = () => {
+    setShowAssociadosModal(true)
+  }
+
+  const handleCloseAssociadosModal = () => {
+    setShowAssociadosModal(false)
+  }
+
   const handleCloseJoinModal = () => {
     setShowJoinModal(false)
     setJoinFormData({ name: "", email: "", phone: "" })
     setShowActivitiesDropdown(false)
     setSelectedActivity(null)
     setShowSuccessMessage(false)
+    // Não fechar o modal da instituição - manter showSearchModal como true
   }
 
   const handleOpenRegistrationModal = () => {
@@ -433,7 +443,7 @@ export default function Home() {
             <div className="inst-actions">
               <button className="btn-orange-outline" onClick={handleOpenAboutModal}>Sobre nós</button>
               <button className="btn-orange-outline" onClick={handleOpenJoinModal}>Faça parte</button>
-              <button className="btn-orange-outline">Associados</button>
+              <button className="btn-orange-outline" onClick={handleOpenAssociadosModal}>Associados</button>
             </div>
 
             {/* 3. DESCRIÇÃO */}
@@ -1035,6 +1045,100 @@ export default function Home() {
               >
                 Registre-se
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Associados */}
+      {showAssociadosModal && (
+        <div className="associados-modal-overlay" role="dialog" aria-modal="true">
+          <div className="associados-modal-card">
+            <button className="associados-modal-exit" onClick={handleCloseAssociadosModal} aria-label="Fechar">
+              ✕
+            </button>
+
+            <h1 className="associados-modal-title">Associados</h1>
+            <hr className="associados-modal-hr" />
+
+            <div className="associados-grid">
+              {/* ACER BRASIL */}
+              <div className="associado-card">
+                <div className="associado-logo">
+                  <img 
+                    src="https://lh3.googleusercontent.com/proxy/8YsdFziELfNbRYjSg3zh6qaQRnxpbkshQYvT3dR7Drbr-yoHzpS8_tROkzgGOCxOm_BAMWTwhZ2BLYdKylXSFw" 
+                    alt="ACER BRASIL Logo" 
+                    className="associado-logo-img"
+                  />
+                </div>
+                <div className="associado-name">ACER BRASIL</div>
+                <div className="hover-line"></div>
+              </div>
+
+              {/* AJUDOU.ORG */}
+              <div className="associado-card">
+                <div className="associado-logo">
+                  <img 
+                    src="https://ajudou.org/wp-content/uploads/2019/07/logo-escalada.png" 
+                    alt="AJUDOU.ORG Logo" 
+                    className="associado-logo-img"
+                  />
+                </div>
+                <div className="associado-name">AJUDOU.ORG</div>
+                <div className="hover-line"></div>
+              </div>
+
+              {/* INSTITUTO ATLETA BOM DE NOTA */}
+              <div className="associado-card">
+                <div className="associado-logo">
+                  <img 
+                    src="https://rems.org.br/wp-content/uploads/2024/02/instituto-atleta-bom-nota.jpg" 
+                    alt="INSTITUTO ATLETA BOM DE NOTA Logo" 
+                    className="associado-logo-img"
+                  />
+                </div>
+                <div className="associado-name">INSTITUTO ATLETA BOM DE NOTA</div>
+                <div className="hover-line"></div>
+              </div>
+
+              {/* INSTITUTO ESPORTE MAIS */}
+              <div className="associado-card">
+                <div className="associado-logo">
+                  <img 
+                    src="https://rems.org.br/wp-content/uploads/logos/instituo-esporte-mais.png" 
+                    alt="INSTITUTO ESPORTE MAIS Logo" 
+                    className="associado-logo-img"
+                  />
+                </div>
+                <div className="associado-name">INSTITUTO ESPORTE MAIS</div>
+                <div className="hover-line"></div>
+              </div>
+
+              {/* INSTITUTO FUTEBOL DE RUA */}
+              <div className="associado-card">
+                <div className="associado-logo">
+                  <img 
+                    src="https://rems.org.br/wp-content/uploads/2024/02/futebol-de-rua.jpg" 
+                    alt="INSTITUTO FUTEBOL DE RUA Logo" 
+                    className="associado-logo-img"
+                  />
+                </div>
+                <div className="associado-name">INSTITUTO FUTEBOL DE RUA</div>
+                <div className="hover-line"></div>
+              </div>
+
+              {/* PROJETO PRIMEIRO SAQUE */}
+              <div className="associado-card">
+                <div className="associado-logo">
+                  <img 
+                    src="https://rems.org.br/wp-content/uploads/2024/02/proj-primeiro-saque.jpg" 
+                    alt="PROJETO PRIMEIRO SAQUE Logo" 
+                    className="associado-logo-img"
+                  />
+                </div>
+                <div className="associado-name">PROJETO PRIMEIRO SAQUE</div>
+                <div className="hover-line"></div>
+              </div>
             </div>
           </div>
         </div>

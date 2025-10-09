@@ -64,6 +64,7 @@ export default function Home() {
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [showAssociadosModal, setShowAssociadosModal] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(null)
@@ -162,6 +163,31 @@ export default function Home() {
 
   const handleCloseAssociadosModal = () => {
     setShowAssociadosModal(false)
+  }
+
+  const handleOpenLogoutModal = () => {
+    setShowLogoutModal(true)
+    setIsProfileMenuOpen(false)
+  }
+
+  const handleCloseLogoutModal = () => {
+    setShowLogoutModal(false)
+  }
+
+  const handleConfirmLogout = () => {
+    // Fechar todos os modais e voltar ao estado inicial
+    setShowModal(true)
+    setShowSearchModal(false)
+    setShowJoinModal(false)
+    setShowRegistrationModal(false)
+    setShowAboutModal(false)
+    setShowAssociadosModal(false)
+    setShowLogoutModal(false)
+    setShowTermsModal(false)
+    setIsProfileMenuOpen(false)
+    setSearchTerm("")
+    setSelectedInstitution(null)
+    setShowLogoutModal(false)
   }
 
   const handleCloseJoinModal = () => {
@@ -353,7 +379,7 @@ export default function Home() {
                 >
                   <span>Termos e Condições</span>
                 </div>
-                <div className="menu-item">
+                <div className="menu-item" onClick={handleOpenLogoutModal}>
                   <span>Sair da Conta</span>
                 </div>
               </div>
@@ -1121,6 +1147,24 @@ export default function Home() {
                 <div className="associado-name">PROJETO PRIMEIRO SAQUE</div>
                 <div className="hover-line"></div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Logout */}
+      {showLogoutModal && (
+        <div className="logout-modal-overlay" role="dialog" aria-modal="true">
+          <div className="logout-modal-card">
+            <h2 className="logout-modal-title">Quer mesmo sair da conta?</h2>
+            
+            <div className="logout-modal-actions">
+              <button className="logout-btn-yes" onClick={handleConfirmLogout}>
+                Sim
+              </button>
+              <button className="logout-btn-no" onClick={handleCloseLogoutModal}>
+                Não
+              </button>
             </div>
           </div>
         </div>

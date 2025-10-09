@@ -218,35 +218,40 @@ body.dark {
   display: flex;
   align-items: center;
   gap: 15px;
-  background: var(--bg-light);
-  padding: 10px 20px;
-  border-radius: 30px;
-  border: 2px solid var(--border-color);
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 /* Estilos para o tema escuro */
-body.dark .search-and-chips {
-  background: var(--bg-card-dark);
-  border-color: var(--border-dark);
-}
+/* container não tem mais fundo/borda; estilos vão para .search-box */
 
 body.dark .search-input {
   color: var(--text-dark-theme);
 }
 
 .search-and-chips.search-and-chips-active {
-  transform: translateY(-5px); /* Efeito de elevação */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: var(--orange);
+  transform: translateY(-5px);
 }
 
 .search-box {
   position: relative;
-  flex: 1;
   display: flex;
   align-items: center;
+  background: var(--bg-light);
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  width: 420px; /* mantém a barra do mesmo tamanho visual */
+}
+
+body.dark .search-box {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.search-box.search-box-active {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: var(--orange);
 }
 
 .search-input {
@@ -260,7 +265,7 @@ body.dark .search-input {
 
 .search-icon {
   position: absolute;
-  left: 0;
+  left: 10px;
   color: var(--orange);
   font-size: 18px;
 }
@@ -268,6 +273,7 @@ body.dark .search-input {
 .chips {
   display: flex;
   gap: 8px;
+  margin-left: auto; /* empurra os chips para a direita da barra */
 }
 
 .chip {
@@ -1377,11 +1383,8 @@ body.dark .card-name-full {
 /* AJUSTE FINAL: Remover padding do contêiner para que os cards tenham a margem */
 .search-results-dropdown {
   position: absolute;
-  top: 100%; /* Pula 100% da altura da barra de busca */
-  /* Ajuste a largura e as margens para que ele fique centralizado ou alinhado */
-  left: 0; 
-  right: auto; /* Ou use right: 0 se quiser que ele se expanda da direita para a esquerda */
-  width: 100%; /* Ocupa 100% da largura do .search-and-chips */
-  z-index: 10; /* Garante que fique acima de outros elementos */
-  /* ... o resto dos estilos que definem a aparência dos cards ... */
+  top: 100%;
+  left: 0;
+  width: 100%; /* agora acompanha a largura da search-box */
+  z-index: 10;
 }

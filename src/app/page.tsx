@@ -268,26 +268,19 @@ export default function Home() {
                     setTimeout(() => setSearchFocused(false), 200);
                   }}
                 />
+                {searchFocused && filteredInstitutions.length > 0 && (
+                  <div className="search-results-dropdown">
+                    {filteredInstitutions.map((inst) => (
+                      <SearchResultOption
+                        key={inst.key}
+                        name={inst.name}
+                        isSelected={selectedInstitution === inst.key}
+                        onClick={() => handleInstitutionClick(inst.key)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {/* =================================================== */}
-              {/* BLOCO MOVIDO: AGORA ESTÁ FORA DO search-box */}
-              {/* =================================================== */}
-              {searchFocused && filteredInstitutions.length > 0 && (
-                <div className="search-results-dropdown">
-                  {filteredInstitutions.map((inst) => (
-                    <SearchResultOption
-                      key={inst.key}
-                      name={inst.name}
-                      isSelected={selectedInstitution === inst.key}
-                      onClick={() => handleInstitutionClick(inst.key)}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* =================================================== */}
-              {/* FIM DO BLOCO MOVIDO */}
-              {/* =================================================== */}
 
               <div className="chips">
                 {chips.map((chip, i) => (

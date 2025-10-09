@@ -134,6 +134,67 @@ export default function Home() {
     document.body.className = theme
   }, [theme])
 
+  // Sistema de Notificações Push - Inicia automaticamente
+  useEffect(() => {
+    if (!pushStarted) {
+      setPushStarted(true)
+      
+      // Notificação da Maria - 2 segundos
+      setTimeout(() => {
+        const mariaNotification = {
+          id: 1,
+          name: "Maria chegou em IDS",
+          message: "Sua filha chegou no horário tudo certo",
+          time: "Hoje 13:30",
+          isLate: false,
+          visible: true
+        }
+        setPushNotifications(prev => [...prev, mariaNotification])
+        
+        // Remove automaticamente após 5 segundos
+        setTimeout(() => {
+          setPushNotifications(prev => prev.filter(n => n.id !== 1))
+        }, 5000)
+      }, 2000)
+
+      // Notificação do João - 6 segundos (2 + 4)
+      setTimeout(() => {
+        const joaoNotification = {
+          id: 2,
+          name: "João chegou em IAV",
+          message: "Seu filho chegou no horário tudo certo",
+          time: "12/08/2025 13:30",
+          isLate: false,
+          visible: true
+        }
+        setPushNotifications(prev => [...prev, joaoNotification])
+        
+        // Remove automaticamente após 5 segundos
+        setTimeout(() => {
+          setPushNotifications(prev => prev.filter(n => n.id !== 2))
+        }, 5000)
+      }, 6000)
+
+      // Notificação da Ana - 12 segundos (6 + 6)
+      setTimeout(() => {
+        const anaNotification = {
+          id: 3,
+          name: "Ana chegou em CEU",
+          message: "Sua filha chegou atrasada",
+          time: "12/08/2025 13:40",
+          isLate: true,
+          visible: true
+        }
+        setPushNotifications(prev => [...prev, anaNotification])
+        
+        // Remove automaticamente após 5 segundos
+        setTimeout(() => {
+          setPushNotifications(prev => prev.filter(n => n.id !== 3))
+        }, 5000)
+      }, 12000)
+    }
+  }, [pushStarted])
+
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"))
   }
@@ -235,6 +296,19 @@ export default function Home() {
 
   const handleNotificationClick = (index: number) => {
     setSelectedNotification(selectedNotification === index ? null : index)
+  }
+
+  const dismissPushNotification = (id: number) => {
+    setPushNotifications(prev => prev.filter(n => n.id !== id))
+  }
+
+  const handlePushNotificationClick = (notificationId: number) => {
+    // Abre o modal de notificações
+    setShowNotificationsModal(true)
+    // Remove a notificação push que foi clicada
+    dismissPushNotification(notificationId)
+    // Ativa os timers das notificações no modal para mostrar o histórico
+    setNotificationTimers({ maria: true, joao: true, ana: true })
   }
 
   const handleCloseJoinModal = () => {
@@ -1282,6 +1356,39 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Notificações Push - Aparecem automaticamente */}
+      <div className="push-notifications-container">
+        {pushNotifications.map((notification) => (
+          <div 
+            key={notification.id}
+            className={`push-notification ${notification.visible ? 'visible' : ''}`}
+            onClick={() => handlePushNotificationClick(notification.id)}
+          >
+            <button 
+              className="push-notification-close"
+              onClick={(e) => {
+                e.stopPropagation() // Impede que o clique no X abra o modal
+                dismissPushNotification(notification.id)
+              }}
+              aria-label="Fechar notificação"
+            >
+              ✕
+            </button>
+            
+            <div className="push-notification-content">
+              <div className="push-notification-header">
+                <div className="push-notification-dot"></div>
+                <span className="push-notification-name">{notification.name}</span>
+                <span className={`push-notification-time ${notification.isLate ? 'late' : ''}`}>
+                  {notification.time}
+                </span>
+              </div>
+              <div className="push-notification-message">{notification.message}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </>
   )
 }

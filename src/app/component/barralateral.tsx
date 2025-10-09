@@ -25,9 +25,10 @@ const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
   interface BarraLateralProps {
     onSearchClick?: () => void // Mantida
+    onNotificationClick?: () => void // Nova prop para notificações
   }
 
-export default function BarraLateral({ onSearchClick }: BarraLateralProps) {
+export default function BarraLateral({ onSearchClick, onNotificationClick }: BarraLateralProps) {
   const [activeIcon, setActiveIcon] = useState<string | null>(null)
 
   const handleIconClick = (iconName: string) => {
@@ -46,7 +47,10 @@ export default function BarraLateral({ onSearchClick }: BarraLateralProps) {
         {/* Ícone de notificação */}
         <button
           className={`icon-btn ${activeIcon === "notification" ? "active" : ""}`}
-          onClick={() => handleIconClick("notification")}
+          onClick={() => {
+            handleIconClick("notification")
+            onNotificationClick?.()
+          }}
           aria-label="Notificações"
         >
           <svg

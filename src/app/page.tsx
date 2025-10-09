@@ -65,6 +65,22 @@ export default function Home() {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [showAssociadosModal, setShowAssociadosModal] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false)
+  const [selectedNotification, setSelectedNotification] = useState<number | null>(null)
+  const [notificationTimers, setNotificationTimers] = useState({
+    maria: false,
+    joao: false,
+    ana: false
+  })
+  const [pushNotifications, setPushNotifications] = useState<Array<{
+    id: number;
+    name: string;
+    message: string;
+    time: string;
+    isLate: boolean;
+    visible: boolean;
+  }>>([])
+  const [pushStarted, setPushStarted] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(null)
@@ -188,6 +204,37 @@ export default function Home() {
     setSearchTerm("")
     setSelectedInstitution(null)
     setShowLogoutModal(false)
+    setShowNotificationsModal(false)
+    setSelectedNotification(null)
+    setNotificationTimers({ maria: false, joao: false, ana: false })
+  }
+
+  const handleOpenNotificationsModal = () => {
+    setShowNotificationsModal(true)
+    setIsProfileMenuOpen(false)
+    
+    // Iniciar a sequência de notificações
+    setTimeout(() => {
+      setNotificationTimers(prev => ({ ...prev, maria: true }))
+    }, 2000) // 2 segundos
+    
+    setTimeout(() => {
+      setNotificationTimers(prev => ({ ...prev, joao: true }))
+    }, 5000) // 5 segundos (2 + 3)
+    
+    setTimeout(() => {
+      setNotificationTimers(prev => ({ ...prev, ana: true }))
+    }, 10000) // 10 segundos (2 + 3 + 5)
+  }
+
+  const handleCloseNotificationsModal = () => {
+    setShowNotificationsModal(false)
+    setSelectedNotification(null)
+    setNotificationTimers({ maria: false, joao: false, ana: false })
+  }
+
+  const handleNotificationClick = (index: number) => {
+    setSelectedNotification(selectedNotification === index ? null : index)
   }
 
   const handleCloseJoinModal = () => {
@@ -267,9 +314,9 @@ export default function Home() {
 
   return (
     <>
-      <BarraLateral onSearchClick={handleOpenSearchModal} />
+      <BarraLateral onSearchClick={handleOpenSearchModal} onNotificationClick={handleOpenNotificationsModal} />
 
-      <div className={showModal || showSearchModal || showTermsModal || showJoinModal || showRegistrationModal ? "app-content-wrapper blurred" : "app-content-wrapper"}>
+      <div className={showModal || showSearchModal || showTermsModal || showJoinModal || showRegistrationModal || showLogoutModal ? "app-content-wrapper blurred" : "app-content-wrapper"}>
 
         <main className="map-area">
           <header className="main-header">
@@ -1165,6 +1212,72 @@ export default function Home() {
               <button className="logout-btn-no" onClick={handleCloseLogoutModal}>
                 Não
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Notificações */}
+      {showNotificationsModal && (
+        <div className="notifications-modal-overlay" role="dialog" aria-modal="true">
+          <div className="notifications-modal-card">
+            <button className="notifications-modal-exit" onClick={handleCloseNotificationsModal} aria-label="Fechar">
+              ✕
+            </button>
+
+            <h1 className="notifications-modal-title">Notificação</h1>
+
+            <div className="notifications-list">
+              {/* Notificação 1 - Maria */}
+              <div 
+                className={`notification-item ${selectedNotification === 0 ? 'selected' : ''} ${notificationTimers.maria ? 'visible' : ''}`}
+                onClick={() => handleNotificationClick(0)}
+              >
+                <div className="notification-dot"></div>
+                {notificationTimers.maria && (
+                  <div className="notification-content">
+                    <div className="notification-header">
+                      <span className="notification-name">Maria chegou em IDS</span>
+                      <span className="notification-time">Hoje 13:30</span>
+                    </div>
+                    <div className="notification-message">Sua filha chegou no horário tudo certo</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Notificação 2 - João */}
+              <div 
+                className={`notification-item ${selectedNotification === 1 ? 'selected' : ''} ${notificationTimers.joao ? 'visible' : ''}`}
+                onClick={() => handleNotificationClick(1)}
+              >
+                <div className="notification-dot"></div>
+                {notificationTimers.joao && (
+                  <div className="notification-content">
+                    <div className="notification-header">
+                      <span className="notification-name">João chegou em IAV</span>
+                      <span className="notification-time">12/08/2025 13:30</span>
+                    </div>
+                    <div className="notification-message">Seu filho chegou no horário tudo certo</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Notificação 3 - Ana */}
+              <div 
+                className={`notification-item ${selectedNotification === 2 ? 'selected' : ''} ${notificationTimers.ana ? 'visible' : ''}`}
+                onClick={() => handleNotificationClick(2)}
+              >
+                <div className="notification-dot"></div>
+                {notificationTimers.ana && (
+                  <div className="notification-content">
+                    <div className="notification-header">
+                      <span className="notification-name">Ana chegou em CEU</span>
+                      <span className="notification-time late">12/08/2025 13:40</span>
+                    </div>
+                    <div className="notification-message">Sua filha chegou atrasada</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

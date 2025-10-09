@@ -2,6 +2,7 @@ import Input from './Input'
 import SwitchButtons from './Switch'
 import Link from 'next/link'
 import { useState } from 'react'
+import { loginUser } from '@/services/authService'
 
 export default function CardSystem() {
 	const [loginEmail, setLoginEmail] = useState<string>('')
@@ -25,12 +26,23 @@ export default function CardSystem() {
 	const [kidDateOfBirth, setKidDateOfBirth] = useState<string>('')
 	const [responsableCpf, setResponsableCpf] = useState<string>('')
 	const [kidCpf, setKidCpf] = useState<string>('')
+	const [ongCnpj, setOngCnpj] = useState<string>('')
 	const [kidCpfResponsable, setKidCpfResponsable] = useState<string>('')
 	const [responsableAddress, setResponsableAddress] = useState<string>('')
+	const [ongAdress, setOngAdress] = useState<string>('')
 	const [selectedOption, setSelectedOption] = useState<string>('responsavel')
 	const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
 	const [step, setStep] = useState<number>(0)
 	const canGoBack = step > 0
+
+	const handleSubmit = async () => {
+		try {
+			const data = await loginUser(loginEmail, loginPassword)
+			console.log('Login bem-sucedido:', data)
+		} catch (err: any) {
+			alert(err.message)
+		}
+	}
 
 	const handleNext = () => {
 		if (!selectedOption) {
@@ -46,11 +58,6 @@ export default function CardSystem() {
 		setStep(step - 1)
 	}
 
-	const handleSubmit = () => {
-		console.log('Email:', loginEmail)
-		console.log('Senha:', loginPassword)
-	}
-
 	return (
 		<div className="card_container">
 			<SwitchButtons activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -59,7 +66,7 @@ export default function CardSystem() {
 					<Input
 						srcImage="/icons-email.svg"
 						inputName="Email"
-						placeholder="exemplo123@gmail.com"
+						placeholder="Email"
 						type="email"
 						value={loginEmail}
 						onChange={setLoginEmail}
@@ -68,7 +75,7 @@ export default function CardSystem() {
 						srcImage="/icons-lock.svg"
 						extImage="/icons-eye-off.svg"
 						inputName="Senha"
-						placeholder="**********"
+						placeholder="Senha"
 						type="password"
 						value={loginPassword}
 						onChange={setLoginPassword}
@@ -169,7 +176,7 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-name.svg"
 									inputName="Nome"
-									placeholder="Lucas Ribeiro"
+									placeholder="Nome"
 									type="text"
 									value={responsableName}
 									onChange={setResponsableName}
@@ -177,7 +184,7 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-email.svg"
 									inputName="Email"
-									placeholder="exemplo123@gmail.com"
+									placeholder="Email"
 									type="email"
 									value={responsableRegisterEmail}
 									onChange={setResponsableRegisterEmail}
@@ -185,15 +192,15 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-phone.svg"
 									inputName="Telefone"
-									placeholder="(11) 99999-9999"
+									placeholder="Telefone"
 									type="tel"
 									value={responsablePhone}
 									onChange={setResponsablePhone}
 								/>
 								<Input
 									srcImage="/icons-date.svg"
-									inputName="Telefone"
-									placeholder="(11) 99999-9999"
+									inputName="Data"
+									placeholder="Data"
 									type="date"
 									value={responsableDateOfBirth}
 									onChange={setResponsableDateOfBirth}
@@ -201,7 +208,7 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-card.svg"
 									inputName="CPF"
-									placeholder="000.000.000-00"
+									placeholder="CPF"
 									type="text"
 									value={responsableCpf}
 									onChange={setResponsableCpf}
@@ -209,7 +216,7 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-pin_orange.svg"
 									inputName="CEP"
-									placeholder="01001-000"
+									placeholder="CEP"
 									type="text"
 									value={responsableAddress}
 									onChange={setResponsableAddress}
@@ -241,18 +248,11 @@ export default function CardSystem() {
 					<div className={`card_kid ${step === 1 && activeTab === 'register' ? 'step_active' : 'step_inactive'}`}>
 						<div className="questions_kid">
 							<div className="inputs">
-								<Input
-									srcImage="/icons-name.svg"
-									inputName="Nome"
-									placeholder="Lucas Ribeiro"
-									type="text"
-									value={kidName}
-									onChange={setKidName}
-								/>
+								<Input srcImage="/icons-name.svg" inputName="Nome" placeholder="Nome" type="text" value={kidName} onChange={setKidName} />
 								<Input
 									srcImage="/icons-email.svg"
 									inputName="Email"
-									placeholder="exemplo123@gmail.com"
+									placeholder="Email"
 									type="email"
 									value={kidRegisterEmail}
 									onChange={setKidRegisterEmail}
@@ -260,31 +260,24 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-phone.svg"
 									inputName="Telefone"
-									placeholder="(11) 99999-9999"
+									placeholder="Telefone"
 									type="tel"
 									value={kidPhone}
 									onChange={setKidPhone}
 								/>
 								<Input
 									srcImage="/icons-date.svg"
-									inputName="Telefone"
-									placeholder="(11) 99999-9999"
+									inputName="Date"
+									placeholder="Data"
 									type="date"
 									value={kidDateOfBirth}
 									onChange={setKidDateOfBirth}
 								/>
-								<Input
-									srcImage="/icons-card.svg"
-									inputName="CPF"
-									placeholder="000.000.000-00"
-									type="text"
-									value={kidCpf}
-									onChange={setKidCpf}
-								/>
+								<Input srcImage="/icons-card.svg" inputName="CPF" placeholder="CPF" type="text" value={kidCpf} onChange={setKidCpf} />
 								<Input
 									srcImage="/icons-card.svg"
 									inputName="CPF do responsável"
-									placeholder="000.000.000-00"
+									placeholder="CPF do responsável"
 									type="text"
 									value={kidCpfResponsable}
 									onChange={setKidCpfResponsable}
@@ -321,48 +314,40 @@ export default function CardSystem() {
 									inputName="Nome"
 									placeholder="Nome da instituição"
 									type="text"
-									value={responsableName}
-									onChange={setResponsableName}
+									value={ongName}
+									onChange={setOngName}
 								/>
 								<Input
 									srcImage="/icons-email.svg"
 									inputName="Email"
-									placeholder="exemplo123@gmail.com"
+									placeholder="Email"
 									type="email"
-									value={responsableRegisterEmail}
-									onChange={setResponsableRegisterEmail}
+									value={ongRegisterEmail}
+									onChange={setOngRegisterEmail}
 								/>
 								<Input
 									srcImage="/icons-phone.svg"
 									inputName="Telefone"
-									placeholder="(11) 99999-9999"
+									placeholder="Telefone"
 									type="tel"
-									value={responsablePhone}
-									onChange={setResponsablePhone}
+									value={ongPhone}
+									onChange={setOngPhone}
 								/>
-								<Input
-									srcImage="/icons-date.svg"
-									inputName="Telefone"
-									placeholder="(11) 99999-9999"
-									type="date"
-									value={responsableDateOfBirth}
-									onChange={setResponsableDateOfBirth}
-								/>
-								<Input
-									srcImage="/icons-card.svg"
-									inputName="CPF"
-									placeholder="000.000.000-00"
-									type="text"
-									value={responsableCpf}
-									onChange={setResponsableCpf}
-								/>
+								{/* <select name="ong_name" id="1">
+									<option value="valor1">Opção 1</option>
+									<option value="valor2">Opção 2</option>
+									<option value="valor3" selected>
+										Opção 3 (Pré-selecionada)
+									</option>
+								</select> */}
+								<Input srcImage="/icons-card.svg" inputName="CNPJ" placeholder="CNPJ" type="text" value={ongCnpj} onChange={setOngCnpj} />
 								<Input
 									srcImage="/icons-pin_orange.svg"
 									inputName="CEP"
-									placeholder="01001-000"
+									placeholder="CEP"
 									type="text"
-									value={responsableAddress}
-									onChange={setResponsableAddress}
+									value={ongAdress}
+									onChange={setOngAdress}
 								/>
 								<Input
 									srcImage="/icons-lock.svg"
@@ -370,8 +355,8 @@ export default function CardSystem() {
 									inputName="Senha"
 									placeholder="Senha"
 									type="password"
-									value={responsableRegisterPassword}
-									onChange={setResponsableRegisterPassword}
+									value={ongRegisterPassword}
+									onChange={setOngRegisterPassword}
 								/>
 								<Input
 									srcImage="/icons-lock.svg"
@@ -379,8 +364,8 @@ export default function CardSystem() {
 									inputName="Confirmar senha"
 									placeholder="Confirmar senha"
 									type="password"
-									value={confirmResponsablePassword}
-									onChange={setConfirmResponsablePassword}
+									value={confirmOngPassword}
+									onChange={setConfirmOngPassword}
 								/>
 							</div>
 						</div>

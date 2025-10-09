@@ -25,20 +25,11 @@ const SearchResultOption = ({ name, onClick, isSelected }: SearchResultOptionPro
     >
       {/* 1. Logo (Canto Esquerdo) */}
       <div className="card-logo-block">
-        {/* Placeholder SVG Gota (Logo Água Viva) */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="#4a90e2" /* Azul mais vibrante */
-          stroke="#3478c8"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 2.69l5.66 5.66c3.12 3.12 3.12 8.19 0 11.31-3.12 3.12-8.19 3.12-11.31 0L12 2.69z" />
-        </svg>
+        <img
+          src="https://static.wixstatic.com/media/b12d01_3b32456f44844df8b16019c72d691029~mv2.png/v1/fill/w_296,h_296,al_c,lg_1,q_85,enc_avif,quality_auto/Logotipo-original.png"
+          alt="Instituição Água Viva Logo"
+          className="card-logo-img"
+        />
       </div>
 
       {/* 2. Conteúdo Principal (Nome e Subtítulo) */}
@@ -410,20 +401,11 @@ export default function Home() {
             {/* =============================================== */}
             <div className="inst-header">
               <div className="inst-logo-circle">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                  fill="#3498db"
-                  stroke="#2980b9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <img
+                  src="https://static.wixstatic.com/media/b12d01_3b32456f44844df8b16019c72d691029~mv2.png/v1/fill/w_296,h_296,al_c,lg_1,q_85,enc_avif,quality_auto/Logotipo-original.png"
+                  alt="Instituição Água Viva Logo"
                   className="inst-logo-img"
-                >
-                  <path d="M12 2.69l5.66 5.66c3.12 3.12 3.12 8.19 0 11.31-3.12 3.12-8.19 3.12-11.31 0L12 2.69z" />
-                </svg>
+                />
               </div>
 
               <div className="inst-info">

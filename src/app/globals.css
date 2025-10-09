@@ -1418,6 +1418,13 @@ body.dark .search-result-card.selected-card {
   margin-right: 15px;
 }
 
+.card-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
 /* 2. Conteúdo Central (Nome e Subtítulo) */
 .card-main-content {
     display: flex;

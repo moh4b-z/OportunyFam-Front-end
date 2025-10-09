@@ -223,7 +223,7 @@ export default function Home() {
 
   const handleOpenJoinModal = () => {
     setShowJoinModal(true)
-    setShowSearchModal(false)
+    // NÃO fechar o modal de instituições - manter showSearchModal como true
   }
 
   const handleOpenAboutModal = () => {
@@ -317,7 +317,8 @@ export default function Home() {
     setShowActivitiesDropdown(false)
     setSelectedActivity(null)
     setShowSuccessMessage(false)
-    // Não fechar o modal da instituição - manter showSearchModal como true
+    // Modal da instituição permanece aberto (showSearchModal continua true)
+    // O blur será removido automaticamente pela classe condicional
   }
 
   const handleOpenRegistrationModal = () => {
@@ -332,6 +333,8 @@ export default function Home() {
     setSelectedChild(null)
     setTermsAgreed(false)
     setShowRegistrationSuccess(false)
+    // Modal da instituição permanece aberto (showSearchModal continua true)
+    // O blur será removido automaticamente pela classe condicional
   }
 
   const handleJoinFormChange = (field: string, value: string) => {
@@ -369,6 +372,7 @@ export default function Home() {
       setTimeout(() => {
         setShowRegistrationSuccess(false)
         handleCloseRegistrationModal()
+        // Modal da instituição permanece aberto após finalizar o registro
       }, 3000)
     }
   }
@@ -538,7 +542,7 @@ export default function Home() {
       {/* Modal de Detalhe da Instituição (Mantido) */}
       {showSearchModal && selectedInstitution === "agua-viva" && (
         <div className="search-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="inst-agua-viva-title">
-          <div className="search-modal-card">
+          <div className={`search-modal-card ${showJoinModal || showRegistrationModal ? 'blurred' : ''}`}>
             <button className="search-modal-exit" onClick={handleCloseSearchModal} aria-label="Fechar tela de detalhes">
               ✕
             </button>
@@ -850,7 +854,7 @@ export default function Home() {
 
       {/* Modal "Faça parte" */}
       {showJoinModal && (
-        <div className="modal-overlay" role="dialog" aria-modal="true">
+        <div className="modal-overlay high-priority" role="dialog" aria-modal="true">
           <div className="join-modal-card">
             <button className="modal-exit" onClick={handleCloseJoinModal} aria-label="Fechar">
               ✕
@@ -1020,7 +1024,7 @@ export default function Home() {
 
       {/* Modal de Registro */}
       {showRegistrationModal && (
-        <div className="modal-overlay" role="dialog" aria-modal="true">
+        <div className="modal-overlay high-priority" role="dialog" aria-modal="true">
           <div className="registration-modal-card">
             <button className="modal-exit" onClick={handleCloseRegistrationModal} aria-label="Fechar">
               ✕

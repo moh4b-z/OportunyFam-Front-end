@@ -359,6 +359,11 @@ body.dark .chip {
   background: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
 }
 
+/* Z-index mais alto para modais que devem aparecer sobre o modal de instituições */
+.modal-overlay.high-priority {
+  z-index: 2500;
+}
+
 .modal-card {
   /* MODIFICADO: Ajustado para o tamanho e proporção da imagem */
   width: auto; /* Deixa o max-width guiar o tamanho */
@@ -941,6 +946,13 @@ body.dark .about-hero { background: #0b2e59; }
     justify-content: flex-start; 
     /* FIX: Estica o cartão verticalmente */
     align-items: stretch; 
+}
+
+/* Classe para aplicar blur no modal de instituições quando outros modais estão abertos */
+.search-modal-card.blurred {
+  filter: blur(3px);
+  pointer-events: none;
+  transition: filter 0.3s ease;
 }
 
 .search-modal-card {

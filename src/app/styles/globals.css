@@ -166,13 +166,13 @@ main {
 
 .inputs {
 	width: 100%;
+	padding: 0 4px;
 	margin-top: 46px;
 	display: flex;
 	flex-direction: column;
 	gap: 32px;
 	max-height: 412px;
 	overflow-y: scroll;
-	padding-right: 16px;
 	padding-bottom: 6px;
 
 	&::-webkit-scrollbar {
@@ -223,6 +223,34 @@ main {
 	&:has(input:focus) {
 		border: 1px solid var(--yellow);
 	}
+
+	&.input_error {
+		border: 1px solid rgba(232, 25, 25, 0.522);
+		animation: shake 0.3s;
+	}
+}
+
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20%,
+	60% {
+		transform: translateX(-3px);
+	}
+	40%,
+	80% {
+		transform: translateX(3px);
+	}
+}
+
+.error_message {
+	color: rgba(232, 25, 25, 0.765);
+	font-size: 0.9rem;
+	margin-top: 6px;
+	margin-left: 8px;
+	font-weight: bold;
 }
 
 .login_opt {
@@ -333,6 +361,12 @@ main {
 		&:hover {
 			background-color: #df941c;
 			transition: 0.4s;
+		}
+
+		&:disabled {
+			background-color: #df941c;
+			cursor: not-allowed;
+			opacity: 0.8;
 		}
 	}
 }
@@ -515,4 +549,23 @@ main {
 	flex-direction: column;
 	height: 100%;
 	padding-right: 8px;
+}
+
+.spinner {
+	width: 24px;
+	height: 24px;
+	border: 3px solid #000;
+	border-top: 3px solid #fff;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin: auto;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }

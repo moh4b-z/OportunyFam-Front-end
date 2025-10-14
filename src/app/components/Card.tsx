@@ -33,16 +33,9 @@ export default function CardSystem() {
 	const [selectedOption, setSelectedOption] = useState<string>('responsavel')
 	const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
 	const [step, setStep] = useState<number>(0)
+	const [isLoading, setIsLoading] = useState<boolean>(false)
+	const [errorMessage, setErrorMessage] = useState<string | false>(false)
 	const canGoBack = step > 0
-
-	const handleSubmit = async () => {
-		try {
-			const data = await loginUser(loginEmail, loginPassword)
-			console.log('Login bem-sucedido:', data)
-		} catch (err: any) {
-			alert(err.message)
-		}
-	}
 
 	const handleNext = () => {
 		if (!selectedOption) {
@@ -58,6 +51,26 @@ export default function CardSystem() {
 		setStep(step - 1)
 	}
 
+	const handleLogin = async () => {
+		setIsLoading(true)
+		setErrorMessage(false)
+
+		try {
+			const response = await loginUser(loginEmail, loginPassword)
+			const data = await response?.json()
+
+			if (response?.ok && data.status) {
+			} else if (response?.status === 415) {
+				//O status code vai mudar depois que o back arrumar(401)
+				setErrorMessage('Email ou senha incorretos. Por favor, tente novamente.')
+			}
+		} catch (error) {
+			setErrorMessage('Algo deu errado. Por favor, tente novamente mais tarde.')
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
 	return (
 		<div className="card_container">
 			<SwitchButtons activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -70,6 +83,7 @@ export default function CardSystem() {
 						type="email"
 						value={loginEmail}
 						onChange={setLoginEmail}
+						className={errorMessage ? 'input_error' : ''}
 					/>
 					<Input
 						srcImage="/icons-lock.svg"
@@ -79,8 +93,11 @@ export default function CardSystem() {
 						type="password"
 						value={loginPassword}
 						onChange={setLoginPassword}
+						className={errorMessage ? 'input_error' : ''}
 					/>
 				</div>
+
+				{errorMessage && <p className="error_message">{errorMessage}</p>}
 
 				<div className="login_opt">
 					<div className="remember_me">
@@ -110,7 +127,9 @@ export default function CardSystem() {
 				</div>
 
 				<div className="login_btn">
-					<button onClick={handleSubmit}>Login</button>
+					<button onClick={handleLogin} disabled={isLoading || (loginEmail && loginPassword) ? false : true} title="Login">
+						{isLoading ? <div className="spinner"></div> : 'Login'}
+					</button>
 				</div>
 			</div>
 			<div className={`card_register ${activeTab === 'register' ? 'form_active' : ''}`}>

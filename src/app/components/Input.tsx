@@ -7,15 +7,16 @@ interface InputProps {
 	placeholder: string
 	type?: string
 	value: string
+	className?: string
 	onChange: (value: string) => void
 }
 
-export default function Input({ srcImage, extImage, inputName, placeholder, type = 'text', value, onChange }: InputProps) {
+export default function Input({ srcImage, extImage, inputName, placeholder, type = 'text', value, className, onChange }: InputProps) {
 	const [showPassword, setShowPassword] = useState(false)
 	const inputType = type === 'password' ? (showPassword ? 'text' : 'password') : type
 
 	return (
-		<div className="input_container">
+		<div className={`input_container ${className || ''}`}>
 			<img src={srcImage} alt={`${inputName} icon`} />
 			{extImage && type === 'password' && (
 				<img

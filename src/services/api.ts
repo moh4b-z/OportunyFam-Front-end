@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/v1/oportunyfam'
+const BASE_URL = 'http://localhost:3030/v1/oportunyfam'
 
 export async function apiLoginUser(endpoint: string, options: RequestInit = {}) {
 	try {

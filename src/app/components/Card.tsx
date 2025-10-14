@@ -1,4 +1,5 @@
 import Input from './Input'
+import Select from './Select'
 import SwitchButtons from './Switch'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -29,13 +30,144 @@ export default function CardSystem() {
 	const [ongCnpj, setOngCnpj] = useState<string>('')
 	const [kidCpfResponsable, setKidCpfResponsable] = useState<string>('')
 	const [responsableAddress, setResponsableAddress] = useState<string>('')
+	const [responsableGender, setResponsableGender] = useState<string>('')
 	const [ongAdress, setOngAdress] = useState<string>('')
+	
+	// Estados para endereço do responsável
+	const [responsableLogradouro, setResponsableLogradouro] = useState<string>('')
+	const [responsableBairro, setResponsableBairro] = useState<string>('')
+	const [responsableCidade, setResponsableCidade] = useState<string>('')
+	const [responsableUf, setResponsableUf] = useState<string>('')
+	const [responsableNumero, setResponsableNumero] = useState<string>('')
+	const [responsableComplemento, setResponsableComplemento] = useState<string>('')
+	const [responsableAddressVisible, setResponsableAddressVisible] = useState<boolean>(false)
+	
+	// Estados para endereço da ONG
+	const [ongLogradouro, setOngLogradouro] = useState<string>('')
+	const [ongBairro, setOngBairro] = useState<string>('')
+	const [ongCidade, setOngCidade] = useState<string>('')
+	const [ongUf, setOngUf] = useState<string>('')
+	const [ongNumero, setOngNumero] = useState<string>('')
+	const [ongComplemento, setOngComplemento] = useState<string>('')
+	const [ongAddressVisible, setOngAddressVisible] = useState<boolean>(false)
 	const [selectedOption, setSelectedOption] = useState<string>('responsavel')
 	const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
 	const [step, setStep] = useState<number>(0)
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [errorMessage, setErrorMessage] = useState<string | false>(false)
+	const [isCepLoading, setIsCepLoading] = useState<boolean>(false)
+	const [ongCepLoading, setOngCepLoading] = useState<boolean>(false)
 	const canGoBack = step > 0
+
+	// Função para carregar opções de gênero da API
+	const loadGenderOptions = async () => {
+		try {
+			const response = await fetch('http://localhost:3030/v1/oportunyfam/sexos')
+			if (!response.ok) {
+				throw new Error('Erro ao carregar opções de gênero')
+			}
+			const data = await response.json()
+			
+			// Verifica se a resposta é um array ou se está dentro de uma propriedade
+			let genderArray = data
+			
+			// Se não for array, verifica se tem uma propriedade que contém o array
+			if (!Array.isArray(data)) {
+				// Possíveis propriedades onde pode estar o array
+				if (data.data && Array.isArray(data.data)) {
+					genderArray = data.data
+				} else if (data.sexos && Array.isArray(data.sexos)) {
+					genderArray = data.sexos
+				} else if (data.results && Array.isArray(data.results)) {
+					genderArray = data.results
+				} else {
+					console.log('Formato de resposta da API:', data)
+					throw new Error('Formato de resposta inválido')
+				}
+			}
+			
+			// Mapeia os dados da API para o formato esperado pelo componente Select
+			return genderArray.map((item: any) => ({
+				value: item.id.toString(),
+				label: item.nome
+			}))
+		} catch (error) {
+			console.error('Erro ao carregar gêneros:', error)
+			// Retorna opções padrão em caso de erro
+			return [
+				{ value: 'masculino', label: 'Masculino' },
+				{ value: 'feminino', label: 'Feminino' },
+				{ value: 'outro', label: 'Outro' },
+				{ value: 'prefiro_nao_dizer', label: 'Prefiro não dizer' }
+			]
+		}
+	}
+
+	// Função para consultar CEP na API ViaCEP
+	const consultarCEP = async (cep: string, isOng: boolean = false) => {
+		// Remove caracteres não numéricos do CEP
+		const cepLimpo = cep.replace(/\D/g, '')
+		
+		// Verifica se o CEP tem 8 dígitos
+		if (cepLimpo.length !== 8) {
+			return
+		}
+
+		// Define qual loading usar baseado no tipo (responsável ou ONG)
+		const setLoading = isOng ? setOngCepLoading : setIsCepLoading
+		
+		setLoading(true)
+		
+		try {
+			const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+			
+			if (!response.ok) {
+				throw new Error('Erro ao consultar CEP')
+			}
+			
+			const data = await response.json()
+			
+			// Verifica se o CEP é válido (ViaCEP retorna erro: true para CEPs inválidos)
+			if (data.erro) {
+				console.log('CEP não encontrado')
+				return
+			}
+			
+			// Mostra o resultado no console
+			console.log('Dados do CEP:', {
+				cep: data.cep,
+				logradouro: data.logradouro,
+				complemento: data.complemento,
+				bairro: data.bairro,
+				localidade: data.localidade,
+				uf: data.uf,
+				ibge: data.ibge,
+				gia: data.gia,
+				ddd: data.ddd,
+				siafi: data.siafi
+			})
+
+			// Preenche os campos de endereço baseado no tipo (responsável ou ONG)
+			if (isOng) {
+				setOngLogradouro(data.logradouro || '')
+				setOngBairro(data.bairro || '')
+				setOngCidade(data.localidade || '')
+				setOngUf(data.uf || '')
+				setOngAddressVisible(true)
+			} else {
+				setResponsableLogradouro(data.logradouro || '')
+				setResponsableBairro(data.bairro || '')
+				setResponsableCidade(data.localidade || '')
+				setResponsableUf(data.uf || '')
+				setResponsableAddressVisible(true)
+			}
+			
+		} catch (error) {
+			console.error('Erro ao consultar CEP:', error)
+		} finally {
+			setLoading(false)
+		}
+	}
 
 	const handleNext = () => {
 		if (!selectedOption) {
@@ -81,6 +213,7 @@ export default function CardSystem() {
 						inputName="Email"
 						placeholder="Email"
 						type="email"
+						name="login_email"
 						value={loginEmail}
 						onChange={setLoginEmail}
 						className={errorMessage ? 'input_error' : ''}
@@ -91,6 +224,7 @@ export default function CardSystem() {
 						inputName="Senha"
 						placeholder="Senha"
 						type="password"
+						name="login_password"
 						value={loginPassword}
 						onChange={setLoginPassword}
 						className={errorMessage ? 'input_error' : ''}
@@ -155,21 +289,6 @@ export default function CardSystem() {
 								)}
 							</div>
 
-							<div className={`option_card ${selectedOption === 'crianca' ? 'selected' : ''}`} onClick={() => setSelectedOption('crianca')}>
-								<div className="option_content">
-									<h3>Criança</h3>
-									<p>Se você é uma criança ou adolescente e está sendo cadastrado por um responsável, esta é a sua opção.</p>
-								</div>
-								{selectedOption === 'crianca' && (
-									<div className="check_icon">
-										<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-											<circle cx="12" cy="12" r="10" fill="#FF9800" />
-											<path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-										</svg>
-									</div>
-								)}
-							</div>
-
 							<div className={`option_card ${selectedOption === 'ong' ? 'selected' : ''}`} onClick={() => setSelectedOption('ong')}>
 								<div className="option_content">
 									<h3>ONG / Instituição</h3>
@@ -197,6 +316,7 @@ export default function CardSystem() {
 									inputName="Nome"
 									placeholder="Nome"
 									type="text"
+									name="responsavel_nome"
 									value={responsableName}
 									onChange={setResponsableName}
 								/>
@@ -205,6 +325,7 @@ export default function CardSystem() {
 									inputName="Email"
 									placeholder="Email"
 									type="email"
+									name="responsavel_email"
 									value={responsableRegisterEmail}
 									onChange={setResponsableRegisterEmail}
 								/>
@@ -213,6 +334,7 @@ export default function CardSystem() {
 									inputName="Telefone"
 									placeholder="Telefone"
 									type="tel"
+									name="responsavel_telefone"
 									value={responsablePhone}
 									onChange={setResponsablePhone}
 								/>
@@ -221,6 +343,7 @@ export default function CardSystem() {
 									inputName="Data"
 									placeholder="Data"
 									type="date"
+									name="responsavel_data_nascimento"
 									value={responsableDateOfBirth}
 									onChange={setResponsableDateOfBirth}
 								/>
@@ -229,16 +352,95 @@ export default function CardSystem() {
 									inputName="CPF"
 									placeholder="CPF"
 									type="text"
+									name="responsavel_cpf"
 									value={responsableCpf}
 									onChange={setResponsableCpf}
 								/>
 								<Input
 									srcImage="/icons-pin_orange.svg"
 									inputName="CEP"
-									placeholder="CEP"
+									placeholder="CEP (somente números)"
 									type="text"
+									name="responsavel_cep"
 									value={responsableAddress}
+									isLoading={isCepLoading}
+									mask="cep"
 									onChange={setResponsableAddress}
+									onComplete={(cep) => consultarCEP(cep, false)}
+								/>
+								
+								{responsableAddressVisible && (
+									<>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Logradouro"
+											placeholder="Logradouro"
+											type="text"
+											name="responsavel_logradouro"
+											value={responsableLogradouro}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Bairro"
+											placeholder="Bairro"
+											type="text"
+											name="responsavel_bairro"
+											value={responsableBairro}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Cidade"
+											placeholder="Cidade"
+											type="text"
+											name="responsavel_cidade"
+											value={responsableCidade}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="UF"
+											placeholder="UF"
+											type="text"
+											name="responsavel_uf"
+											value={responsableUf}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Número"
+											placeholder="Número (opcional)"
+											type="text"
+											name="responsavel_numero"
+											value={responsableNumero}
+											onChange={setResponsableNumero}
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Complemento"
+											placeholder="Complemento (opcional)"
+											type="text"
+											name="responsavel_complemento"
+											value={responsableComplemento}
+											onChange={setResponsableComplemento}
+										/>
+									</>
+								)}
+								
+								<Select
+									srcImage="/icons-gender.svg"
+									inputName="Gênero"
+									placeholder="Selecione seu gênero"
+									name="responsavel_genero"
+									value={responsableGender}
+									options={[]}
+									onChange={setResponsableGender}
+									onLoadOptions={loadGenderOptions}
 								/>
 								<Input
 									srcImage="/icons-lock.svg"
@@ -246,6 +448,7 @@ export default function CardSystem() {
 									inputName="Senha"
 									placeholder="Senha"
 									type="password"
+									name="responsavel_senha"
 									value={responsableRegisterPassword}
 									onChange={setResponsableRegisterPassword}
 								/>
@@ -255,6 +458,7 @@ export default function CardSystem() {
 									inputName="Confirmar senha"
 									placeholder="Confirmar senha"
 									type="password"
+									name="responsavel_confirmar_senha"
 									value={confirmResponsablePassword}
 									onChange={setConfirmResponsablePassword}
 								/>
@@ -333,6 +537,7 @@ export default function CardSystem() {
 									inputName="Nome"
 									placeholder="Nome da instituição"
 									type="text"
+									name="ong_nome"
 									value={ongName}
 									onChange={setOngName}
 								/>
@@ -341,6 +546,7 @@ export default function CardSystem() {
 									inputName="Email"
 									placeholder="Email"
 									type="email"
+									name="ong_email"
 									value={ongRegisterEmail}
 									onChange={setOngRegisterEmail}
 								/>
@@ -349,6 +555,7 @@ export default function CardSystem() {
 									inputName="Telefone"
 									placeholder="Telefone"
 									type="tel"
+									name="ong_telefone"
 									value={ongPhone}
 									onChange={setOngPhone}
 								/>
@@ -359,21 +566,90 @@ export default function CardSystem() {
 										Opção 3 (Pré-selecionada)
 									</option>
 								</select> */}
-								<Input srcImage="/icons-card.svg" inputName="CNPJ" placeholder="CNPJ" type="text" value={ongCnpj} onChange={setOngCnpj} />
+								<Input srcImage="/icons-card.svg" inputName="CNPJ" placeholder="CNPJ" type="text" name="ong_cnpj" value={ongCnpj} onChange={setOngCnpj} />
 								<Input
 									srcImage="/icons-pin_orange.svg"
 									inputName="CEP"
-									placeholder="CEP"
+									placeholder="CEP (somente números)"
 									type="text"
+									name="ong_cep"
 									value={ongAdress}
+									isLoading={ongCepLoading}
+									mask="cep"
 									onChange={setOngAdress}
+									onComplete={(cep) => consultarCEP(cep, true)}
 								/>
+								
+								{ongAddressVisible && (
+									<>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Logradouro"
+											placeholder="Logradouro"
+											type="text"
+											name="ong_logradouro"
+											value={ongLogradouro}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Bairro"
+											placeholder="Bairro"
+											type="text"
+											name="ong_bairro"
+											value={ongBairro}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Cidade"
+											placeholder="Cidade"
+											type="text"
+											name="ong_cidade"
+											value={ongCidade}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="UF"
+											placeholder="UF"
+											type="text"
+											name="ong_uf"
+											value={ongUf}
+											readonly={true}
+											onChange={() => {}} // Não faz nada pois é readonly
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Número"
+											placeholder="Número (opcional)"
+											type="text"
+											name="ong_numero"
+											value={ongNumero}
+											onChange={setOngNumero}
+										/>
+										<Input
+											srcImage="/icons-pin_orange.svg"
+											inputName="Complemento"
+											placeholder="Complemento (opcional)"
+											type="text"
+											name="ong_complemento"
+											value={ongComplemento}
+											onChange={setOngComplemento}
+										/>
+									</>
+								)}
+								
 								<Input
 									srcImage="/icons-lock.svg"
 									extImage="/icons-eye-off.svg"
 									inputName="Senha"
 									placeholder="Senha"
 									type="password"
+									name="ong_senha"
 									value={ongRegisterPassword}
 									onChange={setOngRegisterPassword}
 								/>
@@ -383,6 +659,7 @@ export default function CardSystem() {
 									inputName="Confirmar senha"
 									placeholder="Confirmar senha"
 									type="password"
+									name="ong_confirmar_senha"
 									value={confirmOngPassword}
 									onChange={setConfirmOngPassword}
 								/>

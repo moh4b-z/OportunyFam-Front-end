@@ -15,6 +15,8 @@ export default function Home() {
     { component: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, label: "Chat" },
     { component: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V6a1 1 0 0 1 2 0v5h5a1 1 0 0 1 0 2h-5v5a1 1 0 0 1-2 0z"/></svg>, label: "Pin" },
     { component: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><path d="M17.5 10.5v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v1"/><path d="M6.5 10.5v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1"/></svg>, label: "Organização" },
+    { component: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>, label: "Pin" },
+    { component: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg>, label: "Organização" },
   ];
 
   const chips = [
@@ -40,7 +42,12 @@ export default function Home() {
         <aside className="sidebar">
           <div className="logo-box">
             <img src="/logo-branca.png" alt="Logo" className="logo-img" />
-          </div>
+            {/* Adicionada a div para o placeholder da logo */}
+            <div className="logo-placeholder">
+              {/* Adicionada a imagem da logo aqui */}
+              <img src="../img/logo.png" alt="Logo" className="logo-img" />
+            </div>
+          </div> 
 
           <div className="icon-panel">
             {icons.map((icon, i) => (
@@ -56,6 +63,7 @@ export default function Home() {
             ))}
           </div>
         </aside>
+
 
         <main className="map-area">
           <header className="main-header">

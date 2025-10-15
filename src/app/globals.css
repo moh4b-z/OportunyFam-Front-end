@@ -1,5 +1,9 @@
-/* Variáveis globais */
-:root {
+/*
+ * ===============================================
+ * VARIÁVEIS DE CONFIGURAÇÃO (AJUSTE SE NECESSÁRIO)
+ * ===============================================
+ */
+ :root {
   /* Cores do código que você forneceu */
   --orange: #f4a261;
   --red-orange: #e76f51;
@@ -11,15 +15,19 @@
   --bg-light: #f5f5f5;
   --bg-card: #fff;
   --border-color: #e0e0e0;
+  
+  /* Variável ÚNICA da largura da Sidebar */
+  --sidebar-width: 80px; 
+  
+  /* Cores da Sidebar e Card (mantidas, ajustada apenas a sidebar-bg para um valor único) */
+  --sidebar-bg-color: #f4a261; 
+  --card-bg-color: #f7f7f7; 
 
   /* Novas variáveis para o tema escuro */
   --bg-dark: #1a1a1a;
   --bg-card-dark: #2c2c2c;
   --border-dark: #444;
   --text-dark-theme: #e0e0e0;
-
-
-  
 }
 
 /* Base e estrutura da página */
@@ -30,11 +38,14 @@ body,
 }
 
 body {
+  /* FIX: Configuração base do body */
+  position: relative;
+  padding: 0;
   margin: 0;
+  height: 100vh;
+  overflow: hidden; 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-light);
-  height: 100vh;
-  overflow: hidden;
   /* Transição de cores */
   transition: background-color 0.5s ease;
 }
@@ -51,43 +62,67 @@ body.dark {
   color: var(--text-dark-theme);
 }
 
-.app-root {
+/* =============================================== */
+/* FIX: Novo Wrapper de Conteúdo Principal          */
+/* O antigo .app-root foi substituído por esta div  */
+/* =============================================== */
+.app-content-wrapper {
+  /* FIX: Empurra o conteúdo para a direita da sidebar */
+  margin-left: var(--sidebar-width); 
+  height: 100vh;
+  width: calc(100vw - var(--sidebar-width)); 
+  position: relative;
+  overflow: hidden; /* Garante que o conteúdo não vaze */
+  transition: filter 0.3s ease; /* Para o efeito de blur ser suave */
+}
+
+
+/* FIX: A classe .app-root original foi mantida aqui, mas deve ser removida do seu HTML */
+/* Se for manter a classe, garanta que ela herde o margin-left */
+.app-root, .app-content-wrapper {
   min-height: 100vh;
-  display: flex;
+  /* display: flex; REMOVIDO para que o margin-left funcione no wrapper */
   position: relative;
   overflow: hidden;
 }
 
-.app-root.blurred {
-  filter: blur(6px);
+/* FIX: Aplica o blur ao wrapper de conteúdo */
+.blurred {
+  filter: blur(5px); /* Ajustado de 6px para 5px para suavizar */
   transition: filter 240ms ease;
   pointer-events: none;
 }
 
 /*
-  ================
-  Componente Sidebar
-  ================
+ * ===============================================
+ * FIX: Componente Sidebar (Agora Fixo)
+ * ===============================================
 */
 .sidebar {
-  width: 90px;
+  /* FIX: Fica fixo e usa a variável de largura */
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  height: 100vh; 
+  width: var(--sidebar-width);
+  
+  /* Seus estilos de gradiente */
   background: linear-gradient(180deg, var(--orange) 0%, var(--red-orange) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px 0;
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 50;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); /* Opcional: para separação visual */
 }
+
+/* ... (O restante dos estilos da Sidebar, logo, icon-panel são mantidos) ... */
 
 /* A div anterior "logo-box" foi substituída por "logo-placeholder" */
 .logo-placeholder {
   width: 60px;
   height: 60px;
-  background-color:none;
+  background-color: none;
   border-radius: 8px;
   margin-bottom: 30px;
   display: flex;
@@ -141,12 +176,13 @@ body.dark {
 }
 
 /*
-  ================
-  Componente Map Area
-  ================
-*/
+ * ===============================================
+ * Componente Map Area (Removido o margin-left que causava problemas)
+ * ===============================================
+ */
 .map-area {
-  margin-left: 90px;
+  /* FIX: Margin-left removido daqui, pois já está no .app-content-wrapper */
+  /* margin-left: 90px; REMOVIDO/COMENTADO */
   flex: 1;
   height: 100vh;
   position: relative;
@@ -164,10 +200,10 @@ body.dark {
 }
 
 /*
-  ================
-  Header, Search box e chips
-  ================
-*/
+ * ===============================================
+ * Header, Search box e chips (Mantidos)
+ * ===============================================
+ */
 .main-header {
   display: flex;
   justify-content: space-between;
@@ -178,38 +214,44 @@ body.dark {
 }
 
 .search-and-chips {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 15px;
-  background: var(--bg-light);
-  padding: 10px 20px;
-  border-radius: 30px;
-  border: 2px solid var(--border-color);
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 /* Estilos para o tema escuro */
-body.dark .search-and-chips {
-  background: var(--bg-card-dark);
-  border-color: var(--border-dark);
-}
+/* container não tem mais fundo/borda; estilos vão para .search-box */
 
 body.dark .search-input {
   color: var(--text-dark-theme);
 }
 
 .search-and-chips.search-and-chips-active {
-  transform: translateY(-5px); /* Efeito de elevação */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: var(--orange);
+  transform: translateY(-5px);
 }
 
 .search-box {
   position: relative;
-  flex: 1;
   display: flex;
   align-items: center;
+  background: var(--bg-light);
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  width: 420px; /* mantém a barra do mesmo tamanho visual */
+}
+
+body.dark .search-box {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.search-box.search-box-active {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: var(--orange);
 }
 
 .search-input {
@@ -223,7 +265,7 @@ body.dark .search-input {
 
 .search-icon {
   position: absolute;
-  left: 0;
+  left: 10px;
   color: var(--orange);
   font-size: 18px;
 }
@@ -231,6 +273,7 @@ body.dark .search-input {
 .chips {
   display: flex;
   gap: 8px;
+  margin-left: auto; /* empurra os chips para a direita da barra */
 }
 
 .chip {
@@ -238,7 +281,7 @@ body.dark .search-input {
   border: none;
   border-radius: 20px;
   padding: 8px 16px;
-  color: var(--text-white);
+  color: var(--text-dark); /* FIX: Cor do texto no tema claro */
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -259,10 +302,10 @@ body.dark .chip {
 }
 
 /*
-  ================
-  Componente Perfil
-  ================
-*/
+ * ===============================================
+ * Componente Perfil (Mantido)
+ * ===============================================
+ */
 .profile-wrapper {
   position: relative;
   width: 45px;
@@ -301,29 +344,41 @@ body.dark .chip {
 }
 
 /*
-  ================
-  Componente Modal
-  ================
-*/
+ * ===============================================
+ * Componente Modal (Mantido)
+ * ===============================================
+ */
 .modal-overlay {
+  /* FIX: Reajustado para que os modals centrais fiquem na frente do blur, mas atrás do z-index 2000 */
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 30;
-  background: rgba(0, 0, 0, 0.15);
+  z-index: 2000; /* Alto Z-index para modals centrais */
+  background: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+}
+
+/* Z-index mais alto para modais que devem aparecer sobre o modal de instituições */
+.modal-overlay.high-priority {
+  z-index: 2500;
 }
 
 .modal-card {
-  width: 680px;
-  max-width: 92vw;
+  /* MODIFICADO: Ajustado para o tamanho e proporção da imagem */
+  width: auto; /* Deixa o max-width guiar o tamanho */
+  max-width: 420px; /* Tamanho máximo para replicar o look estreito */
+  min-width: 300px; /* Evita que fique muito pequeno */
+  height: auto; /* Altura baseada no conteúdo */
+  max-height: 90vh; /* Limite de altura para telas pequenas */
+  overflow-y: auto; /* Para garantir que o conteúdo seja scrollável se for muito alto */
   background: var(--dark-modal);
   color: var(--light-text);
   padding: 26px;
   border-radius: 8px;
   position: relative;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+
 }
 
 .modal-exit {
@@ -384,10 +439,10 @@ body.dark .chip {
 }
 
 /*
-  ================
-  Menu do Perfil
-  ================
-*/
+ * ===============================================
+ * Menu do Perfil (Mantido)
+ * ===============================================
+ */
 .profile-menu {
   position: absolute;
   top: 70px;
@@ -442,10 +497,10 @@ body.dark .menu-divider {
 }
 
 /*
-  ================
-  Seletor de Tema (Switch)
-  ================
-*/
+ * ===============================================
+ * Seletor de Tema (Switch) - Mantido
+ * ===============================================
+ */
 .switch {
   position: relative;
   display: inline-block;
@@ -497,7 +552,516 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-/* Animações */
+/*
+ * ===============================================
+ * Modal de Termos e Condições (Mantido)
+ * ===============================================
+ */
+/* Redesenhado completamente para seguir o design da imagem */
+.terms-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000; /* Alto Z-index para modals centrais */
+  background: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.terms-modal-card {
+  width: 50%;
+  max-width: 650px;
+  min-width: 400px;
+  height: 85vh;
+  background: white;
+  color: #333;
+  padding: 0;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Estilos para o tema escuro */
+body.dark .terms-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+body.dark .terms-back-btn,
+body.dark .terms-header-title,
+body.dark .terms-title,
+body.dark .terms-card-title,
+body.dark .terms-card-text-bold,
+body.dark .terms-mission-title,
+body.dark .terms-mission-item {
+  color: var(--text-dark-theme);
+}
+body.dark .terms-header-divider,
+body.dark .terms-refuse-btn {
+  border-color: var(--border-dark);
+}
+body.dark .terms-refuse-btn {
+  background: var(--bg-card-dark);
+}
+body.dark .terms-refuse-btn:hover {
+  background: var(--bg-dark);
+}
+
+
+/* Header com seta de voltar */
+.terms-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  /* Estilos do tema escuro são aplicados no escopo .dark */
+}
+
+.terms-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  transition: transform 0.2s ease;
+}
+
+.terms-back-btn:hover {
+  transform: translateX(-3px);
+}
+
+.terms-header-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
+}
+
+.terms-header-divider {
+  border: none;
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0;
+}
+
+/* Ícone circular laranja */
+.terms-icon-circle {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #f4a261 0%, #e79e21 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30px auto 20px;
+  box-shadow: 0 4px 15px rgba(244, 162, 97, 0.3);
+}
+
+/* Título e subtítulo */
+.terms-title {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 24px 12px;
+  color: #333;
+}
+
+.terms-subtitle {
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  margin: 0 24px 30px;
+  line-height: 1.5;
+}
+
+/* Cards */
+.terms-card {
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0 24px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+body.dark .terms-card {
+  background: #3c3c3c;
+}
+
+.terms-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.terms-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.terms-card-text {
+  font-size: 14px;
+  color: #999;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+body.dark .terms-card-text {
+  color: #ccc;
+}
+
+
+.terms-card-text-bold {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Nossa Missão */
+.terms-mission-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.terms-mission-divider {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, #f4a261 0%, transparent 100%);
+  margin: 0 0 16px 0;
+}
+
+.terms-mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.terms-mission-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Aceitar Termos */
+.terms-accept-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #333;
+  text-align: center;
+}
+
+.terms-accept-text {
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.terms-accept-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #f4a261 0%, #e79e21 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(244, 162, 97, 0.3);
+}
+
+.terms-accept-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.4);
+}
+
+.terms-refuse-btn {
+  width: 100%;
+  background: white;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.terms-refuse-btn:hover {
+  background: #f5f5f5;
+}
+
+/* Mensagem de sucesso */
+.terms-success-message {
+  margin-top: 16px;
+  padding: 12px;
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/*
+ * ===============================================
+ * Modal Sobre Nós (About) - Novo
+ * ===============================================
+ */
+
+.about-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-modal-card {
+  width: min(1000px, 88vw);
+  background: #ffffff;
+  color: var(--text-dark);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.about-modal-exit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #fff;
+  border: 2px solid var(--border-color);
+  color: var(--orange);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Hero com vídeo: proporções e moldura laranja/azul para combinar com a imagem */
+.about-hero {
+  background: #0f3d74; /* azul de fundo semelhante ao screenshot */
+  padding: 34px 34px 40px 34px;
+}
+
+.about-video-frame {
+  background: transparent;
+  border: 10px solid #2fb9dc; /* moldura azul clara da imagem */
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.about-video {
+  display: block;
+  width: 100%;
+  height: 520px; /* aproximado ao tamanho do vídeo do screenshot */
+  border: 0;
+}
+
+.about-content {
+  padding: 28px 34px 36px 34px;
+}
+
+.about-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: #163f76;
+}
+
+.about-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3f3f3f;
+  margin: 0 0 18px 0;
+}
+
+.about-cta {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--orange) 0%, var(--soft-yellow) 100%);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(244,162,97,0.35);
+}
+
+body.dark .about-modal-card { background: var(--bg-card-dark); color: var(--text-dark-theme); }
+body.dark .about-modal-exit { background: var(--bg-card-dark); border-color: var(--border-dark); }
+body.dark .about-hero { background: #0b2e59; }
+
+/*
+ * ===============================================
+ * FIX: Novo Modal de Busca (Esquerda e Comprido)
+ * ===============================================
+ */
+
+.search-modal-overlay {
+    position: fixed;
+    top: 0;
+    /* FIX: Começa após a barra lateral */
+    left: var(--sidebar-width); 
+    width: calc(100% - var(--sidebar-width)); 
+    height: 100%;
+    
+    background-color: rgba(0, 0, 0, 0.1); /* Sombra leve */
+    z-index: 500; /* Fica acima do conteúdo borrado (blur) */
+    
+    display: flex;
+    /* FIX: Alinha o cartão à esquerda */
+    justify-content: flex-start; 
+    /* FIX: Estica o cartão verticalmente */
+    align-items: stretch; 
+}
+
+/* Classe para aplicar blur no modal de instituições quando outros modais estão abertos */
+.search-modal-card.blurred {
+  filter: blur(3px);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+.search-modal-card {
+    /* FIX: Altura total e largura lateral */
+    position: relative;
+    height: 100vh; /* Fica comprido (altura total) */
+    width: 400px; /* Largura para o modal lateral (ajuste se precisar) */
+    max-width: 100%;
+    
+    overflow-y: auto;
+    background: var(--bg-card); 
+    color: var(--text-dark);
+    padding: 30px 20px 20px 20px;
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15); 
+    transition: background 0.3s ease;
+    border-radius: 0;
+}
+
+/* Estilos do tema escuro para o novo modal */
+body.dark .search-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+.search-modal-exit {
+position: absolute;
+right: 15px;
+top: 15px;
+background: transparent;
+border: 0;
+color: var(--text-gray); 
+font-size: 24px;
+line-height: 1;
+cursor: pointer;
+transition: color 0.2s ease, transform 0.2s ease;
+}
+body.dark .search-modal-exit {
+    color: var(--text-dark-theme);
+}
+
+.search-modal-exit:hover {
+color: var(--red-orange);
+transform: rotate(90deg);
+}
+
+.search-modal-title {
+margin: 0 0 10px 0;
+font-size: 24px;
+font-weight: 700;
+}
+
+.search-modal-hr {
+border: 0;
+height: 1px;
+background-color: var(--border-color);
+margin: 10px 0 20px 0;
+}
+
+/* Estilos do tema escuro para o divisor */
+body.dark .search-modal-hr {
+background-color: var(--border-dark);
+}
+
+.search-modal-content {
+font-size: 16px;
+line-height: 1.6;
+color: var(--text-gray);
+margin-bottom: 30px;
+}
+
+/* Estilos do tema escuro para o conteúdo */
+body.dark .search-modal-content {
+color: var(--text-dark-theme);
+}
+
+.search-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+/*
+ * ===============================================
+ * Keyframes e Responsividade (Mantidos)
+ * ===============================================
+ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes fadeInFromTop {
   from {
     opacity: 0;
@@ -514,4 +1078,871 @@ input:checked + .slider:before {
   .modal-card {
     width: 92vw;
   }
+
+  .terms-modal-card {
+    width: 80%;
+    min-width: 300px;
+  }
+  
+  /* Na responsividade, o conteúdo principal deve ter margin-left 0 se a sidebar sumir, 
+     mas como ela está fixed, o margin-left é mantido para não ir para baixo dela. */
+}
+
+
+
+
+
+
+/*
+ * ===============================================
+ * NOVOS ESTILOS PARA O CONTEÚDO DO SEARCH MODAL (INST. ÁGUA VIVA)
+ * ===============================================
+ */
+
+/* Container Principal do Topo (Logo, Título, Avaliação) */
+.inst-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+/* Logo da Instituição */
+.inst-logo-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #e8f5e9; /* Fundo claro para a logo */
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Ajuste para tema escuro */
+  transition: all 0.3s ease;
+}
+body.dark .inst-logo-circle {
+  background-color: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.inst-logo-img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+/* Texto e Avaliação */
+.inst-info {
+  flex-grow: 1;
+}
+
+.inst-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-dark);
+  transition: color 0.3s ease;
+}
+body.dark .inst-title {
+  color: var(--light-text);
+}
+
+.inst-subtitle {
+  font-size: 14px;
+  color: var(--text-gray);
+  margin: 0;
+  transition: color 0.3s ease;
+}
+body.dark .inst-subtitle {
+  color: var(--text-dark-theme);
+}
+
+/* Estrelas de Avaliação */
+.inst-rating {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px 0;
+}
+
+.star-icon {
+  color: var(--soft-yellow); /* Amarelo das estrelas */
+  font-size: 18px;
+}
+
+.rating-text {
+  font-size: 14px;
+  color: var(--text-gray);
+  font-weight: 500;
+}
+body.dark .rating-text {
+  color: var(--text-dark-theme);
+}
+
+/* Botões de Ação Principal */
+.inst-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  flex-wrap: wrap; /* Garante que os botões quebrem em telas menores */
+}
+
+/* Estilo Borda Laranja (ex: Sobre Nós) */
+.btn-orange-outline {
+  background: white;
+  color: var(--orange);
+  border: 1px solid var(--orange);
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+body.dark .btn-orange-outline {
+  background: var(--bg-card-dark);
+  color: var(--orange);
+  border-color: var(--orange);
+}
+
+.btn-orange-outline:hover {
+  background: var(--orange);
+  color: white;
+  box-shadow: 0 4px 10px rgba(244, 162, 97, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Bloco de Descrição */
+.inst-description-block {
+  background-color: var(--bg-card); /* Fundo branco/claro */
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  /* Efeito de elevar no hover */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: default;
+  position: relative;
+  z-index: 1; /* Z-index inicial */
+}
+body.dark .inst-description-block {
+  background-color: var(--bg-card-dark);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-dark);
+}
+
+/* EFEITO DE HOVER - Vindo pra frente */
+.interactive-card:hover {
+  transform: translateY(-3px) scale(1.01); /* Leve elevação e crescimento */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Sombra mais intensa */
+  z-index: 10; /* Z-index maior para vir para a frente */
+}
+body.dark .interactive-card:hover {
+   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); 
+}
+
+.inst-description-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-dark);
+  margin: 0;
+}
+body.dark .inst-description-text {
+  color: var(--text-dark-theme);
+}
+
+/* Bloco de Informações de Contato */
+.info-block {
+  padding: 20px;
+  background-color: var(--bg-light); /* Fundo mais escuro */
+  border-radius: 8px;
+  margin-bottom: 25px;
+  /* Efeito de elevar no hover */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  z-index: 1;
+}
+body.dark .info-block {
+  background-color: #3c3c3c;
+}
+
+.info-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  color: var(--text-dark);
+}
+body.dark .info-title {
+  color: var(--light-text);
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+body.dark .info-item {
+  color: var(--text-dark-theme);
+}
+
+.info-icon {
+  color: var(--orange);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-value {
+  line-height: 1.5;
+}
+
+.info-status-open {
+  color: #4caf50; /* Verde para 'Aberto' */
+  font-weight: 600;
+}
+
+
+
+/* Definição das URLs das Imagens */
+.image-1 {
+  background-image: url("https://cdn.comunhao.com.br/wp-content/uploads/2024/12/base-social-IVA-Acaua-PI-fotor-2024122275112.jpg");
+  background-size: cover; /* Garante que a imagem cubra toda a área */
+  background-position: center; /* Centraliza a imagem */
+}
+
+.image-2 {
+  background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_H86Gw2kLPY7yFU3iKkw4PaM-waRcjFL7UA&s");
+  background-size: cover;
+  background-position: center;
+}
+
+.image-3 {
+  /* Observação: Você enviou a mesma URL da primeira imagem para a terceira. 
+     Se esta for uma URL diferente, substitua aqui. */
+  background-image: url("https://static.wixstatic.com/media/1beb5f_d163e461383f4551a514f1823de267fc~mv2.jpg/v1/fill/w_166,h_117,q_90,enc_avif,quality_auto/1beb5f_d163e461383f4551a514f1823de267fc~mv2.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* Galeria de Imagens (Conheça nossa instituição) */
+.gallery-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  color: var(--text-dark);
+}
+body.dark .gallery-title {
+  color: var(--light-text);
+}
+
+.gallery-container {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px; /* Espaço para a sombra de scroll */
+}
+
+.gallery-card {
+  min-width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  background-color: var(--border-color); /* Placeholder */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* Efeito de elevar no hover */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+
+
+
+
+/*
+ * ===============================================
+ * NOVO: Estilos para o Dropdown de Resultados da Busca (Design Card Moderno)
+ * ===============================================
+ */
+
+/* Item de opção individual (Card) */
+.search-result-card {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px; /* Mais padding para ser mais comprido/alto */
+  font-size: 16px;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 10px; /* Borda arredondada */
+  margin: 8px 10px; /* Espaço entre os cartões */
+  background: var(--bg-light); /* Fundo claro para se destacar */
+  border: 1px solid var(--border-color); /* Borda sutil */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra sutil de card */
+  /* Garante que o nome não seja cortado - O nome agora tem espaço total */
+}
+
+/* Estilos para o tema escuro */
+body.dark .search-result-card {
+  color: var(--text-dark-theme);
+  background: #2c2c2c; /* Fundo escuro sutil */
+  border-color: #444;
+}
+
+/* Efeito ao passar o mouse ou selecionar */
+.search-result-card:hover,
+.search-result-card.selected-card {
+  background-color: var(--bg-hover-light); /* Fundo sutil */
+  border-color: var(--orange); /* Borda Laranja */
+  transform: translateY(-2px); /* Efeito de elevação sutil */
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.2); /* Sombra laranja */
+}
+
+body.dark .search-result-card:hover,
+body.dark .search-result-card.selected-card {
+  background-color: #383838;
+}
+
+/* ------------------------------------------------ */
+/* ELEMENTOS INTERNOS DO CARD */
+/* ------------------------------------------------ */
+
+/* 1. Bloco da Logo (Esquerda) */
+.card-logo-block {
+  width: 50px; /* Aumentado */
+  height: 50px;
+  min-width: 50px; 
+  border-radius: 8px; /* Quadrado arredondado */
+  background-color: rgba(74, 144, 226, 0.15); /* Fundo azul suave */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+}
+
+.card-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* 2. Conteúdo Central (Nome e Subtítulo) */
+.card-main-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Ocupa o máximo de espaço */
+    margin-right: 10px;
+}
+
+/* Nome da Instituição - NUNCA CORTA (se couber na largura do input) */
+.card-name-full {
+  font-weight: 700; /* Mais destaque */
+  font-size: 17px;
+  color: var(--text-darker);
+  /* Removido white-space/overflow para mostrar o nome completo */
+}
+
+body.dark .card-name-full {
+    color: var(--text-dark-theme);
+}
+
+/* Subtítulo */
+.card-subtitle {
+    font-size: 13px;
+    color: var(--text-muted); /* Cinza suave */
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+/* 3. Bloco de Avaliação (Direita) */
+.card-rating-block {
+  display: flex;
+  flex-direction: column; /* Estrelas em cima do texto 5.0 */
+  align-items: flex-end; /* Alinha tudo à direita */
+  min-width: 70px;
+}
+
+.card-star-icons {
+    display: flex;
+    gap: 1px;
+    color: var(--soft-yellow); /* Estrelas amarelas */
+}
+
+.star-icon-option {
+  width: 16px; /* Estrelas um pouco maiores */
+  height: 16px;
+}
+
+.card-rating-text {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--soft-yellow); /* Cor do texto de avaliação */
+    margin-top: 2px;
+}
+
+/* AJUSTE FINAL: Remover padding do contêiner para que os cards tenham a margem */
+.search-results-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%; /* agora acompanha a largura da search-box */
+  z-index: 10;
+}
+
+/*
+ * ===============================================
+ * MODAL DE LOGOUT - Estilo conforme imagem fornecida
+ * ===============================================
+ */
+.logout-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.6); /* Fundo escurecido mais intenso */
+}
+
+.logout-modal-card {
+  background: #4a4a4a; /* Fundo escuro conforme a imagem */
+  color: white;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  min-width: 320px;
+  max-width: 400px;
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.logout-modal-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 25px 0;
+  color: white;
+  line-height: 1.4;
+}
+
+.logout-modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.logout-btn-yes {
+  background: var(--orange);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.logout-btn-yes:hover {
+  background: var(--soft-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.4);
+}
+
+.logout-btn-no {
+  background: white;
+  color: #333;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.logout-btn-no:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/*
+ * ===============================================
+ * MODAL DE NOTIFICAÇÕES - Ao lado da barra lateral
+ * ===============================================
+ */
+.notifications-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width); /* Começa após a barra lateral */
+  width: calc(100% - var(--sidebar-width));
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1); /* Sombra leve */
+  z-index: 500;
+  display: flex;
+  justify-content: flex-start; /* Alinha à esquerda */
+  align-items: stretch;
+}
+
+.notifications-modal-card {
+  position: relative;
+  height: 100vh;
+  width: 380px; /* Largura do modal */
+  max-width: 100%;
+  overflow-y: auto;
+  background: white;
+  color: #333;
+  padding: 20px;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
+  border-radius: 0;
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Estilos do tema escuro */
+body.dark .notifications-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+.notifications-modal-exit {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  background: transparent;
+  border: 0;
+  color: var(--text-gray);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+body.dark .notifications-modal-exit {
+  color: var(--text-dark-theme);
+}
+
+.notifications-modal-exit:hover {
+  color: var(--red-orange);
+  transform: rotate(90deg);
+}
+
+.notifications-modal-title {
+  margin: 0 0 30px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+body.dark .notifications-modal-title {
+  color: var(--light-text);
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.notification-item {
+  position: relative;
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  min-height: 60px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+body.dark .notification-item {
+  background: #3c3c3c;
+}
+
+.notification-item:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .notification-item:hover {
+  background: #484848;
+}
+
+.notification-item.selected {
+  border-color: var(--orange);
+  background: rgba(244, 162, 97, 0.1);
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.2);
+}
+
+body.dark .notification-item.selected {
+  background: rgba(244, 162, 97, 0.15);
+}
+
+.notification-dot {
+  width: 12px;
+  height: 12px;
+  background: #ff3b30;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.notification-content {
+  flex: 1;
+  opacity: 0;
+  animation: fadeInContent 0.5s ease-out forwards;
+}
+
+.notification-item.visible .notification-content {
+  opacity: 1;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.notification-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+  flex: 1;
+}
+
+body.dark .notification-name {
+  color: var(--light-text);
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #4caf50;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.notification-time.late {
+  color: #333; /* Cinza escuro/preto para notificações atrasadas */
+}
+
+body.dark .notification-time.late {
+  color: #666; /* Cinza mais claro no tema escuro */
+}
+
+.notification-message {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+body.dark .notification-message {
+  color: var(--text-dark-theme);
+}
+
+/* Animação para o conteúdo das notificações */
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animação de entrada do modal */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/*
+ * ===============================================
+ * NOTIFICAÇÕES PUSH - Aparecem automaticamente
+ * ===============================================
+ */
+.push-notifications-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000; /* Acima de todos os outros elementos */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none; /* Permite cliques através do container */
+}
+
+.push-notification {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid var(--orange);
+  min-width: 320px;
+  max-width: 400px;
+  pointer-events: auto; /* Permite interação com a notificação */
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  cursor: pointer; /* Indica que é clicável */
+}
+
+body.dark .push-notification {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.push-notification.visible {
+  transform: translateX(0);
+  opacity: 1;
+  animation: pushSlideIn 0.4s ease-out;
+}
+
+.push-notification-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.push-notification-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+body.dark .push-notification-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--light-text);
+}
+
+.push-notification-content {
+  padding-right: 20px; /* Espaço para o botão de fechar */
+}
+
+.push-notification-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.push-notification-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff3b30;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.push-notification-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+}
+
+body.dark .push-notification-name {
+  color: var(--light-text);
+}
+
+.push-notification-time {
+  font-size: 11px;
+  color: #4caf50;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.push-notification-time.late {
+  color: #333;
+}
+
+body.dark .push-notification-time.late {
+  color: #999;
+}
+
+.push-notification-message {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  margin-left: 16px; /* Alinha com o texto do header */
+}
+
+body.dark .push-notification-message {
+  color: var(--text-dark-theme);
+}
+
+/* Animação de entrada das notificações push */
+@keyframes pushSlideIn {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Efeito hover na notificação push */
+.push-notification:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .push-notification:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }

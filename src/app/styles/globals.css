@@ -1,3 +1,6 @@
+.card_login .inputs {
+	max-height: 360px; /* Apenas no login reduzimos para dar espaço à mensagem e botão */
+}
 /* Variáveis globais */
 :root {
 	--yellow: #f6a623;
@@ -71,6 +74,7 @@ main {
 	border-radius: 18px;
 	box-shadow: 6px 6px 10px rgba(0, 0, 0, 0.26);
 	padding: 36px;
+	/* padding-bottom padrão do card mantido para não afetar outros cards */
 	margin-top: 24px;
 	transform: translateX(996px);
 	animation: slideIn 1s ease-out 0.2s forwards;
@@ -96,6 +100,13 @@ main {
 
 .card_login {
 	margin-top: 36px;
+	/* Mantém estrutura original para não afetar registro */
+	padding-bottom: 24px; /* Respiro inferior sutil no login */
+}
+
+/* Quando houver erro, aumentamos o espaço inferior apenas nessa situação */
+.card_login:has(.error_message) {
+	padding-bottom: 72px;
 }
 
 .card_questions,
@@ -172,7 +183,7 @@ main {
 	display: flex;
 	flex-direction: column;
 	gap: 32px;
-	max-height: 412px;
+	max-height: 412px; /* Valor original para não quebrar registros */
 	overflow-y: auto;
 	padding-bottom: 6px;
 
@@ -287,13 +298,20 @@ main {
 .error_message {
 	color: rgba(232, 25, 25, 0.765);
 	font-size: 0.9rem;
-	margin: 12px 8px;
+	margin: 16px 8px; /* Mais respiro acima e abaixo da mensagem */
 	font-weight: bold;
 	text-align: center;
 	background-color: rgba(232, 25, 25, 0.1);
 	padding: 8px 12px;
 	border-radius: 4px;
 	border-left: 3px solid rgba(232, 25, 25, 0.765);
+}
+
+/* Ajustes pontuais no Login: mensagem de erro mais compacta e próxima do input acima */
+.card_login .error_message {
+	margin: 6px 8px; /* aproxima do input acima */
+	font-size: 0.85rem; /* ligeiramente menor */
+	padding: 6px 10px; /* reduz altura visual */
 }
 
 .login_opt {
@@ -389,6 +407,7 @@ main {
 .login_btn {
 	margin-top: 26px;
 	width: 100%;
+	margin-bottom: 20px; /* Espaço inferior moderado */
 
 	& button {
 		width: 100%;

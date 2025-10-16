@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import CardSystem from './components/Card'
+import CardSystem from '@components/Card'
 
 export default function Home() {
 	return (

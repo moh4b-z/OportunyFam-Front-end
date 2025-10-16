@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { API_BASE_URL } from '@/config'
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,9 +50,7 @@ export async function POST(request: NextRequest) {
       estado
     }
 
-    console.log('Dados do responsável a serem enviados:', responsibleData)
-
-    const response = await fetch('http://localhost:3030/v1/oportunyfam/usuarios', {
+    const response = await fetch(`${API_BASE_URL}/Usuarios`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

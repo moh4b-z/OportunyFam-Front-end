@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { API_BASE_URL } from '@/config'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,9 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Tentativa de login:', { email })
-
-    const response = await fetch('http://localhost:3030/v1/oportunyfam/login', {
+    const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,7 +25,6 @@ export async function POST(request: NextRequest) {
     })
 
     const data = await response.json()
-    console.log('Resposta da API externa:', data)
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status })

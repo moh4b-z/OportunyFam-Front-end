@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { API_BASE_URL } from '@/config'
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetch('http://localhost:3030/v1/oportunyfam/tipoInstituicoes')
+    const response = await fetch(`${API_BASE_URL}/tipoInstituicoes`)
     
     if (!response.ok) {
       throw new Error('Erro ao carregar tipos de instituição')
     }
 
     const data = await response.json()
-    console.log('Resposta da API:', data)
 
     // Verifica se a resposta tem a estrutura esperada
     if (!data.status || !data.tipos_instituicao || !Array.isArray(data.tipos_instituicao)) {

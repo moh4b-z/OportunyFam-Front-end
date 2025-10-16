@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { API_BASE_URL } from '@/config'
 import Link from 'next/link'
 import Input from './Input'
 import Select from './Select'
 import MultiSelect from './MultiSelect'
 import SwitchButtons from './Switch'
-import { authService, institutionService, userService, utilsService } from '../services/api'
+import { authService, institutionService, userService, utilsService } from '@services/api'
 
 export default function CardSystem() {
 	const [loginEmail, setLoginEmail] = useState<string>('')
@@ -65,7 +66,7 @@ export default function CardSystem() {
 	// Função para carregar opções de gênero da API
 	const loadGenderOptions = async () => {
 		try {
-			const response = await fetch('http://localhost:3030/v1/oportunyfam/sexos')
+			const response = await fetch(`${API_BASE_URL}/sexos`)
 			if (!response.ok) {
 				throw new Error('Erro ao carregar opções de gênero')
 			}
@@ -84,7 +85,6 @@ export default function CardSystem() {
 				} else if (data.results && Array.isArray(data.results)) {
 					genderArray = data.results
 				} else {
-					console.log('Formato de resposta da API:', data)
 					throw new Error('Formato de resposta inválido')
 				}
 			}
@@ -138,6 +138,8 @@ export default function CardSystem() {
 		const setLoading = isOng ? setOngCepLoading : setIsCepLoading
 		
 		setLoading(true)
+		// Limpa mensagem de erro anterior relacionada ao CEP
+		setRegisterErrorMessage(false)
 		
 		try {
 			const data = await utilsService.getCepData(cepLimpo)
@@ -158,6 +160,25 @@ export default function CardSystem() {
 			
 		} catch (error) {
 			console.error('Erro ao consultar CEP:', error)
+			const message = error instanceof Error ? error.message : ''
+			if (message && message.toLowerCase().includes('não encontrado')) {
+				setRegisterErrorMessage('CEP não encontrado. Verifique o CEP e tente novamente.')
+			} else {
+				setRegisterErrorMessage('Não foi possível buscar o CEP. Tente novamente mais tarde.')
+			}
+			if (isOng) {
+				setOngLogradouro('')
+				setOngBairro('')
+				setOngCidade('')
+				setOngUf('')
+				setOngAddressVisible(false)
+			} else {
+				setResponsableLogradouro('')
+				setResponsableBairro('')
+				setResponsableCidade('')
+				setResponsableUf('')
+				setResponsableAddressVisible(false)
+			}
 		} finally {
 			setLoading(false)
 		}
@@ -206,7 +227,6 @@ export default function CardSystem() {
 	// Função para registrar instituição
 	const registerInstitution = async () => {
 		try {
-			console.log('Iniciando registro da instituição...')
 			setIsLoading(true)
 			setRegisterErrorMessage(false)
 
@@ -222,7 +242,6 @@ export default function CardSystem() {
 			
 			if (missingFields.length > 0) {
 				const errorMsg = `Por favor, preencha os seguintes campos: ${missingFields.join(', ')}`
-				console.log('Erro de validação instituição:', errorMsg)
 				setRegisterErrorMessage(errorMsg)
 				setIsLoading(false)
 				return
@@ -266,7 +285,6 @@ export default function CardSystem() {
 				throw new Error(data.message || 'Erro ao cadastrar instituição')
 			}
 
-			console.log('Instituição cadastrada com sucesso:', data)
 			// Aqui você pode redirecionar ou mostrar mensagem de sucesso
 			alert('Instituição cadastrada com sucesso!')
 
@@ -340,7 +358,6 @@ export default function CardSystem() {
 				throw new Error(data.message || 'Erro ao cadastrar responsável')
 			}
 
-			console.log('Responsável cadastrado com sucesso:', data)
 			// Aqui você pode redirecionar ou mostrar mensagem de sucesso
 			alert('Responsável cadastrado com sucesso!')
 
@@ -365,7 +382,6 @@ export default function CardSystem() {
 
 			if (response.ok && data.status) {
 				// Login bem-sucedido
-				console.log('Login realizado com sucesso:', data)
 			} else if (response.status === 415) {
 				setLoginErrorMessage('Formato de dados inválido')
 			} else if (response.status === 401) {

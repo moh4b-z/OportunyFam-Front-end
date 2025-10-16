@@ -1,9 +1,10 @@
+import { useState } from 'react'
+import Link from 'next/link'
 import Input from './Input'
 import Select from './Select'
+import MultiSelect from './MultiSelect'
 import SwitchButtons from './Switch'
-import Link from 'next/link'
-import { useState } from 'react'
-import { loginUser } from '@/services/authService'
+import { authService, institutionService, userService, utilsService } from '../services/api'
 
 export default function CardSystem() {
 	const [loginEmail, setLoginEmail] = useState<string>('')
@@ -50,11 +51,13 @@ export default function CardSystem() {
 	const [ongNumero, setOngNumero] = useState<string>('')
 	const [ongComplemento, setOngComplemento] = useState<string>('')
 	const [ongAddressVisible, setOngAddressVisible] = useState<boolean>(false)
+	const [ongTiposInstituicao, setOngTiposInstituicao] = useState<string[]>([])
 	const [selectedOption, setSelectedOption] = useState<string>('responsavel')
 	const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
 	const [step, setStep] = useState<number>(0)
 	const [isLoading, setIsLoading] = useState<boolean>(false)
-	const [errorMessage, setErrorMessage] = useState<string | false>(false)
+	const [loginErrorMessage, setLoginErrorMessage] = useState<string | false>(false)
+	const [registerErrorMessage, setRegisterErrorMessage] = useState<string | false>(false)
 	const [isCepLoading, setIsCepLoading] = useState<boolean>(false)
 	const [ongCepLoading, setOngCepLoading] = useState<boolean>(false)
 	const canGoBack = step > 0
@@ -103,6 +106,24 @@ export default function CardSystem() {
 		}
 	}
 
+	// Função para carregar tipos de instituição da API
+	const loadInstitutionTypes = async () => {
+		try {
+			return await institutionService.getTypes()
+		} catch (error) {
+			console.error('Erro ao carregar tipos de instituição:', error)
+			// Retorna opções padrão em caso de erro
+			return [
+				{ value: 'educacao', label: 'Educação' },
+				{ value: 'saude', label: 'Saúde' },
+				{ value: 'assistencia_social', label: 'Assistência Social' },
+				{ value: 'cultura', label: 'Cultura' },
+				{ value: 'esporte', label: 'Esporte' },
+				{ value: 'meio_ambiente', label: 'Meio Ambiente' }
+			]
+		}
+	}
+
 	// Função para consultar CEP na API ViaCEP
 	const consultarCEP = async (cep: string, isOng: boolean = false) => {
 		// Remove caracteres não numéricos do CEP
@@ -119,46 +140,19 @@ export default function CardSystem() {
 		setLoading(true)
 		
 		try {
-			const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+			const data = await utilsService.getCepData(cepLimpo)
 			
-			if (!response.ok) {
-				throw new Error('Erro ao consultar CEP')
-			}
-			
-			const data = await response.json()
-			
-			// Verifica se o CEP é válido (ViaCEP retorna erro: true para CEPs inválidos)
-			if (data.erro) {
-				console.log('CEP não encontrado')
-				return
-			}
-			
-			// Mostra o resultado no console
-			console.log('Dados do CEP:', {
-				cep: data.cep,
-				logradouro: data.logradouro,
-				complemento: data.complemento,
-				bairro: data.bairro,
-				localidade: data.localidade,
-				uf: data.uf,
-				ibge: data.ibge,
-				gia: data.gia,
-				ddd: data.ddd,
-				siafi: data.siafi
-			})
-
-			// Preenche os campos de endereço baseado no tipo (responsável ou ONG)
 			if (isOng) {
 				setOngLogradouro(data.logradouro || '')
 				setOngBairro(data.bairro || '')
-				setOngCidade(data.localidade || '')
-				setOngUf(data.uf || '')
+				setOngCidade(data.cidade || '')
+				setOngUf(data.estado || '')
 				setOngAddressVisible(true)
 			} else {
 				setResponsableLogradouro(data.logradouro || '')
 				setResponsableBairro(data.bairro || '')
-				setResponsableCidade(data.localidade || '')
-				setResponsableUf(data.uf || '')
+				setResponsableCidade(data.cidade || '')
+				setResponsableUf(data.estado || '')
 				setResponsableAddressVisible(true)
 			}
 			
@@ -169,11 +163,26 @@ export default function CardSystem() {
 		}
 	}
 
-	const handleNext = () => {
+	const handleNext = async () => {
+		// Limpa mensagens de erro anteriores
+		setRegisterErrorMessage(false)
+
 		if (!selectedOption) {
-			alert('Por favor, selecione uma opção antes de continuar.')
+			setRegisterErrorMessage('Por favor, selecione uma opção antes de continuar.')
 			return
 		}
+
+		// Se estiver no step 1 (último step), fazer o registro
+		if (step === 1) {
+			if (selectedOption === 'ong') {
+				await registerInstitution()
+			} else if (selectedOption === 'responsavel') {
+				await registerResponsible()
+			}
+			return
+		}
+
+		// Caso contrário, avançar para o próximo step
 		setStep(step + 1)
 		return
 	}
@@ -181,43 +190,221 @@ export default function CardSystem() {
 	const handleBack = () => {
 		if (!canGoBack) return
 		setStep(step - 1)
+		// Limpa mensagens de erro ao voltar
+		setRegisterErrorMessage(false)
 	}
 
-	const handleLogin = async () => {
-		setIsLoading(true)
-		setErrorMessage(false)
+	// Função para validar senhas em tempo real
+	const validatePasswords = (password: string, confirmPassword: string, type: 'responsavel' | 'ong') => {
+		if (confirmPassword && password !== confirmPassword) {
+			setRegisterErrorMessage('As senhas não coincidem')
+		} else if (registerErrorMessage === 'As senhas não coincidem') {
+			setRegisterErrorMessage(false)
+		}
+	}
 
+	// Função para registrar instituição
+	const registerInstitution = async () => {
 		try {
-			const response = await loginUser(loginEmail, loginPassword)
-			const data = await response?.json()
+			console.log('Iniciando registro da instituição...')
+			setIsLoading(true)
+			setRegisterErrorMessage(false)
 
-			if (response?.ok && data.status) {
-			} else if (response?.status === 415) {
-				//O status code vai mudar depois que o back arrumar(401)
-				setErrorMessage('Email ou senha incorretos. Por favor, tente novamente.')
+			// Validações básicas
+			const missingFields = []
+			if (!ongName) missingFields.push('Nome da instituição')
+			if (!ongRegisterEmail) missingFields.push('Email')
+			if (!ongPhone) missingFields.push('Telefone')
+			if (!ongCnpj) missingFields.push('CNPJ')
+			if (!ongRegisterPassword) missingFields.push('Senha')
+			if (!confirmOngPassword) missingFields.push('Confirmação de senha')
+			if (!ongAdress) missingFields.push('CEP')
+			
+			if (missingFields.length > 0) {
+				const errorMsg = `Por favor, preencha os seguintes campos: ${missingFields.join(', ')}`
+				console.log('Erro de validação instituição:', errorMsg)
+				setRegisterErrorMessage(errorMsg)
+				setIsLoading(false)
+				return
 			}
+
+			if (ongRegisterPassword !== confirmOngPassword) {
+				setRegisterErrorMessage('As senhas não coincidem')
+				setIsLoading(false)
+				return
+			}
+
+			if (ongTiposInstituicao.length === 0) {
+				setRegisterErrorMessage('Selecione pelo menos um tipo de instituição')
+				setIsLoading(false)
+				return
+			}
+
+			// Prepara os dados para envio
+			const institutionData = {
+				nome: ongName,
+				logo: "", // Vazio por padrão
+				cnpj: ongCnpj, // Já vem limpo do componente Input
+				telefone: ongPhone, // Já vem limpo do componente Input
+				email: ongRegisterEmail,
+				senha: ongRegisterPassword,
+				descricao: "", // Vazio por padrão
+				cep: ongAdress, // CEP limpo
+				logradouro: ongLogradouro,
+				numero: ongNumero || "",
+				complemento: ongComplemento || "",
+				bairro: ongBairro,
+				cidade: ongCidade,
+				estado: ongUf,
+				tipos_instituicao: ongTiposInstituicao.map(id => parseInt(id)) // Converte para array de números
+			}
+
+			const response = await institutionService.register(institutionData)
+			const data = await response.json()
+
+			if (!response.ok) {
+				throw new Error(data.message || 'Erro ao cadastrar instituição')
+			}
+
+			console.log('Instituição cadastrada com sucesso:', data)
+			// Aqui você pode redirecionar ou mostrar mensagem de sucesso
+			alert('Instituição cadastrada com sucesso!')
+
 		} catch (error) {
-			setErrorMessage('Algo deu errado. Por favor, tente novamente mais tarde.')
+			console.error('Erro ao cadastrar instituição:', error)
+			setRegisterErrorMessage(error instanceof Error ? error.message : 'Erro ao cadastrar instituição')
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
+	// Função para registrar responsável
+	const registerResponsible = async () => {
+		try {
+			setIsLoading(true)
+			setRegisterErrorMessage(false)
+
+			// Validações básicas
+			const missingFields = []
+			if (!responsableName) missingFields.push('Nome')
+			if (!responsableRegisterEmail) missingFields.push('Email')
+			if (!responsablePhone) missingFields.push('Telefone')
+			if (!responsableCpf) missingFields.push('CPF')
+			if (!responsableRegisterPassword) missingFields.push('Senha')
+			if (!confirmResponsablePassword) missingFields.push('Confirmação de senha')
+			if (!responsableDateOfBirth) missingFields.push('Data de nascimento')
+			if (!responsableAddress) missingFields.push('CEP')
+			
+			if (missingFields.length > 0) {
+				setRegisterErrorMessage(`Por favor, preencha os seguintes campos: ${missingFields.join(', ')}`)
+				setIsLoading(false)
+				return
+			}
+
+			if (responsableRegisterPassword !== confirmResponsablePassword) {
+				setRegisterErrorMessage('As senhas não coincidem')
+				setIsLoading(false)
+				return
+			}
+
+			if (!responsableGender) {
+				setRegisterErrorMessage('Por favor, selecione o gênero')
+				setIsLoading(false)
+				return
+			}
+
+			// Prepara os dados para envio
+			const responsibleData = {
+				nome: responsableName,
+				foto_perfil: "", // Vazio por padrão
+				email: responsableRegisterEmail,
+				senha: responsableRegisterPassword,
+				data_nascimento: responsableDateOfBirth,
+				cpf: responsableCpf, // Já vem limpo do componente Input
+				telefone: responsablePhone, // Já vem limpo do componente Input
+				id_sexo: parseInt(responsableGender), // Converte para número
+				id_tipo_nivel: 1, // 1 por padrão
+				cep: responsableAddress, // CEP limpo
+				logradouro: responsableLogradouro,
+				numero: responsableNumero || "",
+				complemento: responsableComplemento || "",
+				bairro: responsableBairro,
+				cidade: responsableCidade,
+				estado: responsableUf
+			}
+
+			const response = await userService.register(responsibleData)
+			const data = await response.json()
+
+			if (!response.ok) {
+				throw new Error(data.message || 'Erro ao cadastrar responsável')
+			}
+
+			console.log('Responsável cadastrado com sucesso:', data)
+			// Aqui você pode redirecionar ou mostrar mensagem de sucesso
+			alert('Responsável cadastrado com sucesso!')
+
+		} catch (error) {
+			console.error('Erro ao cadastrar responsável:', error)
+			setRegisterErrorMessage(error instanceof Error ? error.message : 'Erro ao cadastrar responsável')
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	const handleLogin = async () => {
+		setIsLoading(true)
+		setLoginErrorMessage(false)
+
+		try {
+			const response = await authService.login({
+				email: loginEmail,
+				password: loginPassword
+			})
+			const data = await response.json()
+
+			if (response.ok && data.status) {
+				// Login bem-sucedido
+				console.log('Login realizado com sucesso:', data)
+			} else if (response.status === 415) {
+				setLoginErrorMessage('Formato de dados inválido')
+			} else if (response.status === 401) {
+				setLoginErrorMessage('Email ou senha incorretos')
+			} else {
+				setLoginErrorMessage('Erro no servidor. Tente novamente.')
+			}
+		} catch (error) {
+			console.error('Erro no login:', error)
+			setLoginErrorMessage('Erro de conexão. Verifique sua internet.')
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	// Função para trocar de aba e limpar erros
+	const handleTabChange = (newTab: 'login' | 'register') => {
+		setActiveTab(newTab)
+		// Limpa os erros quando troca de aba
+		setLoginErrorMessage(false)
+		setRegisterErrorMessage(false)
+	}
+
 	return (
 		<div className="card_container">
-			<SwitchButtons activeTab={activeTab} setActiveTab={setActiveTab} />
+			<SwitchButtons activeTab={activeTab} setActiveTab={handleTabChange} />
 			<div className={`card_login ${activeTab === 'login' ? 'form_active' : ''}`}>
 				<div className="inputs">
-					<Input
-						srcImage="/icons-email.svg"
-						inputName="Email"
-						placeholder="Email"
-						type="email"
-						name="login_email"
-						value={loginEmail}
-						onChange={setLoginEmail}
-						className={errorMessage ? 'input_error' : ''}
-					/>
+								<Input
+									srcImage="/icons-email.svg"
+									inputName="Email"
+									placeholder="seu@email.com"
+									type="email"
+									name="login_email"
+									mask="email"
+									value={loginEmail}
+									onChange={setLoginEmail}
+									className={loginErrorMessage ? 'input_error' : ''}
+								/>
 					<Input
 						srcImage="/icons-lock.svg"
 						extImage="/icons-eye-off.svg"
@@ -227,11 +414,11 @@ export default function CardSystem() {
 						name="login_password"
 						value={loginPassword}
 						onChange={setLoginPassword}
-						className={errorMessage ? 'input_error' : ''}
+						className={loginErrorMessage ? 'input_error' : ''}
 					/>
 				</div>
 
-				{errorMessage && <p className="error_message">{errorMessage}</p>}
+				{loginErrorMessage && <p className="error_message">{loginErrorMessage}</p>}
 
 				<div className="login_opt">
 					<div className="remember_me">
@@ -323,18 +510,20 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-email.svg"
 									inputName="Email"
-									placeholder="Email"
+									placeholder="usuario@exemplo.com"
 									type="email"
 									name="responsavel_email"
+									mask="email"
 									value={responsableRegisterEmail}
 									onChange={setResponsableRegisterEmail}
 								/>
 								<Input
 									srcImage="/icons-phone.svg"
 									inputName="Telefone"
-									placeholder="Telefone"
+									placeholder="(11) 98765-4321"
 									type="tel"
 									name="responsavel_telefone"
+									mask="phone"
 									value={responsablePhone}
 									onChange={setResponsablePhone}
 								/>
@@ -350,9 +539,10 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-card.svg"
 									inputName="CPF"
-									placeholder="CPF"
+									placeholder="000.000.000-00"
 									type="text"
 									name="responsavel_cpf"
+									mask="cpf"
 									value={responsableCpf}
 									onChange={setResponsableCpf}
 								/>
@@ -455,12 +645,15 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-lock.svg"
 									extImage="/icons-eye-off.svg"
-									inputName="Confirmar senha"
-									placeholder="Confirmar senha"
+									inputName="Confirmar Senha"
+									placeholder="Confirmar Senha"
 									type="password"
 									name="responsavel_confirmar_senha"
 									value={confirmResponsablePassword}
-									onChange={setConfirmResponsablePassword}
+									onChange={(value) => {
+										setConfirmResponsablePassword(value)
+										validatePasswords(responsableRegisterPassword, value, 'responsavel')
+									}}
 								/>
 							</div>
 						</div>
@@ -544,29 +737,34 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-email.svg"
 									inputName="Email"
-									placeholder="Email"
+									placeholder="instituicao@exemplo.com"
 									type="email"
 									name="ong_email"
+									mask="email"
 									value={ongRegisterEmail}
 									onChange={setOngRegisterEmail}
 								/>
 								<Input
 									srcImage="/icons-phone.svg"
 									inputName="Telefone"
-									placeholder="Telefone"
+									placeholder="(11) 98765-4321"
 									type="tel"
 									name="ong_telefone"
+									mask="phone"
 									value={ongPhone}
 									onChange={setOngPhone}
 								/>
-								{/* <select name="ong_name" id="1">
-									<option value="valor1">Opção 1</option>
-									<option value="valor2">Opção 2</option>
-									<option value="valor3" selected>
-										Opção 3 (Pré-selecionada)
-									</option>
-								</select> */}
-								<Input srcImage="/icons-card.svg" inputName="CNPJ" placeholder="CNPJ" type="text" name="ong_cnpj" value={ongCnpj} onChange={setOngCnpj} />
+								<MultiSelect
+									srcImage="/icons-ong.svg"
+									inputName="Tipos de Instituição"
+									placeholder="Selecione os tipos de instituição"
+									selectedValues={ongTiposInstituicao}
+									name="ong_tipos_instituicao"
+									options={[]}
+									onChange={setOngTiposInstituicao}
+									onLoadOptions={loadInstitutionTypes}
+								/>
+								<Input srcImage="/icons-card.svg" inputName="CNPJ" placeholder="00.000.000/0000-00" type="text" name="ong_cnpj" mask="cnpj" value={ongCnpj} onChange={setOngCnpj} />
 								<Input
 									srcImage="/icons-pin_orange.svg"
 									inputName="CEP"
@@ -656,16 +854,23 @@ export default function CardSystem() {
 								<Input
 									srcImage="/icons-lock.svg"
 									extImage="/icons-eye-off.svg"
-									inputName="Confirmar senha"
-									placeholder="Confirmar senha"
+									inputName="Confirmar Senha"
+									placeholder="Confirmar Senha"
 									type="password"
 									name="ong_confirmar_senha"
 									value={confirmOngPassword}
-									onChange={setConfirmOngPassword}
+									onChange={(value) => {
+										setConfirmOngPassword(value)
+										validatePasswords(ongRegisterPassword, value, 'ong')
+									}}
 								/>
 							</div>
 						</div>
 					</div>
+				)}
+
+				{registerErrorMessage && activeTab === 'register' && (
+					<p className="error_message">{registerErrorMessage}</p>
 				)}
 
 				<div className={`navigation_buttons`}>
@@ -677,8 +882,12 @@ export default function CardSystem() {
 						title={canGoBack ? 'Voltar' : ''}>
 						← Voltar
 					</button>
-					<button className="btn_next" onClick={handleNext} title="Avançar">
-						Avançar →
+					<button 
+						className="btn_next" 
+						onClick={handleNext} 
+						disabled={isLoading} 
+						title={step === 1 ? "Cadastrar" : "Avançar"}>
+						{isLoading ? <div className="spinner"></div> : (step === 1 ? "Cadastrar" : "Avançar →")}
 					</button>
 				</div>
 			</div>

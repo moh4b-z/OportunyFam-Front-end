@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import InstitutionDetailModal from "@/app/components/InstitutionDetailModal";
+import InstitutionDetailModal from "@/components/InstitutionDetailModal";
 
 // Tipo para os dados da instituição
 interface Institution {

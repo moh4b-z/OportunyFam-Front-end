@@ -107,20 +107,26 @@ export default function Header({ user }: HeaderProps) {
       </header>
 
       {/* MODAIS */}
-      {showNotifications && (
-        <NotificationsModal
-          notifications={notifications}
-          onClose={() => setShowNotifications(false)}
-        />
-      )}
+      <NotificationsModal
+        isOpen={showNotifications}
+        notifications={notifications}
+        onClose={() => setShowNotifications(false)}
+      />
 
-      {showLogout && (
-        <LogoutModal onClose={() => setShowLogout(false)} />
-      )}
+      <LogoutModal 
+        isOpen={showLogout}
+        onClose={() => setShowLogout(false)}
+        onConfirm={() => {
+          // Aqui você pode implementar a lógica de logout
+          console.log("Logout confirmado");
+          setShowLogout(false);
+        }}
+      />
 
-      {showJoin && (
-        <JoinModal onClose={() => setShowJoin(false)} />
-      )}
+      <JoinModal 
+        isOpen={showJoin}
+        onClose={() => setShowJoin(false)}
+      />
     </>
   );
 }

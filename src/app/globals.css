@@ -175,29 +175,6 @@ body.dark {
   box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
 }
 
-/*
- * ===============================================
- * Componente Map Area (Removido o margin-left que causava problemas)
- * ===============================================
- */
-.map-area {
-  /* FIX: Margin-left removido daqui, pois já está no .app-content-wrapper */
-  /* margin-left: 90px; REMOVIDO/COMENTADO */
-  flex: 1;
-  height: 100vh;
-  position: relative;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.map {
-  position: absolute;
-  inset: 0;
-  background-image: url("/map.png");
-  background-size: cover;
-  background-position: center center;
-  filter: saturate(0.9) brightness(0.98);
-}
 
 /*
  * ===============================================
@@ -211,6 +188,38 @@ body.dark {
   margin-bottom: 30px;
   position: relative;
   z-index: 10;
+}
+
+/* Header flutuante sobre o mapa */
+.floating-header {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Alinha no topo para não interferir com controles */
+  z-index: 500; /* Z-index menor para não sobrepor controles do mapa */
+  pointer-events: none; /* Permite cliques através do header */
+}
+
+.floating-header > * {
+  pointer-events: auto; /* Reativa cliques nos elementos filhos */
+}
+
+/* Controles do mapa (Leaflet zoom controls) */
+.leaflet-control-zoom {
+  z-index: 600 !important; /* Fica acima do header flutuante */
+}
+
+.leaflet-control {
+  z-index: 600 !important; /* Todos os controles do mapa ficam visíveis */
+}
+
+/* Garante que os controles do mapa fiquem visíveis */
+.leaflet-top.leaflet-left {
+  z-index: 600 !important;
+  top: 120px !important; /* Posiciona mais embaixo da barra de pesquisa */
 }
 
 .search-and-chips {

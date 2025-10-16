@@ -7,7 +7,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "leaflet.markercluster";
 import { Instituicao } from "@/types";
-import styles from "../styles/Mapa.module.css"
+import styles from "../app/styles/Mapa.module.css"
 
 interface MapaProps {
   highlightedInstitution?: Instituicao | null;

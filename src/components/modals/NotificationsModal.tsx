@@ -25,10 +25,10 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   return (
     <div
       onClick={handleBackgroundClick}
-      className={styles.notificationModal}
+      className={styles.notificationModalLateral}
     >
       <div
-        className={styles.notificationModalContent}
+        className={styles.notificationModalContentLateral}
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className={styles.notificationModalTitle}>

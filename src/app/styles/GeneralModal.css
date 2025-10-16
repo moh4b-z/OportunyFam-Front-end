@@ -1,0 +1,56 @@
+/* 
+ * ===============================================
+ * ESTILOS GERAIS PARA MODAIS
+ * ===============================================
+ */
+
+/* Modal genérico */
+.modal-card {
+  /* MODIFICADO: Ajustado para o tamanho e proporção da imagem */
+  width: auto; /* Deixa o max-width guiar o tamanho */
+  max-width: 420px; /* Tamanho máximo para replicar o look estreito */
+  min-width: 300px; /* Evita que fique muito pequeno */
+  height: auto; /* Altura baseada no conteúdo */
+  max-height: 90vh; /* Limite de altura para telas pequenas */
+  overflow-y: auto; /* Para garantir que o conteúdo seja scrollável se for muito alto */
+  background: var(--dark-modal);
+  color: var(--light-text);
+  padding: 26px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Modal de termos e condições */
+.terms-modal-card {
+  width: 50%;
+  max-width: 650px;
+  min-width: 400px;
+  height: 85vh;
+  background: white;
+  color: #333;
+  padding: 0;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Estilos para o tema escuro */
+body.dark .terms-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+/* Responsividade */
+@media (max-width: 800px) {
+  .modal-card {
+    width: 92vw;
+  }
+
+  .terms-modal-card {
+    width: 80%;
+    min-width: 300px;
+  }
+}

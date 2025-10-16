@@ -75,7 +75,7 @@
   border-radius: 12px;
   padding: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  width: 240px;
+  width: 260px;
   z-index: 800; /* Z-index alto mas organizado na hierarquia */
   transition: all 0.3s ease;
   transform-origin: top right;
@@ -126,6 +126,38 @@
 :global(body.dark) .menuDivider {
   background-color: var(--border-dark);
 }
+
+
+/* 6. NOVO ESTILO PARA DESTAQUE DO ITEM DE SAÍDA */
+.logoutItem {
+  color: var(--text-logout, #ff3b30); /* Cor vermelha (pode ser ajustada) */
+  font-weight: 600; /* Pode ser um pouco mais forte */
+  padding: 12px 14px; /* Mais padding para destacar */
+}
+
+/* Garante que o ícone também seja vermelho */
+.logoutItem svg {
+  stroke: var(--text-logout, #ff3b30);
+}
+
+.logoutItem:hover {
+  background-color: var(--bg-logout-hover, rgba(255, 59, 48, 0.1));
+}
+
+/* Estilos para o tema escuro */
+:global(body.dark) .logoutItem {
+  color: var(--text-logout-dark, #ff5c5c);
+}
+
+:global(body.dark) .logoutItem svg {
+  stroke: var(--text-logout-dark, #ff5c5c);
+}
+
+:global(body.dark) .logoutItem:hover {
+  background-color: var(--bg-logout-dark-hover, rgba(255, 92, 92, 0.1));
+}
+
+
 
 /*
  * ===============================================

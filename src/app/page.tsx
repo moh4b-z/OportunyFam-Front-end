@@ -3,6 +3,7 @@
 import { useState } from "react";
 import BarraLateral from "@/components/BarraLateral";
 import SearchBar from "@/components/SearchBar";
+import Switch from "@/components/Switch";
 const Mapa = dynamic(() => import("../components/Mapa"), { ssr: false });
 import dynamic from "next/dynamic";
 import { Instituicao } from "@/types";
@@ -110,6 +111,11 @@ export default function HomePage() {
           <Mapa highlightedInstitution={selectedInstitution} />
         </div>
         
+        {/* Switch de categorias - lado direito da barra lateral */}
+        <div className="switch-container-sidebar">
+          <Switch onCategoryChange={(category) => console.log("Categoria selecionada:", category)} />
+        </div>
+
         {/* Header flutuante sobre o mapa */}
         <div className="floating-header">
           <div className="search-wrapper">

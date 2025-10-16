@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Instituicao } from "@/types";
 import { InstituicoesByName } from "@/service/Instituicoes";
+import "../app/styles/SearchCard.css";
+import "../app/styles/SearchModal.css";
 
 interface SearchBarProps {
   onInstitutionSelect: (institution: Instituicao) => void;

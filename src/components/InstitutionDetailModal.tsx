@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, MouseEventHandler } from "react";
+import "../app/styles/InstituitionsModal.module.css";
 
 interface InstitutionDetailModalProps {
   onClose: MouseEventHandler<HTMLButtonElement>;
@@ -14,6 +15,9 @@ export default function InstitutionDetailModal({ onClose }: InstitutionDetailMod
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [showActivityList, setShowActivityList] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState("");
+  
+  // Controle do modal "Sobre Nós"
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
   const activities = ["Reforço Escolar", "Esportes", "Música"];
 
@@ -46,7 +50,13 @@ export default function InstitutionDetailModal({ onClose }: InstitutionDetailMod
             alimentação e lazer de crianças e adolescentes em situação de vulnerabilidade.
           </p>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => setShowAboutModal(true)}
+              className="bg-white border-2 border-[#f4a261] text-[#f4a261] hover:bg-[#f4a261] hover:text-white font-semibold py-2 px-6 rounded-full transition"
+            >
+              Sobre Nós
+            </button>
             <button
               onClick={() => setShowActivityModal(true)}
               className="bg-[#f4a261] hover:bg-[#e76f51] text-white font-semibold py-2 px-6 rounded-full transition"
@@ -101,6 +111,52 @@ export default function InstitutionDetailModal({ onClose }: InstitutionDetailMod
                 Atividade escolhida com sucesso!
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal "Sobre Nós" */}
+      {showAboutModal && (
+        <div className="about-modal-overlay">
+          <div className="about-modal-card">
+            <button
+              onClick={() => setShowAboutModal(false)}
+              className="about-modal-exit"
+            >
+              ✕
+            </button>
+
+            {/* Hero Section com vídeo */}
+            <div className="about-hero">
+              <div className="about-video-frame">
+                <iframe
+                  className="about-video"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="Sobre a Instituição Água Viva"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+
+            {/* Conteúdo */}
+            <div className="about-content">
+              <h2 className="about-title">Nossa História</h2>
+              <p className="about-text">
+                A Instituição Água Viva nasceu em 2010 com o objetivo de transformar vidas através da educação, 
+                esporte e cultura. Atendemos mais de 500 crianças e adolescentes em situação de vulnerabilidade 
+                social, oferecendo atividades que promovem o desenvolvimento integral.
+              </p>
+              <p className="about-text">
+                Nossos programas incluem reforço escolar, oficinas de música, esportes, artes e capacitação 
+                profissional para jovens. Acreditamos que cada criança tem potencial único e merece oportunidades 
+                para crescer e se desenvolver em um ambiente seguro e acolhedor.
+              </p>
+              <a href="#" className="about-cta">
+                Saiba Como Ajudar
+              </a>
+            </div>
           </div>
         </div>
       )}

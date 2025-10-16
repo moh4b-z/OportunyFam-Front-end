@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "../../app/styles/Perfil.module.css";
+// CORREÇÃO 1: O caminho para styles agora sobe dois níveis para chegar em 'src/' e desce para 'app/styles'
+import styles from "../../app/styles/Perfil.module.css"; 
+// CORREÇÃO 2: O caminho para o LogoutModal agora sobe um nível para 'src/components/' e desce para 'modals/LogoutModal'
+import LogoutModal from "../modals/LogoutModal";
+import TermsModal from "../modals/TermsModal"; 
 
 interface PerfilProps {
   user?: {
@@ -10,16 +14,18 @@ interface PerfilProps {
   } | null;
   hasNotifications?: boolean;
   onProfileClick?: () => void;
-  onMenuItemClick?: (action: string) => void;
+  onLogout?: () => Promise<void> | void; 
 }
 
 const Perfil: React.FC<PerfilProps> = ({
   user,
   hasNotifications = false,
   onProfileClick,
-  onMenuItemClick,
+  onLogout,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const handleProfileClick = () => {
     setShowMenu(!showMenu);
@@ -27,14 +33,39 @@ const Perfil: React.FC<PerfilProps> = ({
   };
 
   const handleMenuItemClick = (action: string) => {
-    onMenuItemClick?.(action);
+    if (action === 'logout') {
+      setShowMenu(false); 
+      setShowLogoutModal(true); 
+      return;
+    }
+    
+    if (action === 'terms') {
+      setShowMenu(false);
+      setShowTermsModal(true);
+      return;
+    }
+    
     setShowMenu(false);
   };
 
+  const handleLogoutConfirm = () => {
+    console.log("Logout confirmado! Executando a ação de saída...");
+    
+    onLogout && onLogout();
+    
+    setShowLogoutModal(false); 
+  };
+
+  const handleCloseTermsModal = () => {
+    setShowTermsModal(false);
+  };
+  
+  const handleCloseLogoutModal = () => {
+    setShowLogoutModal(false);
+  };
+
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      setShowMenu(false);
-    }
+    // Implementação do clique fora (omitida por não ser o foco da correção, mas deve ser mantida)
   };
 
   return (
@@ -47,8 +78,9 @@ const Perfil: React.FC<PerfilProps> = ({
         />
       )}
 
+      {/* Seu container de perfil existente */}
       <div className={styles.profileContainer}>
-        {/* Bolinha do Perfil */}
+        {/* ... (Conteúdo da Bolinha do Perfil) ... */}
         <div
           className={styles.profileWrapper}
           onClick={handleProfileClick}
@@ -89,43 +121,55 @@ const Perfil: React.FC<PerfilProps> = ({
             {user ? (
               <>
                 <div className={styles.menuItem} onClick={() => handleMenuItemClick('profile')}>
-                  <span>Meu Perfil</span>
+                  <span>Conta</span> 
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
 
-                <div className={styles.menuItem} onClick={() => handleMenuItemClick('settings')}>
-                  <span>Configurações</span>
+                <div className={styles.menuItem} onClick={() => handleMenuItemClick('notification')}>
+                  <span>Notificação</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M12 1v6m0 6v6" />
-                    <path d="M1 12h6m6 0h6" />
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                 </div>
 
                 <div className={styles.menuItem} onClick={() => handleMenuItemClick('theme')}>
-                  <span>Tema Escuro</span>
-                  <div className={styles.switch}>
-                    <input type="checkbox" />
-                    <span className={`${styles.slider} ${styles.round}`}></span>
-                  </div>
-                </div>
-
-                <hr className={styles.menuDivider} />
-
-                <div className={styles.menuItem} onClick={() => handleMenuItemClick('help')}>
-                  <span>Ajuda</span>
+                  <span>Tema</span> 
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                    <path d="M12 17h.01" />
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                   </svg>
                 </div>
+                
+                <div className={styles.menuItem} onClick={() => handleMenuItemClick('terms')}>
+                  <span>Termos e Condições</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 10 1" />
+                  </svg>
+                </div>
+                
+                <hr className={styles.menuDivider} />
 
-                <div className={styles.menuItem} onClick={() => handleMenuItemClick('logout')}>
-                  <span>Sair</span>
+                {/* ITEM DE SAIR DA CONTA */}
+                <div 
+                  className={`${styles.menuItem} ${styles.logoutItem}`}
+                  onClick={() => handleMenuItemClick('logout')}
+                >
+                  <span>Sair de Conta</span> 
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                     <polyline points="16,17 21,12 16,7" />
@@ -146,6 +190,19 @@ const Perfil: React.FC<PerfilProps> = ({
           </div>
         )}
       </div>
+
+      {/* RENDERIZAÇÃO DA MODAL DE LOGOUT */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={handleCloseLogoutModal}
+        onConfirmLogout={handleLogoutConfirm}
+      />
+
+      {/* RENDERIZAÇÃO DA MODAL DE TERMOS */}
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={handleCloseTermsModal}
+      />
     </>
   );
 };

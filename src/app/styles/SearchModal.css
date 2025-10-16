@@ -1,0 +1,108 @@
+/*
+ * ===============================================
+ * FIX: Novo Modal de Busca (Esquerda e Comprido)
+ * ===============================================
+ */
+
+.search-modal-overlay {
+    position: fixed;
+    top: 0;
+    /* FIX: Começa após a barra lateral */
+    left: var(--sidebar-width); 
+    width: calc(100% - var(--sidebar-width)); 
+    height: 100%;
+    
+    background-color: rgba(0, 0, 0, 0.1); /* Sombra leve */
+    z-index: 500; /* Fica acima do conteúdo borrado (blur) */
+    
+    display: flex;
+    /* FIX: Alinha o cartão à esquerda */
+    justify-content: flex-start; 
+    /* FIX: Estica o cartão verticalmente */
+    align-items: stretch; 
+}
+
+/* Classe para aplicar blur no modal de instituições quando outros modais estão abertos */
+.search-modal-card.blurred {
+  filter: blur(3px);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+.search-modal-card {
+    /* FIX: Altura total e largura lateral */
+    position: relative;
+    height: 100vh; /* Fica comprido (altura total) */
+    width: 400px; /* Largura para o modal lateral (ajuste se precisar) */
+    max-width: 100%;
+    
+    overflow-y: auto;
+    background: var(--bg-card); 
+    color: var(--text-dark);
+    padding: 30px 20px 20px 20px;
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15); 
+    transition: background 0.3s ease;
+    border-radius: 0;
+}
+
+/* Estilos do tema escuro para o novo modal */
+body.dark .search-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+.search-modal-exit {
+position: absolute;
+right: 15px;
+top: 15px;
+background: transparent;
+border: 0;
+color: var(--text-gray); 
+font-size: 24px;
+line-height: 1;
+cursor: pointer;
+transition: color 0.2s ease, transform 0.2s ease;
+}
+body.dark .search-modal-exit {
+    color: var(--text-dark-theme);
+}
+
+.search-modal-exit:hover {
+color: var(--red-orange);
+transform: rotate(90deg);
+}
+
+.search-modal-title {
+margin: 0 0 10px 0;
+font-size: 24px;
+font-weight: 700;
+}
+
+.search-modal-hr {
+border: 0;
+height: 1px;
+background-color: var(--border-color);
+margin: 10px 0 20px 0;
+}
+
+/* Estilos do tema escuro para o divisor */
+body.dark .search-modal-hr {
+background-color: var(--border-dark);
+}
+
+.search-modal-content {
+font-size: 16px;
+line-height: 1.6;
+color: var(--text-gray);
+margin-bottom: 30px;
+}
+
+/* Estilos do tema escuro para o conteúdo */
+body.dark .search-modal-content {
+color: var(--text-dark-theme);
+}
+
+.search-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+}

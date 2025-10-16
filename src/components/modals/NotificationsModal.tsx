@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import ModalOverlay from "../shared/ModalOverlay";
+import styles from "../../app/styles/Notification.module.css";
 
 type NotificationsModalProps = {
   isOpen: boolean;
@@ -14,39 +14,56 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   onClose,
   notifications = [],
 }) => {
+  if (!isOpen) return null;
+
+  const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose}>
-      <div className="bg-white w-[400px] rounded-2xl p-6 shadow-lg relative">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-          Notificações
+    <div
+      onClick={handleBackgroundClick}
+      className={styles.notificationModal}
+    >
+      <div
+        className={styles.notificationModalContent}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className={styles.notificationModalTitle}>
+          Notificação
         </h2>
 
+        <button
+          onClick={onClose}
+          className={styles.notificationModalClose}
+        >
+          ✕
+        </button>
+
         {notifications.length > 0 ? (
-          <ul className="space-y-3 max-h-64 overflow-y-auto">
+          <ul className={styles.notificationsList}>
             {notifications.map((n) => (
               <li
                 key={n.id}
-                className="border-b border-gray-200 pb-2 text-sm text-gray-700"
+                className={styles.notificationItem}
               >
-                <p>{n.message}</p>
-                <span className="text-xs text-gray-400">{n.date}</span>
+                <div className={styles.notificationDot}></div>
+                <div className={styles.notificationContent}>
+                  <p className={styles.notificationMessage}>{n.message}</p>
+                  <span className={styles.notificationDate}>{n.date}</span>
+                </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-center text-gray-500 text-sm">
+          <div className={styles.emptyNotifications}>
             Nenhuma notificação disponível
-          </p>
+          </div>
         )}
-
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
-        >
-          ✕
-        </button>
       </div>
-    </ModalOverlay>
+    </div>
   );
 };
 

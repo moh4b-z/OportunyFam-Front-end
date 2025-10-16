@@ -1,0 +1,307 @@
+/*
+ * ===============================================
+ * NOTIFICAÇÕES PUSH - Aparecem automaticamente
+ * ===============================================
+ */
+.pushNotificationsContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000; /* Acima de todos os outros elementos */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none; /* Permite cliques através do container */
+}
+
+.pushNotification {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid var(--orange);
+  min-width: 320px;
+  max-width: 400px;
+  pointer-events: auto; /* Permite interação com a notificação */
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  cursor: pointer; /* Indica que é clicável */
+}
+
+:global(body.dark) .pushNotification {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.pushNotification.visible {
+  transform: translateX(0);
+  opacity: 1;
+  animation: pushSlideIn 0.4s ease-out;
+}
+
+.pushNotificationClose {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.pushNotificationClose:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+:global(body.dark) .pushNotificationClose:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--light-text);
+}
+
+.pushNotificationContent {
+  padding-right: 20px; /* Espaço para o botão de fechar */
+}
+
+.pushNotificationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pushNotificationDot {
+  width: 8px;
+  height: 8px;
+  background: #ff3b30;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pushNotificationName {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+}
+
+:global(body.dark) .pushNotificationName {
+  color: var(--light-text);
+}
+
+.pushNotificationTime {
+  font-size: 11px;
+  color: #4caf50;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pushNotificationTime.late {
+  color: #333;
+}
+
+:global(body.dark) .pushNotificationTime.late {
+  color: #999;
+}
+
+.pushNotificationMessage {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  margin-left: 16px; /* Alinha com o texto do header */
+}
+
+:global(body.dark) .pushNotificationMessage {
+  color: var(--text-dark-theme);
+}
+
+/* Animação de entrada das notificações push */
+@keyframes pushSlideIn {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Efeito hover na notificação push */
+.pushNotification:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+:global(body.dark) .pushNotification:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* =============================================== */
+/* MODAL DE NOTIFICAÇÕES - Design da imagem */
+/* =============================================== */
+
+.notificationModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.notificationModalContent {
+  background: white;
+  width: 500px;
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow-y: auto;
+}
+
+.notificationModalTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 20px 0;
+  text-align: left;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+.notificationModalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.notificationModalClose:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.notificationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notificationItem {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  min-height: 80px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.notificationItem:hover {
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notificationDot {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  background: #dc3545;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.notificationContent {
+  margin-left: 40px;
+  padding-top: 4px;
+}
+
+.notificationMessage {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.notificationDate {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+.emptyNotifications {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+/* Tema escuro */
+:global(body.dark) .notificationModalContent {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+:global(body.dark) .notificationModalTitle {
+  color: var(--text-dark-theme);
+  border-bottom-color: var(--border-dark);
+}
+
+:global(body.dark) .notificationItem {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+:global(body.dark) .notificationItem:hover {
+  border-color: #666;
+}
+
+:global(body.dark) .notificationMessage {
+  color: var(--text-dark-theme);
+}
+
+:global(body.dark) .notificationDate {
+  color: #999;
+}
+
+:global(body.dark) .emptyNotifications {
+  color: #999;
+}

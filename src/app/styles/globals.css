@@ -1,4 +1,7 @@
-/* Variáveis globais */
+@import url('https://unpkg.com/leaflet/dist/leaflet.css');
+@import url('https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css');
+@import url('https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css');
+
 :root {
   /* Cores do código que você forneceu */
   --orange: #f4a261;

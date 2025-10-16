@@ -1,4 +1,5 @@
 import {BASE_URL} from "./config";
+import {GetInstituicoesResponse} from "../types";
 
 export type FetchInstituicoesParams = {
   nome?: string;
@@ -8,7 +9,7 @@ export type FetchInstituicoesParams = {
 
 export async function InstituicoesByName(
   { nome, pagina = 1, tamanho = 20 }: FetchInstituicoesParams = {}
-): Promise<any> {
+): Promise<GetInstituicoesResponse> {
   const params = new URLSearchParams();
 
   // Inclui o nome mesmo que seja string vazia, caso o backend interprete isso como "sem filtro"
@@ -26,7 +27,6 @@ export async function InstituicoesByName(
     headers: {
       "Accept": "application/json",
     },
-    // credenciais, modo e outras opções podem ser necessários dependendo do CORS do backend
   });
 
   if (!response.ok) {

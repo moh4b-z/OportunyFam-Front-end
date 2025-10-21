@@ -1,23 +1,40 @@
-import { useState } from 'react'
+"use client";
 
-type ContainerProps = {
-	activeTab: 'login' | 'register'
-	setActiveTab: (tab: 'login' | 'register') => void
+import React, { useState } from 'react';
+import "../app/styles/Switch.css";
+
+interface SwitchProps {
+  onCategoryChange?: (category: string) => void;
 }
 
-export default function SwitchButtons({ activeTab, setActiveTab }: ContainerProps) {
-	return (
-		<div className="switch_buttons">
-			<div className={`switch_highlight ${activeTab}`}></div>
-			<div className={`switch_login ${activeTab === 'login' ? 'active' : ''}`} title="Faça login" onClick={() => setActiveTab('login')}>
-				<p>Login</p>
-			</div>
-			<div
-				className={`switch_register ${activeTab === 'register' ? 'active' : ''}`}
-				title="Registre-se"
-				onClick={() => setActiveTab('register')}>
-				<p>Registre-se</p>
-			</div>
-		</div>
-	)
-}
+const Switch: React.FC<SwitchProps> = ({ onCategoryChange }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string>('Jiu Jitsu');
+
+  const categories = [
+    'Jiu Jitsu',
+    'T.I',
+    'Centro Cultural',
+    'Biblioteca'
+  ];
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category);
+    onCategoryChange?.(category);
+  };
+
+  return (
+    <div className="switch-container">
+      {categories.map((category) => (
+        <button
+          key={category}
+          className={`switch-chip ${selectedCategory === category ? 'active' : ''}`}
+          onClick={() => handleCategoryClick(category)}
+        >
+          {category}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+export default Switch;

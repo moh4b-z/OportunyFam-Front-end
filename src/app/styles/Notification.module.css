@@ -1,0 +1,555 @@
+/*
+ * ===============================================
+ * NOTIFICAÇÕES PUSH - Aparecem automaticamente
+ * ===============================================
+ */
+.pushNotificationsContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000; /* Acima de todos os outros elementos */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none; /* Permite cliques através do container */
+}
+
+.pushNotification {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid var(--orange);
+  min-width: 320px;
+  max-width: 400px;
+  pointer-events: auto; /* Permite interação com a notificação */
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  cursor: pointer; /* Indica que é clicável */
+}
+
+:global(body.dark) .pushNotification {
+  background: var(--bg-modal-dark);
+  color: var(--text-dark-theme);
+  box-shadow: 0 8px 25px var(--shadow-dark);
+}
+
+.pushNotification.visible {
+  transform: translateX(0);
+  opacity: 1;
+  animation: pushSlideIn 0.4s ease-out;
+}
+
+.pushNotificationClose {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.pushNotificationClose:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+:global(body.dark) .pushNotificationClose:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--light-text);
+}
+
+.pushNotificationContent {
+  padding-right: 20px; /* Espaço para o botão de fechar */
+}
+
+.pushNotificationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pushNotificationDot {
+  width: 8px;
+  height: 8px;
+  background: #ff3b30;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pushNotificationName {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+}
+
+:global(body.dark) .pushNotificationName {
+  color: var(--light-text);
+}
+
+.pushNotificationTime {
+  font-size: 11px;
+  color: #4caf50;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pushNotificationTime.late {
+  color: #333;
+}
+
+:global(body.dark) .pushNotificationTime.late {
+  color: #999;
+}
+
+.pushNotificationMessage {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  margin-left: 16px; /* Alinha com o texto do header */
+}
+
+:global(body.dark) .pushNotificationMessage {
+  color: var(--text-dark-theme);
+}
+
+/* Animação de entrada */
+@keyframes fadeInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animação de entrada lateral */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animação de entrada das notificações push */
+@keyframes pushSlideIn {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Efeito hover na notificação push */
+.pushNotification:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+:global(body.dark) .pushNotification:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* =============================================== */
+/* MODAL DE NOTIFICAÇÕES - Design da imagem */
+/* =============================================== */
+
+.notificationModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* MODAL LATERAL - Mantém design atual mas posição lateral */
+.notificationModalLateral {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width); /* Começa após a barra lateral */
+  width: calc(100% - var(--sidebar-width));
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1); /* Sombra mais leve para lateral */
+  display: flex;
+  justify-content: flex-start; /* Alinha à esquerda */
+  align-items: stretch;
+  z-index: 1000;
+}
+
+.notificationModalContent {
+  background: white;
+  width: 500px;
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow-y: auto;
+}
+
+/* CONTEÚDO LATERAL - Mantém design mas adapta para lateral */
+.notificationModalContentLateral {
+  background: white;
+  width: 500px;
+  max-width: 500px;
+  height: 100vh;
+  border-radius: 0; /* Remove bordas arredondadas para lateral */
+  padding: 24px;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15); /* Sombra lateral */
+  position: relative;
+  overflow-y: auto;
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+.notificationModalTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 20px 0;
+  text-align: left;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+.notificationModalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.notificationModalClose:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.notificationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notificationItem {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  min-height: 80px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.notificationItem:hover {
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notificationDot {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  background: #dc3545;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.notificationContent {
+  margin-left: 40px;
+  padding-top: 4px;
+}
+
+.notificationMessage {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.notificationDate {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+.emptyNotifications {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+/* Tema escuro */
+:global(body.dark) .notificationModalContent {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+:global(body.dark) .notificationModalContentLateral {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+:global(body.dark) .notificationModalTitle {
+  color: var(--text-dark-theme);
+  border-bottom-color: var(--border-dark);
+}
+
+:global(body.dark) .notificationItem {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+:global(body.dark) .notificationItem:hover {
+  border-color: #666;
+}
+
+:global(body.dark) .notificationMessage {
+  color: var(--text-dark-theme);
+}
+
+:global(body.dark) .notificationDate {
+  color: var(--text-muted-dark);
+}
+
+:global(body.dark) .emptyNotifications {
+  color: var(--text-muted-dark);
+}
+
+/* =============================================== */
+/* CÓDIGO MOVIDO DO GLOBALS.CSS - Modal lateral alternativo */
+/* =============================================== */
+
+.notificationsModalOverlay {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width); /* Começa após a barra lateral */
+  width: calc(100% - var(--sidebar-width));
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1); /* Sombra leve */
+  z-index: 500;
+  display: flex;
+  justify-content: flex-start; /* Alinha à esquerda */
+  align-items: stretch;
+}
+
+.notificationsModalCard {
+  position: relative;
+  height: 100vh;
+  width: 380px; /* Largura do modal */
+  max-width: 100%;
+  overflow-y: auto;
+  background: white;
+  color: #333;
+  padding: 20px;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
+  border-radius: 0;
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Estilos do tema escuro */
+:global(body.dark) .notificationsModalCard {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+.notificationsModalExit {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  background: transparent;
+  border: 0;
+  color: var(--text-gray);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+:global(body.dark) .notificationsModalExit {
+  color: var(--text-dark-theme);
+}
+
+.notificationsModalExit:hover {
+  color: var(--red-orange);
+  transform: rotate(90deg);
+}
+
+.notificationsModalTitle {
+  margin: 0 0 30px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+:global(body.dark) .notificationsModalTitle {
+  color: var(--light-text);
+}
+
+.notificationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.notificationItem {
+  position: relative;
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  min-height: 60px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+:global(body.dark) .notificationItem {
+  background: var(--input-bg-dark);
+}
+
+.notificationItem:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:global(body.dark) .notificationItem:hover {
+  background: var(--hover-bg-dark);
+  box-shadow: 0 4px 12px var(--shadow-dark);
+}
+
+.notificationItem.selected {
+  border-color: var(--orange);
+  background: rgba(244, 162, 97, 0.1);
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.2);
+}
+
+:global(body.dark) .notificationItem.selected {
+  background: rgba(244, 162, 97, 0.15);
+}
+
+.notificationDot {
+  width: 12px;
+  height: 12px;
+  background: #ff3b30;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.notificationContent {
+  flex: 1;
+  opacity: 0;
+  animation: fadeInContent 0.5s ease-out forwards;
+}
+
+.notificationItem.visible .notificationContent {
+  opacity: 1;
+}
+
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.notificationName {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+  flex: 1;
+}
+
+:global(body.dark) .notificationName {
+  color: var(--light-text);
+}
+
+.notificationTime {
+  font-size: 12px;
+  color: #4caf50;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.notificationTime.late {
+  color: #333; /* Cinza escuro/preto para notificações atrasadas */
+}
+
+:global(body.dark) .notificationTime.late {
+  color: #666; /* Cinza mais claro no tema escuro */
+}
+
+.notificationMessage {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+:global(body.dark) .notificationMessage {
+  color: var(--text-dark-theme);
+}
+
+/* Animação para o conteúdo das notificações */
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

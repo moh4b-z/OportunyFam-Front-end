@@ -1,0 +1,100 @@
+/* Arquivo: Logout.module.css
+  Estilização profissional para a modal de confirmação de logout. 
+  Cria o visual exato da imagem enviada.
+*/
+
+/* 1. Modal Overlay (Fundo que escurece a tela) */
+.modalOverlay {
+  /* Fixa a modal sobre todo o viewport */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Cor e opacidade do overlay (preto semi-transparente) */
+  background-color: rgba(0, 0, 0, 0.4); 
+  /* Centraliza o conteúdo (modalContent) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Garante que fique acima de outros elementos na página */
+  z-index: 1000; 
+  opacity: 1; 
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* 2. Conteúdo da Modal (O box cinza escuro) */
+.modalContent {
+  /* Cor de fundo exata da imagem (cinza escuro) */
+  background-color: #3f3e3e; 
+  /* Arredondamento de bordas */
+  border-radius: 8px; 
+  /* Padding interno */
+  padding: 30px 20px;
+  /* Largura e altura mínima para o visual da imagem */
+  width: 90%; 
+  max-width: 450px; 
+  min-height: 100px;
+  /* Sombra sutil para destaque */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box; 
+  transform: translateY(0); 
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Tema escuro - modal de logout fica mais escura */
+:global(body.dark) .modalContent {
+  background-color: var(--bg-modal-dark);
+  box-shadow: 0 4px 10px var(--shadow-dark);
+}
+
+/* 3. Texto da Pergunta */
+.modalText {
+  color: #fff; /* Texto branco */
+  font-size: 1.15rem; /* Tamanho da fonte */
+  font-weight: 500; /* Peso da fonte */
+  margin: 0; 
+  text-align: left; /* Alinha o texto à esquerda */
+  padding: 0 10px 20px 10px; /* Ajuste de padding para centralização visual */
+}
+
+/* 4. Container para os Botões (Ações) */
+.modalActions {
+  display: flex;
+  /* Alinha os botões à direita (justificado à direita na imagem) */
+  justify-content: flex-end; 
+  gap: 15px; /* Espaço entre os botões */
+  padding-top: 5px;
+}
+
+/* 5. Estilo Base do Botão */
+.modalButton {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  min-width: 90px; /* Garante uma largura mínima */
+}
+
+/* 6. Botão "Sim" (Cancelamento/Ação Secundária - Cinza Claro) */
+.cancelButton {
+  background-color: #f0f0f0; 
+  color: #3f3e3e; /* Cor do texto similar ao fundo da modal */
+}
+
+.cancelButton:hover {
+  background-color: #ddd; /* Escurece no hover */
+}
+
+/* 7. Botão "Não" (Confirmação/Ação Primária - Laranja) */
+.confirmButton {
+  background-color: #f59639; 
+  color: #fff; /* Texto branco */
+}
+
+.confirmButton:hover {
+  background-color: #d17c24; /* Escurece no hover */
+}

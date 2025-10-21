@@ -1,11 +1,31 @@
+@import url('https://unpkg.com/leaflet/dist/leaflet.css');
+@import url('https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css');
+@import url('https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css');
+
 .card_login .inputs {
 	max-height: 360px; /* Apenas no login reduzimos para dar espaço à mensagem e botão */
 }
+
 /* Variáveis globais */
 :root {
-	--yellow: #f6a623;
-	--dark-modal: #3d3434; /* tom do card cinza-escuro */
-	--light-text: #fff;
+  /* Cores principais */
+  --yellow: #f6a623;
+  --orange: #f4a261;
+  --red-orange: #e76f51;
+  --soft-yellow: #e79e21;
+  --dark-modal: #3d3434;
+  --light-text: #fff;
+  --text-dark: #333;
+  --text-gray: #666;
+  --bg-light: #f5f5f5;
+  --bg-card: #fff;
+  --border-color: #e0e0e0;
+
+  /* Variáveis para o tema escuro */
+  --bg-dark: #1a1a1a;
+  --bg-card-dark: #2c2c2c;
+  --border-dark: #444;
+  --text-dark-theme: #e0e0e0;
 }
 
 * {
@@ -39,6 +59,41 @@ main {
 		z-index: 1;
 		pointer-events: none;
 	}
+}
+
+/* Estilos do body para tema */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-light);
+  height: 100vh;
+  overflow: hidden;
+  transition: background-color 0.5s ease;
+}
+
+/* Estilos do tema claro (padrão) */
+body.light {
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* Estilos do tema escuro */
+body.dark {
+  background-color: var(--bg-dark);
+  color: var(--text-dark-theme);
+}
+
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-root.blurred {
+  filter: blur(6px);
+  transition: filter 240ms ease;
+  pointer-events: none;
 }
 
 .background_image {
@@ -404,6 +459,259 @@ main {
 	}
 }
 
+/*
+  ================
+  Componente Sidebar
+  ================
+*/
+.sidebar {
+  width: 90px;
+  background: linear-gradient(180deg, var(--orange) 0%, var(--red-orange) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 50;
+}
+
+.logo-box {
+  width: 60px;
+  height: 60px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logo-box:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.logo-img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+.icon-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.icon-btn {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  color: white; /* Ícones brancos */
+  border: none;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.icon-btn.active {
+  background-color: var(--soft-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
+}
+
+/*
+  ================
+  Componente Map Area
+  ================
+*/
+.map-area {
+  margin-left: 90px;
+  flex: 1;
+  height: 100vh;
+  position: relative;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  background-image: url("/map.png");
+  background-size: cover;
+  background-position: center center;
+  filter: saturate(0.9) brightness(0.98);
+}
+
+/*
+  ================
+  Header, Search box e chips
+  ================
+*/
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 10;
+}
+
+.search-and-chips {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  /* Removido estilo visual do contêiner externo para evitar o "retângulo" de fora */
+  background: transparent;
+  padding: 0;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+/* Estilos para o tema escuro */
+body.dark .search-and-chips {
+  background: transparent;
+  border: none;
+}
+
+body.dark .search-input {
+  color: var(--text-dark-theme);
+}
+
+.search-and-chips.search-and-chips-active {
+  /* Mantém leve animação se desejar; sem borda/sombra externa */
+  transform: translateY(-5px);
+  box-shadow: none;
+  border: none;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 10px 8px 30px; /* Espaço para o ícone */
+  border: none;
+  outline: none;
+  font-size: 16px;
+  background: transparent;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0;
+  color: var(--orange);
+  font-size: 18px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: var(--text-gray);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+/* Estilos para o tema escuro */
+body.dark .chip {
+  background: var(--bg-dark);
+  color: var(--text-dark-theme);
+}
+
+.chip.active-chip {
+  background-color: var(--soft-yellow);
+  color: white;
+  transform: translateY(-5px); /* Efeito de elevação */
+  box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
+}
+
+/*
+  ================
+  Componente Perfil
+  ================
+*/
+.profile-wrapper {
+  position: relative;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 6;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profile-wrapper:hover {
+  transform: scale(1.05);
+}
+
+.profile-icon {
+  color: white;
+  font-size: 24px;
+}
+
+.notif-dot {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  background: #ff3b30;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/*
+  ================
+  Componente Modal
+  ================
+*/
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.15);
+}
+
 .login_btn {
 	margin-top: 26px;
 	width: 100%;
@@ -444,6 +752,17 @@ main {
 	top: 0;
 	right: 0;
 	z-index: 2;
+}
+
+.modal-exit {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  background: transparent;
+  border: 0;
+  color: var(--orange);
+  font-size: 20px;
+  cursor: pointer;
 }
 
 .text_presentation {
@@ -920,4 +1239,147 @@ main {
 	text-align: center;
 	color: #666;
 	font-size: 0.9rem;
+}
+
+.btn-outline {
+  background: #fff;
+  color: var(--text-dark);
+}
+
+.btn-primary {
+  background: var(--orange);
+  color: #fff;
+}
+
+/*
+  ================
+  Menu do Perfil
+  ================
+*/
+.profile-menu {
+  position: absolute;
+  top: 70px;
+  right: 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 240px;
+  z-index: 5;
+  transition: all 0.3s ease;
+  transform-origin: top right;
+  animation: fadeInFromTop 0.3s ease-out;
+}
+
+/* Estilos para o tema escuro */
+body.dark .profile-menu {
+  background: var(--bg-card-dark);
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: var(--bg-light);
+}
+
+/* Estilos para o tema escuro */
+body.dark .menu-item:hover {
+  background-color: var(--bg-dark);
+}
+
+.menu-divider {
+  border: none;
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 8px 0;
+}
+
+/* Estilos para o tema escuro */
+body.dark .menu-divider {
+  background-color: var(--border-dark);
+}
+
+/*
+  ================
+  Seletor de Tema (Switch)
+  ================
+*/
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: var(--orange);
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+.slider.round {
+  border-radius: 22px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Animações */
+@keyframes fadeInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 800px) {
+  .modal-card {
+    width: 92vw;
+  }
 }

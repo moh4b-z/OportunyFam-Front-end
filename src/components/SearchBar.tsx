@@ -1,0 +1,185 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Instituicao } from "@/types";
+import { InstituicoesByName } from "@/services/Instituicoes";
+import CategoryChips, { Category } from "./shared/CategoryChips";
+import "../app/styles/SearchCard.css";
+import "../app/styles/SearchModal.css";
+
+interface SearchBarProps {
+  onInstitutionSelect: (institution: Instituicao) => void;
+}
+
+interface SearchResultOptionProps {
+  name: string;
+  onClick: () => void;
+  isSelected: boolean;
+}
+
+const SearchResultOption = ({ name, onClick, isSelected }: SearchResultOptionProps) => {
+  return (
+    <div
+      className={`search-result-card ${isSelected ? "selected-card" : ""}`}
+      onClick={onClick}
+    >
+      <div className="card-logo-block">
+        <img
+          src="https://static.wixstatic.com/media/b12d01_3b32456f44844df8b16019c72d691029~mv2.png"
+          alt="Instituição Logo"
+          className="card-logo-img"
+        />
+      </div>
+      <div className="card-main-content">
+        <span className="card-name-full">{name}</span>
+      </div>
+    </div>
+  );
+};
+
+export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
+
+  const [institutions, setInstitutions] = useState<Instituicao[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Categorias dos chips - futuramente virão da API
+  const [categories, setCategories] = useState<Category[]>([
+    { id: "jiu-jitsu", name: "Jiu Jitsu", isActive: false },
+    { id: "ti", name: "T.I", isActive: false },
+    { id: "centro-cultural", name: "Centro Cultural", isActive: false },
+    { id: "biblioteca", name: "Biblioteca", isActive: false },
+  ]);
+
+  const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+      const handler = setTimeout(() => setDebouncedValue(value), delay);
+      return () => clearTimeout(handler);
+    }, [value, delay]);
+    return debouncedValue;
+  };
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      if (!debouncedSearchTerm.trim()) {
+        setInstitutions([]);
+        setError(null);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await InstituicoesByName({ nome: debouncedSearchTerm });
+        if (data.status && data.instituicoes) {
+          setInstitutions(data.instituicoes);
+        } else {
+          setInstitutions([]);
+        }
+      } catch (err: any) {
+        setError(err.message || "Erro ao buscar instituições");
+        setInstitutions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInstitutions();
+  }, [debouncedSearchTerm]);
+
+  const handleInstitutionClick = (institution: Instituicao) => {
+    setSelectedInstitution(institution.id);
+    setSearchFocused(false);
+    setSearchTerm("");
+    onInstitutionSelect(institution);
+  };
+
+  const handleCategoryClick = (categoryId: string) => {
+    setCategories(prevCategories => {
+      const updatedCategories = prevCategories.map(category => {
+        if (category.id === categoryId) {
+          // Se clicar no chip ativo, desativa ele (volta para cinza)
+          // Se clicar em chip inativo, ativa ele (fica laranja)
+          return { ...category, isActive: !category.isActive };
+        } else {
+          // Desativa todos os outros chips
+          return { ...category, isActive: false };
+        }
+      });
+      
+      const activeCategory = updatedCategories.find(cat => cat.isActive);
+      
+      // Log da categoria selecionada ou nenhuma
+      if (activeCategory) {
+        console.log("Categoria selecionada:", activeCategory.name);
+      } else {
+        console.log("Nenhuma categoria selecionada - voltou para o estado original");
+      }
+      
+      return updatedCategories;
+    });
+    
+    // Futuramente, aqui você fará uma chamada à API para buscar instituições da categoria
+    // Por exemplo: fetchInstitutionsByCategory(categoryId);
+  };
+
+  return (
+    <div className={`search-and-chips ${searchFocused ? "search-and-chips-active" : ""}`}>
+      <div className={`search-box ${searchFocused ? "search-box-active" : ""}`}>
+        <svg 
+          className="search-icon" 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="20" 
+          height="20" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          className="search-input"
+          placeholder="Pesquise aqui"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+        />
+        {searchFocused && (
+          <div className="search-results-dropdown">
+            {loading && <div className="dropdown-message">Buscando instituições...</div>}
+            {error && <div className="dropdown-message error">{error}</div>}
+            {!loading && !error && institutions.map(inst => (
+              <SearchResultOption
+                key={inst.id}
+                name={inst.nome}
+                isSelected={selectedInstitution === inst.id}
+                onClick={() => handleInstitutionClick(inst)}
+              />
+            ))}
+            {!loading && !error && searchTerm && institutions.length === 0 && (
+              <div className="dropdown-message">Nenhuma instituição encontrada</div>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Chips de categoria ao lado direito */}
+      <CategoryChips 
+        categories={categories}
+        onCategoryClick={handleCategoryClick}
+      />
+    </div>
+  );
+}

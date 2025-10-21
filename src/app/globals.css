@@ -1,0 +1,494 @@
+/*
+ * ===============================================
+ * VARIÁVEIS DE CONFIGURAÇÃO (AJUSTE SE NECESSÁRIO)
+ * ===============================================
+ */
+ :root {
+  /* Cores do código que você forneceu */
+  --orange: #f4a261;
+  --red-orange: #e76f51;
+  --soft-yellow: #e79e21;
+  --dark-modal: #3d3434;
+  --light-text: #fff;
+  --text-dark: #333;
+  --text-gray: #666;
+  --bg-light: #f5f5f5;
+  --bg-card: #fff;
+  --border-color: #e0e0e0;
+  
+  /* Variável ÚNICA da largura da Sidebar */
+  --sidebar-width: 80px; 
+  
+  /* Cores da Sidebar e Card (mantidas, ajustada apenas a sidebar-bg para um valor único) */
+  --sidebar-bg-color: #f4a261; 
+  --card-bg-color: #f7f7f7; 
+
+  /* Variáveis para o tema escuro */
+  --bg-dark: #1a1a1a;
+  --bg-card-dark: #2c2c2c;
+  --bg-modal-dark: #333333;
+  --border-dark: #444444;
+  --text-dark-theme: #e0e0e0;
+  --text-secondary-dark: #b0b0b0;
+  --text-muted-dark: #888888;
+  --input-bg-dark: #3c3c3c;
+  --hover-bg-dark: #404040;
+  --shadow-dark: rgba(0, 0, 0, 0.3);
+}
+
+/* Base e estrutura da página */
+html,
+body,
+#__next {
+  height: 100%;
+}
+
+body {
+  /* FIX: Configuração base do body */
+  position: relative;
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  overflow: hidden; 
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-light);
+  /* Transição de cores */
+  transition: background-color 0.5s ease;
+}
+
+/* Estilos do tema claro (padrão) */
+body.light {
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* Estilos do tema escuro */
+body.dark {
+  background-color: var(--bg-dark);
+  color: var(--text-dark-theme);
+}
+
+/* =============================================== */
+/* FIX: Novo Wrapper de Conteúdo Principal          */
+/* O antigo .app-root foi substituído por esta div  */
+/* =============================================== */
+.app-content-wrapper {
+  /* FIX: Empurra o conteúdo para a direita da sidebar */
+  margin-left: var(--sidebar-width); 
+  height: 100vh;
+  width: calc(100vw - var(--sidebar-width)); 
+  position: relative;
+  overflow: hidden; /* Garante que o conteúdo não vaze */
+  transition: filter 0.3s ease; /* Para o efeito de blur ser suave */
+}
+
+
+/* FIX: A classe .app-root original foi mantida aqui, mas deve ser removida do seu HTML */
+/* Se for manter a classe, garanta que ela herde o margin-left */
+.app-root, .app-content-wrapper {
+  min-height: 100vh;
+  /* display: flex; REMOVIDO para que o margin-left funcione no wrapper */
+  position: relative;
+  overflow: hidden;
+}
+
+/* FIX: Aplica o blur ao wrapper de conteúdo */
+.blurred {
+  filter: blur(5px); /* Ajustado de 6px para 5px para suavizar */
+  transition: filter 240ms ease;
+  pointer-events: none;
+}
+
+/*
+ * ===============================================
+ * FIX: Componente Sidebar (Agora Fixo)
+ * ===============================================
+*/
+.sidebar {
+  /* FIX: Fica fixo e usa a variável de largura */
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  height: 100vh; 
+  width: var(--sidebar-width);
+  
+  /* Seus estilos de gradiente */
+  background: linear-gradient(180deg, var(--orange) 0%, var(--red-orange) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); /* Opcional: para separação visual */
+}
+
+/* ... (O restante dos estilos da Sidebar, logo, icon-panel são mantidos) ... */
+
+/* A div anterior "logo-box" foi substituída por "logo-placeholder" */
+.logo-placeholder {
+  width: 60px;
+  height: 60px;
+  background-color: none;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Removido o pontilhado e o cursor */
+  transition: all 0.3s ease;
+  overflow: hidden; /* Garante que a imagem não saia dos limites */
+}
+
+/* Removido o efeito de hover, pois a logo não é clicável */
+
+.logo-img {
+  width: 190%; /* A imagem preenche a largura do contêiner */
+  height: 92%; /* A imagem preenche a altura do contêiner */
+  object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
+  background: none;
+}
+
+.icon-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.icon-btn {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  color: white; /* Ícones brancos */
+  border: none;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.icon-btn.active {
+  background-color: var(--soft-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
+}
+
+
+/*
+ * ===============================================
+ * Header, Search box e chips (Mantidos)
+ * ===============================================
+ */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Header flutuante sobre o mapa */
+.floating-header {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Alinha no topo para não interferir com controles */
+  z-index: 500; /* Z-index menor para não sobrepor controles do mapa */
+  pointer-events: none; /* Permite cliques através do header */
+}
+
+.floating-header > * {
+  pointer-events: auto; /* Reativa cliques nos elementos filhos */
+}
+
+/* Controles do mapa (Leaflet zoom controls) */
+.leaflet-control-zoom {
+  z-index: 100 !important; /* Fica atrás dos modais */
+}
+
+.leaflet-control {
+  z-index: 100 !important; /* Todos os controles do mapa ficam atrás dos modais */
+}
+
+/* Garante que os controles do mapa fiquem atrás dos modais */
+.leaflet-top.leaflet-left {
+  z-index: 100 !important;
+  top: 120px !important; /* Posiciona mais embaixo da barra de pesquisa */
+}
+
+.search-and-chips {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Estilos para o tema escuro */
+/* container não tem mais fundo/borda; estilos vão para .search-box */
+
+body.dark .search-input {
+  color: var(--text-dark-theme);
+}
+
+.search-and-chips.search-and-chips-active {
+  transform: translateY(-5px);
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-light);
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+  width: 420px; /* mantém a barra do mesmo tamanho visual */
+  flex-shrink: 0; /* impede que a barra encolha quando os chips aparecem */
+}
+
+body.dark .search-box {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.search-box.search-box-active {
+  border-color: var(--orange);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 10px 8px 45px; /* Espaço para o ícone */
+  border: none;
+  outline: none;
+  font-size: 16px;
+  background: transparent;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  color: var(--orange);
+  font-size: 18px;
+  z-index: 1;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  margin-left: auto; /* empurra os chips para a direita da barra */
+}
+
+.chip {
+  background: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: var(--text-dark); /* FIX: Cor do texto no tema claro */
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+/* Estilos para o tema escuro */
+body.dark .chip {
+  background: var(--bg-dark);
+  color: var(--text-dark-theme);
+}
+
+.chip.active-chip {
+  background-color: var(--soft-yellow);
+  color: white;
+  transform: translateY(-5px); /* Efeito de elevação */
+  box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
+}
+/*
+ * ===============================================
+ * Componente Modal (Mantido)
+ * ===============================================
+ */
+.modal-overlay {
+  /* FIX: Reajustado para que os modals centrais fiquem na frente do blur, mas atrás do z-index 2000 */
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000; /* Alto Z-index para modals centrais */
+  background: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+}
+
+/* Z-index mais alto para modais que devem aparecer sobre o modal de instituições */
+.modal-overlay.high-priority {
+  z-index: 2500;
+}
+
+
+.modal-exit {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  background: transparent;
+  border: 0;
+  color: var(--orange);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal-title {
+  margin: 6px 0 10px 0;
+  font-size: 22px;
+}
+
+.modal-hr {
+  border: 0;
+  height: 2px;
+  background: transparent;
+  border-bottom: 1px solid rgb(246, 165, 35);
+  margin: 8px 0 18px 0;
+}
+
+.modal-text {
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+
+.modal-question {
+  text-align: center;
+  margin: 18px 0 12px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 10px 26px;
+  border-radius: 20px;
+  border: 0;
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: #fff;
+  color: var(--text-dark);
+}
+
+.btn-primary {
+  background: var(--orange);
+  color: #fff;
+}
+
+/*
+ * ===============================================
+ * Container do Switch - Lado direito da barra lateral
+ * ===============================================
+ */
+.switch-container-sidebar {
+  position: fixed;
+  top: 20px;
+  left: calc(var(--sidebar-width) + 20px); /* Posiciona após a barra lateral */
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Tema escuro */
+body.dark .switch-container-sidebar {
+  background: rgba(45, 45, 45, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsividade para o switch sidebar */
+@media (max-width: 768px) {
+  .switch-container-sidebar {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 10px 20px;
+    width: calc(100% - 40px);
+  }
+  
+  .search-and-chips {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .switch-container-sidebar {
+    margin: 10px 15px;
+    width: calc(100% - 30px);
+    padding: 6px 10px;
+  }
+  
+  .search-and-chips {
+    gap: 12px;
+  }
+}
+/*
+ * ===============================================
+ * Keyframes e Responsividade (Mantidos)
+ * ===============================================
+ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+

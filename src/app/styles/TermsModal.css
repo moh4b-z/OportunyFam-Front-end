@@ -1,0 +1,321 @@
+/*
+ * ===============================================
+ * Modal de Termos e Condições (Redesenhado)
+ * ===============================================
+ */
+
+.terms-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.terms-modal-card {
+  width: 50%;
+  max-width: 650px;
+  min-width: 400px;
+  height: 85vh;
+  background: white;
+  color: #333;
+  padding: 0;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Estilos para o tema escuro */
+body.dark .terms-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+  box-shadow: 0 8px 30px var(--shadow-dark);
+}
+
+body.dark .terms-back-btn,
+body.dark .terms-header-title,
+body.dark .terms-title,
+body.dark .terms-card-title,
+body.dark .terms-card-text-bold,
+body.dark .terms-mission-title,
+body.dark .terms-mission-item {
+  color: var(--text-dark-theme);
+}
+
+body.dark .terms-header-divider,
+body.dark .terms-refuse-btn {
+  border-color: var(--border-dark);
+}
+
+body.dark .terms-refuse-btn {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+body.dark .terms-refuse-btn:hover {
+  background: var(--hover-bg-dark);
+}
+
+/* Header com seta de voltar */
+.terms-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+body.dark .terms-modal-header {
+  background: var(--bg-card-dark);
+}
+
+.terms-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  transition: transform 0.2s ease;
+}
+
+.terms-back-btn:hover {
+  transform: translateX(-3px);
+}
+
+.terms-header-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
+}
+
+.terms-header-divider {
+  border: none;
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0;
+}
+
+body.dark .terms-header-divider {
+  background: var(--border-dark);
+}
+
+/* Ícone circular laranja */
+.terms-icon-circle {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #f4a261 0%, #e79e21 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30px auto 20px;
+  box-shadow: 0 4px 15px rgba(244, 162, 97, 0.3);
+}
+
+/* Título e subtítulo */
+.terms-title {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 24px 12px;
+  color: #333;
+}
+
+.terms-subtitle {
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  margin: 0 24px 30px;
+  line-height: 1.5;
+}
+
+body.dark .terms-subtitle {
+  color: var(--text-secondary-dark);
+}
+
+/* Cards */
+.terms-card {
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0 24px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.dark .terms-card {
+  background: var(--input-bg-dark);
+  box-shadow: 0 2px 8px var(--shadow-dark);
+}
+
+.terms-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.terms-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.terms-card-text {
+  font-size: 14px;
+  color: #999;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+body.dark .terms-card-text {
+  color: var(--text-secondary-dark);
+}
+
+.terms-card-text-bold {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Nossa Missão */
+.terms-mission-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.terms-mission-divider {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, #f4a261 0%, transparent 100%);
+  margin: 0 0 16px 0;
+}
+
+.terms-mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.terms-mission-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Aceitar Termos */
+.terms-accept-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #333;
+  text-align: center;
+}
+
+.terms-accept-text {
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+body.dark .terms-accept-text {
+  color: var(--text-secondary-dark);
+}
+
+.terms-accept-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #f4a261 0%, #e79e21 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(244, 162, 97, 0.3);
+}
+
+.terms-accept-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.4);
+}
+
+.terms-refuse-btn {
+  width: 100%;
+  background: white;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.terms-refuse-btn:hover {
+  background: #f5f5f5;
+}
+
+/* Mensagem de sucesso */
+.terms-success-message {
+  margin-top: 16px;
+  padding: 12px;
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsividade */
+@media (max-width: 800px) {
+  .terms-modal-card {
+    width: 80%;
+    min-width: 300px;
+  }
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

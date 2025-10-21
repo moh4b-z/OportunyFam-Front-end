@@ -4,14 +4,17 @@ import Link from 'next/link'
 import Input from './Input'
 import Select from './Select'
 import MultiSelect from './MultiSelect'
-import SwitchButtons from './Switch'
+import SwitchLogin from './SwitchLogin'
 import { authService, institutionService, userService, utilsService } from '@/services'
+import { useAuth } from '@/contexts/AuthContext'
+import SuccessModal from './modals/SuccessModal'
 
 interface CardSystemProps {
 	onTabChange?: (tab: 'login' | 'register') => void
 }
 
 export default function CardSystem({ onTabChange }: CardSystemProps) {
+	const { login, isLoading: authLoading } = useAuth()
 	const [loginEmail, setLoginEmail] = useState<string>('')
 	const [responsableRegisterEmail, setResponsableRegisterEmail] = useState<string>('')
 	const [kidRegisterEmail, setKidRegisterEmail] = useState<string>('')
@@ -62,15 +65,97 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 	const [step, setStep] = useState<number>(0)
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [loginErrorMessage, setLoginErrorMessage] = useState<string | false>(false)
+	const [rememberMe, setRememberMe] = useState<boolean>(false)
+	const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false)
+	const [successMessage, setSuccessMessage] = useState<{title: string, message: string}>({title: '', message: ''})
 
 	// Notifica o estado inicial do tab
 	useEffect(() => {
 		onTabChange?.(activeTab)
 	}, [onTabChange])
+
+	// Carrega a preferência "lembrar-se de mim" salva
+	useEffect(() => {
+		const savedRememberMe = localStorage.getItem('remember-me')
+		if (savedRememberMe === 'true') {
+			setRememberMe(true)
+		}
+	}, [])
 	const [registerErrorMessage, setRegisterErrorMessage] = useState<string | false>(false)
 	const [isCepLoading, setIsCepLoading] = useState<boolean>(false)
 	const [ongCepLoading, setOngCepLoading] = useState<boolean>(false)
 	const canGoBack = step > 0
+
+	// Função para resetar o formulário
+	const resetForm = () => {
+		// Reset login fields
+		setLoginEmail('')
+		setLoginPassword('')
+		setRememberMe(false)
+		
+		// Reset register fields
+		setResponsableRegisterEmail('')
+		setKidRegisterEmail('')
+		setOngRegisterEmail('')
+		setResponsableRegisterPassword('')
+		setKidRegisterPassword('')
+		setOngRegisterPassword('')
+		setConfirmResponsablePassword('')
+		setConfirmKidPassword('')
+		setConfirmOngPassword('')
+		setResponsableName('')
+		setKidName('')
+		setOngName('')
+		setResponsablePhone('')
+		setKidPhone('')
+		setOngPhone('')
+		setResponsableDateOfBirth('')
+		setKidDateOfBirth('')
+		setResponsableCpf('')
+		setKidCpf('')
+		setOngCnpj('')
+		setKidCpfResponsable('')
+		setResponsableAddress('')
+		setResponsableGender('')
+		setOngAdress('')
+		
+		// Reset address fields
+		setResponsableLogradouro('')
+		setResponsableBairro('')
+		setResponsableCidade('')
+		setResponsableUf('')
+		setResponsableNumero('')
+		setResponsableComplemento('')
+		setOngLogradouro('')
+		setOngBairro('')
+		setOngCidade('')
+		setOngUf('')
+		setOngNumero('')
+		setOngComplemento('')
+		
+		// Reset other fields
+		setOngTiposInstituicao([])
+		setSelectedOption('responsavel')
+		setStep(0)
+		
+		// Reset error messages
+		setLoginErrorMessage(false)
+		setRegisterErrorMessage(false)
+	}
+
+	// Função para mostrar modal de sucesso e redirecionar
+	const showSuccessAndRedirect = (title: string, message: string) => {
+		setSuccessMessage({ title, message })
+		setShowSuccessModal(true)
+	}
+
+	// Função chamada quando o modal de sucesso é fechado
+	const handleSuccessModalClose = () => {
+		setShowSuccessModal(false)
+		resetForm()
+		setActiveTab('login')
+		onTabChange?.('login')
+	}
 
 	// Função para carregar opções de gênero da API
 	const loadGenderOptions = async () => {
@@ -294,8 +379,11 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				throw new Error(data.message || 'Erro ao cadastrar instituição')
 			}
 
-			// Aqui você pode redirecionar ou mostrar mensagem de sucesso
-			alert('Instituição cadastrada com sucesso!')
+			// Mostra modal de sucesso
+			showSuccessAndRedirect(
+				'Cadastro Realizado!',
+				'Instituição cadastrada com sucesso! Agora você pode fazer login com suas credenciais.'
+			)
 
 		} catch (error) {
 			console.error('Erro ao cadastrar instituição:', error)
@@ -367,8 +455,11 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				throw new Error(data.message || 'Erro ao cadastrar responsável')
 			}
 
-			// Aqui você pode redirecionar ou mostrar mensagem de sucesso
-			alert('Responsável cadastrado com sucesso!')
+			// Mostra modal de sucesso
+			showSuccessAndRedirect(
+				'Cadastro Realizado!',
+				'Responsável cadastrado com sucesso! Agora você pode fazer login com suas credenciais.'
+			)
 
 		} catch (error) {
 			console.error('Erro ao cadastrar responsável:', error)
@@ -383,17 +474,12 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 		setLoginErrorMessage(false)
 
 		try {
-			const data = await authService.login({
-				email: loginEmail,
-				password: loginPassword
-			})
-
-			if (data && data.status) {
-				// Login bem-sucedido
-				console.log('Login realizado com sucesso:', data)
-			} else {
+			const success = await login(loginEmail, loginPassword, rememberMe)
+			
+			if (!success) {
 				setLoginErrorMessage('Email ou senha incorretos')
 			}
+			// Se o login for bem-sucedido, o contexto já redireciona automaticamente
 		} catch (error) {
 			console.error('Erro no login:', error)
 			const errorMessage = error instanceof Error ? error.message : 'Erro de conexão. Verifique sua internet.'
@@ -423,7 +509,7 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 
 	return (
 		<div className="card_container">
-			<SwitchButtons activeTab={activeTab} setActiveTab={handleTabChange} />
+			<SwitchLogin activeTab={activeTab} setActiveTab={handleTabChange} />
 			<div className={`card_login ${activeTab === 'login' ? 'form_active' : ''}`}>
 				<div className="inputs">
 								<Input
@@ -456,7 +542,13 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 
 				<div className="login_opt">
 					<div className="remember_me">
-						<input type="checkbox" name="remember" id="remember_me" />
+						<input 
+							type="checkbox" 
+							name="remember" 
+							id="remember_me" 
+							checked={rememberMe}
+							onChange={(e) => setRememberMe(e.target.checked)}
+						/>
 						<label htmlFor="remember_me" title="Lembre-se de mim">
 							Lembre-se de mim
 						</label>
@@ -925,6 +1017,15 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 					</button>
 				</div>
 			</div>
+
+			{/* Modal de sucesso */}
+			<SuccessModal
+				isOpen={showSuccessModal}
+				title={successMessage.title}
+				message={successMessage.message}
+				onClose={handleSuccessModalClose}
+				autoCloseDelay={4000}
+			/>
 		</div>
 	)
 }

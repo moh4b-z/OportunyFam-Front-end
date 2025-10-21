@@ -27,6 +27,19 @@
   }
 }
 
+/* Tema escuro controlado por classe */
+:global(body.dark) .page {
+  --gray-rgb: 255, 255, 255;
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+
+  --button-primary-hover: #ccc;
+  --button-secondary-hover: var(--hover-bg-dark);
+  
+  background-color: var(--bg-dark);
+  color: var(--text-dark-theme);
+}
+
 .main {
   display: flex;
   flex-direction: column;
@@ -164,4 +177,9 @@ a.secondary {
   .logo {
     filter: invert();
   }
+}
+
+/* Logo no tema escuro controlado por classe */
+:global(body.dark) .logo {
+  filter: invert();
 }

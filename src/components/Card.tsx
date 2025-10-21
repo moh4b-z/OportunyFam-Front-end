@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { API_BASE_URL } from '@/config'
+import { API_BASE_URL } from '@/services/config'
 import Link from 'next/link'
 import Input from './Input'
 import Select from './Select'
 import MultiSelect from './MultiSelect'
 import SwitchButtons from './Switch'
-import { authService, institutionService, userService, utilsService } from '@services/api'
+import { authService, institutionService, userService, utilsService } from '@/services'
 
 export default function CardSystem() {
 	const [loginEmail, setLoginEmail] = useState<string>('')

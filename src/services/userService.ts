@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { API_BASE_URL } from '@/config'
+import { ResponsibleData } from '@/types'
+import { API_BASE_URL } from './config'
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
+// Serviços de Usuários
+export const userService = {
+  async register(data: ResponsibleData) {
     const {
       nome,
       foto_perfil,
@@ -21,14 +21,11 @@ export async function POST(request: NextRequest) {
       bairro,
       cidade,
       estado
-    } = body
+    } = data
 
     // Validações básicas
     if (!nome || !email || !senha || !data_nascimento || !cpf || !telefone || !id_sexo || !cep) {
-      return NextResponse.json(
-        { message: 'Campos obrigatórios não preenchidos' },
-        { status: 400 }
-      )
+      throw new Error('Campos obrigatórios não preenchidos')
     }
 
     const responsibleData = {
@@ -39,7 +36,7 @@ export async function POST(request: NextRequest) {
       data_nascimento,
       cpf,
       telefone,
-      id_sexo: parseInt(id_sexo),
+      id_sexo: parseInt(id_sexo.toString()),
       id_tipo_nivel: id_tipo_nivel || 1,
       cep,
       logradouro,
@@ -58,18 +55,11 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(responsibleData)
     })
 
-    const data = await response.json()
-
     if (!response.ok) {
-      return NextResponse.json(data, { status: response.status })
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || 'Erro ao cadastrar usuário')
     }
 
-    return NextResponse.json(data, { status: 200 })
-  } catch (error) {
-    console.error('Erro ao cadastrar responsável:', error)
-    return NextResponse.json(
-      { message: 'Erro interno do servidor' },
-      { status: 500 }
-    )
+    return response.json()
   }
 }

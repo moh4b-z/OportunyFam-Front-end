@@ -1,0 +1,209 @@
+/* ===== CONTAINER PRINCIPAL DO CARD ===== */
+.card_container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 596px;
+	width: 520px;
+	background-color: #fff;
+	border-radius: 18px;
+	box-shadow: 6px 6px 10px rgba(0, 0, 0, 0.26);
+	padding: 36px;
+	/* padding-bottom padrão do card mantido para não afetar outros cards */
+	margin-top: 24px;
+	transform: translateX(996px);
+	animation: slideIn 1s ease-out 0.2s forwards;
+	position: relative;
+	overflow: hidden;
+}
+
+/* ===== CARDS DE LOGIN E REGISTRO ===== */
+.card_login,
+.card_register {
+	opacity: 0;
+	transform: translateX(-556px);
+	pointer-events: none;
+	transition: all 0.4s ease;
+	position: absolute;
+}
+
+.card_login.form_active,
+.card_register.form_active {
+	opacity: 1;
+	transform: translateX(0);
+	pointer-events: auto;
+}
+
+.card_login {
+	margin-top: 36px;
+	/* Mantém estrutura original para não afetar registro */
+	padding-bottom: 24px; /* Respiro inferior sutil no login */
+}
+
+/* Quando houver erro, aumentamos o espaço inferior apenas nessa situação */
+.card_login:has(.error_message) {
+	padding-bottom: 72px;
+}
+
+.card_questions,
+.card_register {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 100%;
+}
+
+/* ===== CARDS ESPECÍFICOS POR TIPO ===== */
+.card_responsible,
+.card_kid,
+.card_ong {
+	width: 80%;
+	display: flex;
+	flex-direction: column;
+	margin-top: 36px;
+	position: absolute;
+}
+
+.questions_responsible,
+.questions_kid,
+.questions_ong {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding-right: 8px;
+}
+
+/* ===== SEÇÃO DE QUESTÕES ===== */
+.question_section {
+	margin: 42px 32px;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.question_title {
+	font-size: 1.3rem;
+	font-weight: 600;
+	color: #333;
+	margin: 24px 0 24px 6px;
+	padding-right: 96px;
+}
+
+/* ===== OPÇÕES E NAVEGAÇÃO ===== */
+.options_container {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.option_card {
+	border: 1px solid #e0e0e0;
+	border-radius: 16px;
+	padding: 16px;
+	cursor: pointer;
+	transition: all 0.4s ease;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	position: relative;
+}
+
+.option_card:hover {
+	border-color: #ff9800;
+	background: #fff8f0;
+}
+
+.option_card.selected {
+	border-color: #ff9800;
+	background: #fff8f0;
+}
+
+.option_content h3 {
+	font-size: 1rem;
+	font-weight: 600;
+	color: #333;
+	margin: 0 0 8px 0;
+}
+
+.option_content p {
+	font-size: 0.7rem;
+	padding-right: 32px;
+	color: #666;
+	margin: 0;
+	line-height: 1.5;
+}
+
+/* ===== BOTÕES DE NAVEGAÇÃO ===== */
+.navigation_buttons {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 80%;
+	margin-top: -20px;
+	margin-bottom: 40px;
+}
+
+.btn_back,
+.btn_next {
+	padding: 12px 24px;
+	border: none;
+	border-radius: 8px;
+	font-size: 16px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	background: transparent;
+	min-width: 120px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 500;
+}
+
+.btn_back {
+	color: #000;
+	cursor: pointer;
+	transition: color 0.18s ease, opacity 0.18s ease;
+
+	&:disabled {
+		color: #9aa0a6;
+		cursor: not-allowed;
+		opacity: 0.7;
+	}
+}
+
+.btn_back:hover {
+	color: #333;
+	background: #f5f5f5;
+}
+
+.btn_next {
+	color: #ff9800;
+	font-weight: 600;
+}
+
+.btn_next:hover {
+	background: #ff9800;
+	color: white;
+}
+
+.btn_next:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+}
+
+/* ===== ESTADOS DOS STEPS ===== */
+.step_active,
+.step_inactive {
+	transition: all 0.4s ease;
+}
+
+.step_active {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.step_inactive {
+	opacity: 0;
+	pointer-events: none;
+}

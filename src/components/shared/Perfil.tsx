@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 // CORREÇÃO 1: O caminho para styles agora sobe dois níveis para chegar em 'src/' e desce para 'app/styles'
 import styles from "../../app/styles/Perfil.module.css"; 
 // CORREÇÃO 2: O caminho para o LogoutModal agora sobe um nível para 'src/components/' e desce para 'modals/LogoutModal'
 import LogoutModal from "../modals/LogoutModal";
-import TermsModal from "../modals/TermsModal"; 
+import TermsModal from "../modals/TermsModal";
+import AccountModal from "../modals/AccountModal"; 
 
 interface PerfilProps {
   user?: {
@@ -25,9 +26,19 @@ const Perfil: React.FC<PerfilProps> = ({
   onMenuItemClick,
   onLogout,
 }) => {
+  console.log("🔄 Perfil componente renderizado - showAccountModal será:", false);
   const [showMenu, setShowMenu] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const accountModalRef = useRef(false);
+  
+  // Debug do estado do modal
+  useEffect(() => {
+    console.log("useEffect - Estado showAccountModal mudou para:", showAccountModal);
+    console.log("useEffect - Stack trace:", new Error().stack);
+    accountModalRef.current = showAccountModal;
+  }, [showAccountModal]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Carregar tema do localStorage na inicialização
@@ -68,12 +79,19 @@ const Perfil: React.FC<PerfilProps> = ({
   };
 
   const handleMenuItemClick = (action: string) => {
+    console.log("handleMenuItemClick chamado com action:", action);
     setShowMenu(false);
     
-    // Chama a função externa se existir
-    onMenuItemClick?.(action);
+    // Gerencia os modais locais e funcionalidades PRIMEIRO
+    if (action === 'profile') {
+      console.log("Abrindo modal de conta...");
+      console.log("Estado atual showAccountModal:", showAccountModal);
+      setShowAccountModal(true);
+      console.log("setShowAccountModal(true) chamado");
+      // NÃO chama a função externa para 'profile' pois é gerenciado internamente
+      return;
+    }
     
-    // Gerencia os modais locais e funcionalidades
     if (action === 'logout') {
       setShowLogoutModal(true); 
       return;
@@ -88,6 +106,9 @@ const Perfil: React.FC<PerfilProps> = ({
       toggleTheme();
       return;
     }
+    
+    // Chama a função externa para outras ações não gerenciadas internamente
+    onMenuItemClick?.(action);
   };
 
   const handleLogoutConfirm = () => {
@@ -171,6 +192,29 @@ const Perfil: React.FC<PerfilProps> = ({
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
+                
+                {/* TESTE DIRETO */}
+                <div className={styles.menuItem} onClick={() => {
+                  console.log("TESTE DIRETO - Estado atual:", showAccountModal);
+                  console.log("TESTE DIRETO - Ref atual:", accountModalRef.current);
+                  console.log("TESTE DIRETO - Chamando setShowAccountModal(true)");
+                  
+                  // Teste com callback do setState
+                  setShowAccountModal(prev => {
+                    console.log("TESTE DIRETO - setState callback - prev:", prev);
+                    return true;
+                  });
+                  
+                  console.log("TESTE DIRETO - setShowAccountModal chamado");
+                  
+                  // Teste com setTimeout para ver se é problema de timing
+                  setTimeout(() => {
+                    console.log("TESTE DIRETO - Estado após setTimeout:", showAccountModal);
+                    console.log("TESTE DIRETO - Ref após setTimeout:", accountModalRef.current);
+                  }, 100);
+                }}>
+                  <span>🔴 TESTE MODAL</span>
+                </div>
 
                 <div className={styles.menuItem} onClick={() => handleMenuItemClick('notification')}>
                   <span>Notificação</span>
@@ -251,6 +295,19 @@ const Perfil: React.FC<PerfilProps> = ({
       <TermsModal
         isOpen={showTermsModal}
         onClose={handleCloseTermsModal}
+      />
+
+      {/* RENDERIZAÇÃO DA MODAL DE CONTA */}
+      <AccountModal
+        isOpen={showAccountModal}
+        onClose={() => {
+          console.log("Fechando modal de conta...");
+          setShowAccountModal(false);
+        }}
+        user={{ 
+          nome: user?.nome || "Usuário", 
+          foto_perfil: user?.foto_perfil 
+        }}
       />
     </>
   );

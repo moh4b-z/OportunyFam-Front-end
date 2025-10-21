@@ -1,0 +1,290 @@
+/*
+ * ===============================================
+ * Modal de Conversas (Lado Esquerdo)
+ * ===============================================
+ */
+
+.conversations-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width); /* Começa após a barra lateral */
+  width: calc(100% - var(--sidebar-width));
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 500;
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.conversations-modal-card {
+  position: relative;
+  height: 100vh;
+  width: 400px;
+  max-width: 100%;
+  overflow-y: auto;
+  background: white;
+  color: #333;
+  padding: 0;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
+  border-radius: 0;
+}
+
+/* Estilos para o tema escuro */
+body.dark .conversations-modal-card {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+/* Header com título e botão X */
+.conversations-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 20px 20px 20px;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+body.dark .conversations-modal-header {
+  background: var(--bg-card-dark);
+  border-bottom-color: var(--border-dark);
+}
+
+.conversations-modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
+}
+
+body.dark .conversations-modal-title {
+  color: var(--text-dark-theme);
+}
+
+.conversations-modal-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  background: transparent;
+  border: 0;
+  color: #666;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.dark .conversations-modal-close {
+  color: var(--text-dark-theme);
+}
+
+.conversations-modal-close:hover {
+  color: var(--red-orange);
+  transform: rotate(90deg);
+}
+
+/* Barra de pesquisa */
+.conversations-search-container {
+  padding: 0 20px 20px 20px;
+}
+
+.conversations-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8f8f8;
+  border-radius: 25px;
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+body.dark .conversations-search-box {
+  background: #3c3c3c;
+  border-color: var(--border-dark);
+}
+
+.conversations-search-box:focus-within {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.1);
+}
+
+.conversations-search-icon {
+  color: var(--orange);
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.conversations-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #333;
+}
+
+body.dark .conversations-search-input {
+  color: var(--text-dark-theme);
+}
+
+.conversations-search-input::placeholder {
+  color: #999;
+}
+
+body.dark .conversations-search-input::placeholder {
+  color: #666;
+}
+
+/* Lista de conversas */
+.conversations-list {
+  padding: 0 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Item de conversa */
+.conversation-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border-left: 4px solid var(--orange);
+}
+
+body.dark .conversation-item {
+  background: #3c3c3c;
+}
+
+.conversation-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Avatar placeholder (sem foto) */
+.conversation-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f4a261 0%, #e79e21 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* Conteúdo da conversa */
+.conversation-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.dark .conversation-name {
+  color: var(--text-dark-theme);
+}
+
+.conversation-message {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+body.dark .conversation-message {
+  color: #ccc;
+}
+
+/* Tag e contador */
+.conversation-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.conversation-tag {
+  background: var(--orange);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.conversation-unread {
+  background: #4CAF50;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .conversations-modal-card {
+    width: 100%;
+  }
+  
+  .conversations-modal-overlay {
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* Animações */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.conversations-modal-card {
+  animation: slideInFromLeft 0.3s ease-out;
+}

@@ -11,6 +11,7 @@ import NotificationsModal from "@/components/modals/NotificationsModal";
 import PushNotifications from "@/components/PushNotifications";
 import Perfil from "@/components/shared/Perfil";
 import LogoutModal from "@/components/modals/LogoutModal";
+import ConversationsModal from "@/components/modals/ConversationsModal";
 import mapaStyles from "./styles/Mapa.module.css";
 
 export default function HomePage() {
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
+  const [isConversationsModalOpen, setIsConversationsModalOpen] = useState<boolean>(false);
 
   const handleInstitutionSelect = (institution: Instituicao) => {
     setSelectedInstitution(institution);
@@ -34,6 +36,14 @@ export default function HomePage() {
 
   const closeNotificationsModal = () => {
     setIsNotificationsModalOpen(false);
+  };
+
+  const handleConversationsClick = () => {
+    setIsConversationsModalOpen(true);
+  };
+
+  const closeConversationsModal = () => {
+    setIsConversationsModalOpen(false);
   };
 
   const handleLogoutConfirm = (): void => {
@@ -104,7 +114,10 @@ export default function HomePage() {
 
   return (
     <div className="main-container">
-      <BarraLateral onNotificationClick={handleNotificationClick} />
+      <BarraLateral 
+        onNotificationClick={handleNotificationClick}
+        onConversationsClick={handleConversationsClick}
+      />
       <div className="app-content-wrapper">
         {/* Mapa ocupa toda a área */}
         <div className={mapaStyles.mapWrapper}>
@@ -148,6 +161,12 @@ export default function HomePage() {
         isOpen={isLogoutModalOpen}
         onClose={handleLogoutCancel}
         onConfirm={handleLogoutConfirm}
+      />
+
+      {/* Modal de conversas */}
+      <ConversationsModal
+        isOpen={isConversationsModalOpen}
+        onClose={closeConversationsModal}
       />
     </div>
   );

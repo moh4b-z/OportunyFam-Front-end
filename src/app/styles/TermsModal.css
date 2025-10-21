@@ -7,8 +7,8 @@
 .terms-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2000; /* Alto Z-index para modals centrais */
-  background: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+  z-index: 3000;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,5 +302,17 @@ body.dark .terms-accept-text {
   .terms-modal-card {
     width: 80%;
     min-width: 300px;
+  }
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

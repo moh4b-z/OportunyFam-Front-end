@@ -182,18 +182,18 @@ body.dark {
   display: flex;
   align-items: center;
   gap: 15px;
-  background: var(--bg-light);
-  padding: 10px 20px;
-  border-radius: 30px;
-  border: 2px solid var(--border-color);
+  /* Removido estilo visual do contêiner externo para evitar o "retângulo" de fora */
+  background: transparent;
+  padding: 0;
+  border: none;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: none;
 }
 
 /* Estilos para o tema escuro */
 body.dark .search-and-chips {
-  background: var(--bg-card-dark);
-  border-color: var(--border-dark);
+  background: transparent;
+  border: none;
 }
 
 body.dark .search-input {
@@ -201,9 +201,10 @@ body.dark .search-input {
 }
 
 .search-and-chips.search-and-chips-active {
-  transform: translateY(-5px); /* Efeito de elevação */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: var(--orange);
+  /* Mantém leve animação se desejar; sem borda/sombra externa */
+  transform: translateY(-5px);
+  box-shadow: none;
+  border: none;
 }
 
 .search-box {

@@ -249,7 +249,6 @@ body.dark .search-input {
   border-radius: 30px;
   border: 2px solid var(--border-color);
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   width: 420px; /* mantém a barra do mesmo tamanho visual */
 }
 
@@ -259,13 +258,12 @@ body.dark .search-box {
 }
 
 .search-box.search-box-active {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   border-color: var(--orange);
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 10px 8px 30px; /* Espaço para o ícone */
+  padding: 8px 10px 8px 45px; /* Espaço para o ícone */
   border: none;
   outline: none;
   font-size: 16px;
@@ -274,9 +272,10 @@ body.dark .search-box {
 
 .search-icon {
   position: absolute;
-  left: 10px;
+  left: 15px;
   color: var(--orange);
   font-size: 18px;
+  z-index: 1;
 }
 
 .chips {

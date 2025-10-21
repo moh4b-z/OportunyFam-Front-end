@@ -142,7 +142,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose }) => {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="20,6 9,17 4,12"/>
                 </svg>
-                Aceitar
+                Aceitar Termos
               </button>
               <button className="terms-refuse-btn" onClick={handleRefuseTerms}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -154,7 +154,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose }) => {
             </>
           ) : (
             <div className="terms-success-message">
-              Obrigada por aceitar os termos da OportunyFam
+              Obrigada por aceitar os termos da OportunyFam!
             </div>
           )}
         </div>

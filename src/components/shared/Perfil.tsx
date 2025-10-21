@@ -14,6 +14,7 @@ interface PerfilProps {
   } | null;
   hasNotifications?: boolean;
   onProfileClick?: () => void;
+  onMenuItemClick?: (action: string) => void;
   onLogout?: () => Promise<void> | void; 
 }
 
@@ -21,6 +22,7 @@ const Perfil: React.FC<PerfilProps> = ({
   user,
   hasNotifications = false,
   onProfileClick,
+  onMenuItemClick,
   onLogout,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -33,19 +35,21 @@ const Perfil: React.FC<PerfilProps> = ({
   };
 
   const handleMenuItemClick = (action: string) => {
+    setShowMenu(false);
+    
+    // Chama a função externa se existir
+    onMenuItemClick?.(action);
+    
+    // Gerencia os modais locais
     if (action === 'logout') {
-      setShowMenu(false); 
       setShowLogoutModal(true); 
       return;
     }
     
     if (action === 'terms') {
-      setShowMenu(false);
       setShowTermsModal(true);
       return;
     }
-    
-    setShowMenu(false);
   };
 
   const handleLogoutConfirm = () => {
@@ -65,7 +69,9 @@ const Perfil: React.FC<PerfilProps> = ({
   };
 
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Implementação do clique fora (omitida por não ser o foco da correção, mas deve ser mantida)
+    if (e.target === e.currentTarget) {
+      setShowMenu(false);
+    }
   };
 
   return (

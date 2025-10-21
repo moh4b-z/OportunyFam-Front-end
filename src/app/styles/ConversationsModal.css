@@ -20,7 +20,7 @@
 .conversations-modal-card {
   position: relative;
   height: 100vh;
-  width: 400px;
+  width: 500px; /* Aumentado de 400px para 500px */
   max-width: 100%;
   overflow-y: auto;
   background: white;
@@ -42,7 +42,7 @@ body.dark .conversations-modal-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30px 20px 20px 20px;
+  padding: 30px 20px 30px 20px; /* Aumentado padding inferior de 20px para 30px */
   background: white;
   position: sticky;
   top: 0;
@@ -95,7 +95,7 @@ body.dark .conversations-modal-close {
 
 /* Barra de pesquisa */
 .conversations-search-container {
-  padding: 0 20px 20px 20px;
+  padding: 20px 20px 30px 20px; /* Adicionado padding superior de 20px para afastar da linha */
 }
 
 .conversations-search-box {
@@ -270,6 +270,12 @@ body.dark .conversation-message {
   .conversations-modal-overlay {
     left: 0;
     width: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .conversations-modal-card {
+    width: 450px; /* Tamanho médio para tablets */
   }
 }
 

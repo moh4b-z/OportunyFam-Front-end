@@ -209,16 +209,16 @@ body.dark {
 
 /* Controles do mapa (Leaflet zoom controls) */
 .leaflet-control-zoom {
-  z-index: 600 !important; /* Fica acima do header flutuante */
+  z-index: 100 !important; /* Fica atrás dos modais */
 }
 
 .leaflet-control {
-  z-index: 600 !important; /* Todos os controles do mapa ficam visíveis */
+  z-index: 100 !important; /* Todos os controles do mapa ficam atrás dos modais */
 }
 
-/* Garante que os controles do mapa fiquem visíveis */
+/* Garante que os controles do mapa fiquem atrás dos modais */
 .leaflet-top.leaflet-left {
-  z-index: 600 !important;
+  z-index: 100 !important;
   top: 120px !important; /* Posiciona mais embaixo da barra de pesquisa */
 }
 

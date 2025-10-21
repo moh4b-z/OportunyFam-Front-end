@@ -23,7 +23,14 @@ export const authService = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || 'Erro no login')
+      
+      if (response.status === 401) {
+        throw new Error('Email ou senha incorretos')
+      } else if (response.status === 415) {
+        throw new Error('Formato de dados inválido')
+      } else {
+        throw new Error(errorData.message || 'Erro no servidor')
+      }
     }
 
     return response.json()

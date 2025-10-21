@@ -17,6 +17,7 @@ interface InputProps {
 	onChange: (value: string) => void
 	onBlur?: (value: string) => void
 	onComplete?: (value: string) => void
+	onKeyPress?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 }
 
 export default function Input({ 
@@ -35,7 +36,8 @@ export default function Input({
 	mask,
 	onChange, 
 	onBlur,
-	onComplete 
+	onComplete,
+	onKeyPress 
 }: InputProps) {
 	const [showPassword, setShowPassword] = useState(false)
 	const inputType = type === 'password' ? (showPassword ? 'text' : 'password') : type
@@ -212,6 +214,7 @@ export default function Input({
 				readOnly={readonly}
 				onChange={handleChange}
 				onBlur={(e) => onBlur && onBlur(getCleanValue(e.target.value, mask))}
+				onKeyPress={onKeyPress}
 			/>
 		</div>
 	)

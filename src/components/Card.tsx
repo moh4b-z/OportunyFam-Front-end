@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '@/services/config'
 import Link from 'next/link'
 import Input from './Input'
@@ -7,7 +7,11 @@ import MultiSelect from './MultiSelect'
 import SwitchButtons from './Switch'
 import { authService, institutionService, userService, utilsService } from '@/services'
 
-export default function CardSystem() {
+interface CardSystemProps {
+	onTabChange?: (tab: 'login' | 'register') => void
+}
+
+export default function CardSystem({ onTabChange }: CardSystemProps) {
 	const [loginEmail, setLoginEmail] = useState<string>('')
 	const [responsableRegisterEmail, setResponsableRegisterEmail] = useState<string>('')
 	const [kidRegisterEmail, setKidRegisterEmail] = useState<string>('')
@@ -58,6 +62,11 @@ export default function CardSystem() {
 	const [step, setStep] = useState<number>(0)
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [loginErrorMessage, setLoginErrorMessage] = useState<string | false>(false)
+
+	// Notifica o estado inicial do tab
+	useEffect(() => {
+		onTabChange?.(activeTab)
+	}, [onTabChange])
 	const [registerErrorMessage, setRegisterErrorMessage] = useState<string | false>(false)
 	const [isCepLoading, setIsCepLoading] = useState<boolean>(false)
 	const [ongCepLoading, setOngCepLoading] = useState<boolean>(false)
@@ -374,26 +383,31 @@ export default function CardSystem() {
 		setLoginErrorMessage(false)
 
 		try {
-			const response = await authService.login({
+			const data = await authService.login({
 				email: loginEmail,
 				password: loginPassword
 			})
-			const data = await response.json()
 
-			if (response.ok && data.status) {
+			if (data && data.status) {
 				// Login bem-sucedido
-			} else if (response.status === 415) {
-				setLoginErrorMessage('Formato de dados inválido')
-			} else if (response.status === 401) {
-				setLoginErrorMessage('Email ou senha incorretos')
+				console.log('Login realizado com sucesso:', data)
 			} else {
-				setLoginErrorMessage('Erro no servidor. Tente novamente.')
+				setLoginErrorMessage('Email ou senha incorretos')
 			}
 		} catch (error) {
 			console.error('Erro no login:', error)
-			setLoginErrorMessage('Erro de conexão. Verifique sua internet.')
+			const errorMessage = error instanceof Error ? error.message : 'Erro de conexão. Verifique sua internet.'
+			setLoginErrorMessage(errorMessage)
 		} finally {
 			setIsLoading(false)
+		}
+	}
+
+	// Função para detectar Enter e fazer login
+	const handleKeyPress = (event: React.KeyboardEvent) => {
+		if (event.key === 'Enter' && activeTab === 'login' && !isLoading) {
+			event.preventDefault()
+			handleLogin()
 		}
 	}
 
@@ -403,6 +417,8 @@ export default function CardSystem() {
 		// Limpa os erros quando troca de aba
 		setLoginErrorMessage(false)
 		setRegisterErrorMessage(false)
+		// Notifica o componente pai sobre a mudança
+		onTabChange?.(newTab)
 	}
 
 	return (
@@ -419,6 +435,7 @@ export default function CardSystem() {
 									mask="email"
 									value={loginEmail}
 									onChange={setLoginEmail}
+									onKeyPress={handleKeyPress}
 									className={loginErrorMessage ? 'input_error' : ''}
 								/>
 					<Input
@@ -430,6 +447,7 @@ export default function CardSystem() {
 						name="login_password"
 						value={loginPassword}
 						onChange={setLoginPassword}
+						onKeyPress={handleKeyPress}
 						className={loginErrorMessage ? 'input_error' : ''}
 					/>
 				</div>

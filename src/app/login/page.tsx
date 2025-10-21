@@ -1,9 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import CardSystem from '@components/Card'
 
-export default function Home() {
+export default function LoginPage() {
+	const [currentTab, setCurrentTab] = useState<'login' | 'register'>('login')
+
+	const handleTabChange = (tab: 'login' | 'register') => {
+		setCurrentTab(tab)
+	}
+
 	return (
 		<main>
 			<div className="background_image">
@@ -11,10 +18,19 @@ export default function Home() {
 			</div>
 			<div className="container_form">
 				<div className="text_presentation">
-					<h1>Crie sua conta e junte-se a nós</h1>
-					<h2>Estamos felizes em ter você por aqui</h2>
+					{currentTab === 'login' ? (
+						<>
+							<h1>Seja bem-vindo novamente!</h1>
+							<h2>Entre em sua conta para usar os nossos serviços</h2>
+						</>
+					) : (
+						<>
+							<h1>Crie sua conta e junte-se a nós</h1>
+							<h2>Estamos felizes em ter você por aqui</h2>
+						</>
+					)}
 				</div>
-				<CardSystem />
+				<CardSystem onTabChange={handleTabChange} />
 			</div>
 		</main>
 	)

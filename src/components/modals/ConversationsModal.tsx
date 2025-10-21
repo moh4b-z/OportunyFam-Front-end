@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import "../../app/styles/ConversationsModal.css";
+import ChatModal from './ChatModal';
 
 interface ConversationsModalProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ interface Conversation {
 
 const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Conversation | null>(null);
 
   // Dados das conversas (baseados na imagem)
   const conversations: Conversation[] = [
@@ -69,9 +72,14 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
     conversation.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleConversationClick = (conversationId: string) => {
-    console.log('Conversa clicada:', conversationId);
-    // Aqui você pode implementar a lógica para abrir a conversa específica
+  const handleConversationClick = (conversation: Conversation) => {
+    setSelectedContact(conversation);
+    setIsChatModalOpen(true);
+  };
+
+  const handleCloseChatModal = () => {
+    setIsChatModalOpen(false);
+    setSelectedContact(null);
   };
 
   if (!isOpen) return null;
@@ -124,7 +132,7 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
             <div
               key={conversation.id}
               className="conversation-item"
-              onClick={() => handleConversationClick(conversation.id)}
+              onClick={() => handleConversationClick(conversation)}
             >
               {/* Avatar placeholder */}
               <div className="conversation-avatar">
@@ -150,6 +158,16 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
           ))}
         </div>
       </div>
+
+      {/* Modal de Chat */}
+      {selectedContact && (
+        <ChatModal
+          isOpen={isChatModalOpen}
+          onClose={handleCloseChatModal}
+          contactName={selectedContact.name}
+          contactTag={selectedContact.tag}
+        />
+      )}
     </div>
   );
 };

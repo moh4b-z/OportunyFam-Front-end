@@ -10,6 +10,16 @@
     --border-radius-large: 16px;
     --border-radius-medium: 8px;
   }
+
+/* Tema escuro */
+body.dark {
+  --secondary-color: var(--input-bg-dark);
+  --text-color: var(--text-dark-theme);
+  --subtle-text-color: var(--text-muted-dark);
+  --border-color: var(--border-dark);
+  --card-bg-color: var(--bg-modal-dark);
+  --shadow-color: var(--shadow-dark);
+}
   
   /* 1. Modal e Overlay */
   .modal-overlay {

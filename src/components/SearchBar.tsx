@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Instituicao } from "@/types";
 import { InstituicoesByName } from "@/service/Instituicoes";
+import CategoryChips, { Category } from "./shared/CategoryChips";
 import "../app/styles/SearchCard.css";
 import "../app/styles/SearchModal.css";
 
@@ -44,6 +45,14 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [institutions, setInstitutions] = useState<Instituicao[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Categorias dos chips - futuramente virão da API
+  const [categories, setCategories] = useState<Category[]>([
+    { id: "jiu-jitsu", name: "Jiu Jitsu", isActive: false },
+    { id: "ti", name: "T.I", isActive: false },
+    { id: "centro-cultural", name: "Centro Cultural", isActive: false },
+    { id: "biblioteca", name: "Biblioteca", isActive: false },
+  ]);
 
   const useDebounce = (value: string, delay: number) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -92,6 +101,35 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     onInstitutionSelect(institution);
   };
 
+  const handleCategoryClick = (categoryId: string) => {
+    setCategories(prevCategories => {
+      const updatedCategories = prevCategories.map(category => {
+        if (category.id === categoryId) {
+          // Se clicar no chip ativo, desativa ele (volta para cinza)
+          // Se clicar em chip inativo, ativa ele (fica laranja)
+          return { ...category, isActive: !category.isActive };
+        } else {
+          // Desativa todos os outros chips
+          return { ...category, isActive: false };
+        }
+      });
+      
+      const activeCategory = updatedCategories.find(cat => cat.isActive);
+      
+      // Log da categoria selecionada ou nenhuma
+      if (activeCategory) {
+        console.log("Categoria selecionada:", activeCategory.name);
+      } else {
+        console.log("Nenhuma categoria selecionada - voltou para o estado original");
+      }
+      
+      return updatedCategories;
+    });
+    
+    // Futuramente, aqui você fará uma chamada à API para buscar instituições da categoria
+    // Por exemplo: fetchInstitutionsByCategory(categoryId);
+  };
+
   return (
     <div className={`search-and-chips ${searchFocused ? "search-and-chips-active" : ""}`}>
       <div className={`search-box ${searchFocused ? "search-box-active" : ""}`}>
@@ -136,6 +174,12 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           </div>
         )}
       </div>
+      
+      {/* Chips de categoria ao lado direito */}
+      <CategoryChips 
+        categories={categories}
+        onCategoryClick={handleCategoryClick}
+      />
     </div>
   );
 }

@@ -110,7 +110,7 @@ body.dark .conversations-modal-close {
 }
 
 body.dark .conversations-search-box {
-  background: #3c3c3c;
+  background: var(--input-bg-dark);
   border-color: var(--border-dark);
 }
 
@@ -143,7 +143,7 @@ body.dark .conversations-search-input {
 }
 
 body.dark .conversations-search-input::placeholder {
-  color: #666;
+  color: var(--text-muted-dark);
 }
 
 /* Lista de conversas */
@@ -169,7 +169,13 @@ body.dark .conversations-search-input::placeholder {
 }
 
 body.dark .conversation-item {
-  background: #3c3c3c;
+  background: var(--bg-modal-dark);
+  box-shadow: 0 2px 8px var(--shadow-dark);
+}
+
+body.dark .conversation-item:hover {
+  background: var(--hover-bg-dark);
+  box-shadow: 0 4px 12px var(--shadow-dark);
 }
 
 .conversation-item:hover {
@@ -224,7 +230,7 @@ body.dark .conversation-name {
 }
 
 body.dark .conversation-message {
-  color: #ccc;
+  color: var(--text-secondary-dark);
 }
 
 /* Tag e contador */

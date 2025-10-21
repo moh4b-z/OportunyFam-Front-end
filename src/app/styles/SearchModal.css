@@ -49,6 +49,7 @@
 body.dark .search-modal-card {
   background: var(--bg-card-dark);
   color: var(--text-dark-theme);
+  box-shadow: 5px 0 15px var(--shadow-dark);
 }
 
 .search-modal-exit {
@@ -99,7 +100,7 @@ margin-bottom: 30px;
 
 /* Estilos do tema escuro para o conteúdo */
 body.dark .search-modal-content {
-color: var(--text-dark-theme);
+  color: var(--text-secondary-dark);
 }
 
 .search-modal-actions {

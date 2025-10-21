@@ -8,6 +8,11 @@
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+/* Tema escuro para o container do mapa */
+:global(body.dark) .mapaContainer {
+  box-shadow: 0 2px 10px var(--shadow-dark);
+}
+
 .leaflet-container {
   width: 100%;
   height: 100%;
@@ -47,4 +52,14 @@
   background-size: cover;
   background-position: center center;
   filter: saturate(0.9) brightness(0.98);
+  transition: filter 0.3s ease;
+}
+
+/* Filtros do mapa no tema escuro */
+:global(body.dark) .map {
+  filter: saturate(0.7) brightness(0.6) contrast(1.1);
+}
+
+:global(body.dark) .leaflet-container {
+  filter: brightness(0.8) contrast(1.2);
 }

@@ -190,7 +190,7 @@ body.dark .chat-date-separator::before {
 
 body.dark .chat-date-text {
   background: var(--bg-card-dark);
-  color: #ccc;
+  color: var(--text-secondary-dark);
   border-color: var(--border-dark);
 }
 
@@ -234,7 +234,7 @@ body.dark .chat-date-text {
 }
 
 body.dark .chat-message.received .chat-message-bubble {
-  background: #3c3c3c;
+  background: var(--input-bg-dark);
   color: var(--text-dark-theme);
 }
 
@@ -245,7 +245,7 @@ body.dark .chat-message.received .chat-message-bubble {
 }
 
 body.dark .chat-message-time {
-  color: #666;
+  color: var(--text-muted-dark);
 }
 
 /* Campo de Entrada */
@@ -273,7 +273,7 @@ body.dark .chat-input-container {
 }
 
 body.dark .chat-input-box {
-  background: #3c3c3c;
+  background: var(--input-bg-dark);
   border-color: var(--border-dark);
 }
 
@@ -301,7 +301,7 @@ body.dark .chat-input-field {
 }
 
 body.dark .chat-input-field::placeholder {
-  color: #666;
+  color: var(--text-muted-dark);
 }
 
 .chat-microphone-btn {

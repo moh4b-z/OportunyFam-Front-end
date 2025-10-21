@@ -42,6 +42,12 @@
   transition: transform 0.2s ease-in-out;
 }
 
+/* Tema escuro - modal de logout fica mais escura */
+:global(body.dark) .modalContent {
+  background-color: var(--bg-modal-dark);
+  box-shadow: 0 4px 10px var(--shadow-dark);
+}
+
 /* 3. Texto da Pergunta */
 .modalText {
   color: #fff; /* Texto branco */

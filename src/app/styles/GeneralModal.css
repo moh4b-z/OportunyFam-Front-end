@@ -21,6 +21,13 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
+/* Tema escuro para modal genérico */
+body.dark .modal-card {
+  background: var(--bg-modal-dark);
+  color: var(--text-dark-theme);
+  box-shadow: 0 8px 30px var(--shadow-dark);
+}
+
 /* Modal de termos e condições */
 .terms-modal-card {
   width: 50%;
@@ -41,6 +48,7 @@
 body.dark .terms-modal-card {
   background: var(--bg-card-dark);
   color: var(--text-dark-theme);
+  box-shadow: 0 8px 30px var(--shadow-dark);
 }
 
 /* Responsividade */

@@ -56,6 +56,10 @@ body.dark .card-name-full {
     margin-top: 2px;
 }
 
+body.dark .card-subtitle {
+    color: var(--text-secondary-dark);
+}
+
 
 /* 3. Bloco de Avaliação (Direita) */
 .card-rating-block {
@@ -122,8 +126,9 @@ body.dark .card-name-full {
 /* Estilos para o tema escuro */
 body.dark .search-result-card {
   color: var(--text-dark-theme);
-  background: #2c2c2c; /* Fundo escuro sutil */
-  border-color: #444;
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+  box-shadow: 0 2px 8px var(--shadow-dark);
 }
 
 /* Efeito ao passar o mouse ou selecionar */
@@ -137,5 +142,6 @@ body.dark .search-result-card {
 
 body.dark .search-result-card:hover,
 body.dark .search-result-card.selected-card {
-  background-color: #383838;
+  background-color: var(--hover-bg-dark);
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3);
 }

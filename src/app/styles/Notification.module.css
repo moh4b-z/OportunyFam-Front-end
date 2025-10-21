@@ -31,9 +31,9 @@
 }
 
 :global(body.dark) .pushNotification {
-  background: var(--bg-card-dark);
+  background: var(--bg-modal-dark);
   color: var(--text-dark-theme);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 25px var(--shadow-dark);
 }
 
 .pushNotification.visible {
@@ -356,11 +356,11 @@
 }
 
 :global(body.dark) .notificationDate {
-  color: #999;
+  color: var(--text-muted-dark);
 }
 
 :global(body.dark) .emptyNotifications {
-  color: #999;
+  color: var(--text-muted-dark);
 }
 
 /* =============================================== */
@@ -455,7 +455,7 @@
 }
 
 :global(body.dark) .notificationItem {
-  background: #3c3c3c;
+  background: var(--input-bg-dark);
 }
 
 .notificationItem:hover {
@@ -465,7 +465,8 @@
 }
 
 :global(body.dark) .notificationItem:hover {
-  background: #484848;
+  background: var(--hover-bg-dark);
+  box-shadow: 0 4px 12px var(--shadow-dark);
 }
 
 .notificationItem.selected {

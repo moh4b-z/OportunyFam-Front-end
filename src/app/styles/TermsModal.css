@@ -33,6 +33,7 @@
 body.dark .terms-modal-card {
   background: var(--bg-card-dark);
   color: var(--text-dark-theme);
+  box-shadow: 0 8px 30px var(--shadow-dark);
 }
 
 body.dark .terms-back-btn,
@@ -52,10 +53,11 @@ body.dark .terms-refuse-btn {
 
 body.dark .terms-refuse-btn {
   background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
 }
 
 body.dark .terms-refuse-btn:hover {
-  background: var(--bg-dark);
+  background: var(--hover-bg-dark);
 }
 
 /* Header com seta de voltar */
@@ -139,7 +141,7 @@ body.dark .terms-header-divider {
 }
 
 body.dark .terms-subtitle {
-  color: #ccc;
+  color: var(--text-secondary-dark);
 }
 
 /* Cards */
@@ -152,7 +154,8 @@ body.dark .terms-subtitle {
 }
 
 body.dark .terms-card {
-  background: #3c3c3c;
+  background: var(--input-bg-dark);
+  box-shadow: 0 2px 8px var(--shadow-dark);
 }
 
 .terms-card-header {
@@ -177,7 +180,7 @@ body.dark .terms-card {
 }
 
 body.dark .terms-card-text {
-  color: #ccc;
+  color: var(--text-secondary-dark);
 }
 
 .terms-card-text-bold {
@@ -235,7 +238,7 @@ body.dark .terms-card-text {
 }
 
 body.dark .terms-accept-text {
-  color: #ccc;
+  color: var(--text-secondary-dark);
 }
 
 .terms-accept-btn {

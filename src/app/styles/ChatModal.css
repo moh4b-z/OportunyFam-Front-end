@@ -11,7 +11,7 @@
   width: calc(100% - var(--sidebar-width));
   height: 100%;
   background-color: transparent; /* Sem fundo cinza */
-  z-index: 600;
+  z-index: 9000;
   display: flex;
   justify-content: flex-start;
   align-items: stretch;

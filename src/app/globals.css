@@ -3,6 +3,9 @@
  * VARIÁVEIS DE CONFIGURAÇÃO (AJUSTE SE NECESSÁRIO)
  * ===============================================
  */
+
+/* Importar configuração de z-index */
+@import './z-index-config.css';
  :root {
   /* Cores do código que você forneceu */
   --orange: #f4a261;

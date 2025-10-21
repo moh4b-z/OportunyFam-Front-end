@@ -1,0 +1,29 @@
+/*
+ * ===============================================
+ * CONFIGURAÇÃO DE Z-INDEX PARA TODOS OS MODAIS
+ * ===============================================
+ * 
+ * Esta configuração garante que todos os modais
+ * apareçam corretamente sem conflitos de sobreposição
+ */
+
+:root {
+  /* Base da aplicação */
+  --z-base: 1;
+  --z-sidebar: 100;
+  --z-header: 200;
+  
+  /* Modais por ordem de prioridade */
+  --z-search-modal: 7000;
+  --z-conversations-modal: 8000;
+  --z-chat-modal: 9000;
+  --z-join-modal: 9500;
+  --z-associados-modal: 9600;
+  --z-simple-account-modal: 9999;
+  --z-terms-modal: 10000;
+  
+  /* Elementos de UI de alta prioridade */
+  --z-tooltip: 11000;
+  --z-dropdown: 12000;
+  --z-notification: 13000;
+}

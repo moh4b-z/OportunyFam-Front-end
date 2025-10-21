@@ -7,7 +7,7 @@
 .terms-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 3000;
+  z-index: 10000;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;

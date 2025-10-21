@@ -18,7 +18,7 @@
   justify-content: center;
   align-items: center;
   /* Garante que fique acima de outros elementos na página */
-  z-index: 1000; 
+  z-index: 9800; 
   opacity: 1; 
   transition: opacity 0.2s ease-in-out;
 }

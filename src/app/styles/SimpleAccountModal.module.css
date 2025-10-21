@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  z-index: 9999;
+  z-index: var(--z-simple-account-modal, 9999);
   padding-left: 120px; /* Espaço da barra lateral */
 }
 

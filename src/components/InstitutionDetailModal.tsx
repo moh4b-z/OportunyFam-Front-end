@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, MouseEventHandler } from "react";
-import "../app/styles/InstituitionsModal.module.css";
+import styles from "../app/styles/InstituitionsModal.module.css";
 
 interface InstitutionDetailModalProps {
   onClose: MouseEventHandler<HTMLButtonElement>;
@@ -29,7 +29,7 @@ export default function InstitutionDetailModal({ onClose }: InstitutionDetailMod
   return (
     <>
       {/* Modal principal da Instituição */}
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-40">
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" style={{zIndex: 8500}}>
         <div className="bg-white p-6 rounded-2xl w-[600px] shadow-xl relative">
           <button
             onClick={onClose}
@@ -69,7 +69,7 @@ export default function InstitutionDetailModal({ onClose }: InstitutionDetailMod
 
       {/* Modal secundário - Atividades */}
       {showActivityModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm" style={{zIndex: 8600}}>
           <div className="bg-white rounded-2xl w-[400px] p-6 shadow-xl relative">
             <button
               onClick={() => setShowActivityModal(false)}

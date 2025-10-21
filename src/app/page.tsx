@@ -160,7 +160,7 @@ export default function HomePage() {
       <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={handleLogoutCancel}
-        onConfirm={handleLogoutConfirm}
+        onConfirmLogout={handleLogoutConfirm}
       />
 
       {/* Modal de conversas */}

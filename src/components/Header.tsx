@@ -116,7 +116,7 @@ export default function Header({ user }: HeaderProps) {
       <LogoutModal 
         isOpen={showLogout}
         onClose={() => setShowLogout(false)}
-        onConfirm={() => {
+        onConfirmLogout={() => {
           // Aqui você pode implementar a lógica de logout
           console.log("Logout confirmado");
           setShowLogout(false);

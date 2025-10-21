@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import BarraLateral from "@/components/BarraLateral";
 import SearchBar from "@/components/SearchBar";
 import Switch from "@/components/Switch";
@@ -58,10 +58,10 @@ export default function HomePage() {
     setIsLogoutModalOpen(false);
   };
 
-  // Log para debug do estado
-  console.log("Estado atual do modal de logout:", isLogoutModalOpen);
+  // Log para debug do estado (removido para evitar re-renderizações)
+  // console.log("Estado atual do modal de logout:", isLogoutModalOpen);
 
-  const handleProfileMenuClick = (action: string): void => {
+  const handleProfileMenuClick = useCallback((action: string): void => {
     console.log("Ação do perfil:", action);
     // Aqui você pode implementar as ações do menu do perfil
     switch (action) {
@@ -86,13 +86,13 @@ export default function HomePage() {
         console.log("Fazer login");
         break;
     }
-  };
+  }, []);
 
   // Dados de exemplo do usuário (você pode substituir pela lógica real)
-  const user = {
+  const user = useMemo(() => ({
     nome: "João Silva",
     foto_perfil: undefined // ou uma URL de imagem
-  };
+  }), []);
 
   // Dados de exemplo para as notificações push
   const pushNotifications = [

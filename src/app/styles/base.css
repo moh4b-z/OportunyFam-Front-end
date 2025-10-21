@@ -1,0 +1,24 @@
+/* ===== VARIÁVEIS GLOBAIS ===== */
+:root {
+	--yellow: #f6a623;
+	--dark-modal: #3d3434; /* tom do card cinza-escuro */
+	--light-text: #fff;
+}
+
+/* ===== RESET E ESTILOS GLOBAIS ===== */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: Inter, system-ui, Arial, sans-serif;
+}
+
+/* ===== BASE DA PÁGINA ===== */
+html,
+body,
+#__next {
+	height: 100dvh;
+	width: 100dvw;
+	overflow: hidden;
+	background-color: #fff;
+}

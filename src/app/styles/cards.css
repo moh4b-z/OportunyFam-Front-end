@@ -207,3 +207,39 @@
 	opacity: 0;
 	pointer-events: none;
 }
+
+/* Tema escuro: ajustes de legibilidade de textos e inputs nos cards */
+body.dark .card_container {
+	background-color: var(--bg-card-dark);
+	color: var(--text-dark-theme);
+}
+
+body.dark .question_title {
+	color: var(--text-dark-theme);
+}
+
+body.dark .option_content h3 {
+	color: var(--text-dark-theme);
+}
+
+body.dark .option_content p {
+	color: var(--text-secondary-dark);
+}
+
+/* Campo de criança: garantir textos claros no tema escuro */
+body.dark .card_kid .input_container input {
+	color: var(--text-dark-theme);
+	background: var(--input-bg-dark);
+	border-color: var(--border-dark);
+}
+
+body.dark .card_kid .input_container input::placeholder {
+	color: var(--text-secondary-dark);
+}
+
+/* Opcional: manter contraste de hover/seleção no dark */
+body.dark .option_card:hover,
+body.dark .option_card.selected {
+	background: var(--hover-bg-dark);
+	border-color: var(--border-dark);
+}

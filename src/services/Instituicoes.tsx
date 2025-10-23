@@ -22,22 +22,32 @@ export async function InstituicoesByName(
 
   const url = `${API_BASE_URL}/instituicoes/?${params.toString()}`;
 
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Accept": "application/json",
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
 
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`Erro ao buscar instituições (${response.status}): ${text || response.statusText}`);
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      if (response.status >= 500) {
+        throw new Error('Erro no servidor. Tente novamente mais tarde.');
+      }
+      throw new Error(text || response.statusText || 'Não foi possível buscar as instituições.');
+    }
+
+    // Retorna o JSON exatamente como o backend envia
+    const data = await response.json();
+    
+    return data;
+  } catch (err: any) {
+    const msg = (typeof err?.message === 'string' && /failed to fetch|network|fetch/i.test(err.message))
+      ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+      : (err?.message || 'Erro ao buscar instituições.')
+    throw new Error(msg)
   }
-
-  // Retorna o JSON exatamente como o backend envia
-  const data = await response.json();
-  
-  return data;
 }
 
 // Utilitário opcional: constrói a URL final (útil para debug/teste)

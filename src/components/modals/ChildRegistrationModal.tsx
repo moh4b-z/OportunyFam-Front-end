@@ -177,9 +177,7 @@ export default function ChildRegistrationModal({
         <div className="modal-card" style={{ 
           maxWidth: '500px', 
           width: '90%',
-          backgroundColor: '#fff',
-          borderRadius: '18px',
-          boxShadow: '6px 6px 10px rgba(0, 0, 0, 0.26)'
+          borderRadius: '18px'
         }}>
           <button 
             className="modal-exit" 
@@ -200,7 +198,7 @@ export default function ChildRegistrationModal({
           </p>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '15px' }}>
+          <div style={{ marginBottom: '15px', marginTop: '12px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
               Nome completo *
             </label>
@@ -246,8 +244,7 @@ export default function ChildRegistrationModal({
             <label style={{
               display: 'block',
               marginBottom: '5px',
-              fontWeight: 'bold',
-              color: '#f6a623'
+              fontWeight: 'bold'
             }}>
               Data de nascimento *
             </label>

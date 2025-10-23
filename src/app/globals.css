@@ -363,8 +363,12 @@ body.dark .chip {
 }
 
 .modal-text {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-gray);
   line-height: 1.5;
+}
+
+body.dark .modal-text {
+  color: var(--text-dark-theme);
 }
 
 .modal-question {

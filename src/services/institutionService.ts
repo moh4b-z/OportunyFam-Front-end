@@ -49,20 +49,30 @@ export const institutionService = {
       tipos_instituicao
     }
 
-    const response = await fetch(`${API_BASE_URL}/instituicoes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(institutionData)
-    })
+    try {
+      const response = await fetch(`${API_BASE_URL}/instituicoes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(institutionData)
+      })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || 'Erro ao cadastrar instituição')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        if (response.status >= 500) {
+          throw new Error('Erro no servidor. Tente novamente mais tarde.')
+        }
+        throw new Error(errorData.message || 'Não foi possível concluir o cadastro da instituição.')
+      }
+
+      return response.json()
+    } catch (err: any) {
+      const msg = (typeof err?.message === 'string' && /failed to fetch|network|fetch/i.test(err.message))
+        ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+        : (err?.message || 'Erro de conexão. Verifique sua internet.')
+      throw new Error(msg)
     }
-
-    return response.json()
   },
 
   async getTypes(): Promise<InstitutionType[]> {

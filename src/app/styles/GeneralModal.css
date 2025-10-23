@@ -13,12 +13,12 @@
   height: auto; /* Altura baseada no conteúdo */
   max-height: 90vh; /* Limite de altura para telas pequenas */
   overflow-y: auto; /* Para garantir que o conteúdo seja scrollável se for muito alto */
-  background: var(--dark-modal);
-  color: var(--light-text);
+  background: var(--bg-card); /* Claro no tema claro */
+  color: var(--text-dark); /* Texto escuro no tema claro */
   padding: 26px;
   border-radius: 8px;
   position: relative;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); /* Sombra mais suave no claro */
 }
 
 /* Tema escuro para modal genérico */

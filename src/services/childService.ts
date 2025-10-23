@@ -4,19 +4,29 @@ import { API_BASE_URL } from './config'
 // Serviços para crianças e usuários
 export const childService = {
   async getUserById(userId: number) {
-    const response = await fetch(`${API_BASE_URL}/usuarios/${userId}`)
-    
-    if (!response.ok) {
-      throw new Error('Erro ao carregar dados do usuário')
-    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/usuarios/${userId}`)
+      
+      if (!response.ok) {
+        if (response.status >= 500) {
+          throw new Error('Erro no servidor. Tente novamente mais tarde.')
+        }
+        throw new Error('Erro ao carregar dados do usuário')
+      }
 
-    const data = await response.json()
-    
-    if (data.status && data.usuario) {
-      return data.usuario
+      const data = await response.json()
+      
+      if (data.status && data.usuario) {
+        return data.usuario
+      }
+      
+      throw new Error('Dados do usuário não encontrados')
+    } catch (err: any) {
+      const msg = (typeof err?.message === 'string' && /failed to fetch|network|fetch/i.test(err.message))
+        ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+        : (err?.message || 'Erro ao carregar dados do usuário')
+      throw new Error(msg)
     }
-    
-    throw new Error('Dados do usuário não encontrados')
   },
   async getSexoOptions(): Promise<SexoOption[]> {
     try {
@@ -61,19 +71,29 @@ export const childService = {
   },
 
   async registerChild(childData: ChildData) {
-    const response = await fetch(`${API_BASE_URL}/criancas`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(childData)
-    })
+    try {
+      const response = await fetch(`${API_BASE_URL}/criancas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(childData)
+      })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.messagem || 'Erro ao cadastrar criança')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        if (response.status >= 500) {
+          throw new Error('Erro no servidor. Tente novamente mais tarde.')
+        }
+        throw new Error(errorData.messagem || errorData.message || 'Não foi possível concluir o cadastro da criança.')
+      }
+
+      return response.json()
+    } catch (err: any) {
+      const msg = (typeof err?.message === 'string' && /failed to fetch|network|fetch/i.test(err.message))
+        ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+        : (err?.message || 'Erro de conexão. Verifique sua internet.')
+      throw new Error(msg)
     }
-
-    return response.json()
   }
 }

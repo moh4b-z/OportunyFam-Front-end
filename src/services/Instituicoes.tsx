@@ -1,5 +1,5 @@
-import {BASE_URL} from "./config";
-import {GetInstituicoesResponse} from "../types";
+import { API_BASE_URL } from "./config";
+import { GetInstituicoesResponse } from "../types";
 
 export type FetchInstituicoesParams = {
   nome?: string;
@@ -20,7 +20,7 @@ export async function InstituicoesByName(
   params.set("pagina", String(pagina));
   params.set("tamanho", String(tamanho));
 
-  const url = `${BASE_URL}/instituicoes/?${params.toString()}`;
+  const url = `${API_BASE_URL}/instituicoes/?${params.toString()}`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -37,9 +37,6 @@ export async function InstituicoesByName(
   // Retorna o JSON exatamente como o backend envia
   const data = await response.json();
   
-  // Debug: vamos ver o que a API retorna
-  console.log("Resposta da API:", data);
-  
   return data;
 }
 
@@ -49,6 +46,5 @@ export function buildInstituicoesUrl({ nome, pagina = 1, tamanho = 20 }: FetchIn
   if (nome !== undefined) params.set("nome", nome);
   params.set("pagina", String(pagina));
   params.set("tamanho", String(tamanho));
-  return `http://localhost:8080/v1/oportunyfam/instituicoes/?${params.toString()}`;
+  return `${API_BASE_URL}/instituicoes/?${params.toString()}`;
 }
-

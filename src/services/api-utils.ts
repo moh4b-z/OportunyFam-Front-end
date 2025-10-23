@@ -1,4 +1,4 @@
-import { BASE_URL } from './config.js';
+import { API_BASE_URL } from './config';
 
 interface ApiRequestOptions extends RequestInit {
   timeout?: number;
@@ -20,7 +20,7 @@ export async function apiRequest<T = any>(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',

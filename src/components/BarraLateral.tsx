@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { apiRequestWithFallback, mockNotifications } from "@/service/api-utils";
+import { API_BASE_URL } from "@/services/config";
 
 interface BarraLateralProps {
   onSearchClick?: () => void;
@@ -24,8 +24,32 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
   };
 
   const handleNotificationClick = async () => {
-    const data = await apiRequestWithFallback('/notificacoes', mockNotifications);
-    onNotificationClick?.(data);
+    try {
+      const res = await fetch(`${API_BASE_URL}/notificacoes`);
+      const data = await res.json();
+      onNotificationClick?.(data);
+    } catch (err) {
+      console.error("Erro ao buscar notificações:", err);
+      // Se a API falhar, usar dados de exemplo e ainda assim abrir o modal
+      const mockNotifications = [
+        {
+          id: 1,
+          message: "Nova vaga disponível no Instituto Água Viva",
+          date: "2024-10-16 09:30"
+        },
+        {
+          id: 2,
+          message: "Evento beneficente na Casa da Esperança",
+          date: "2024-10-16 08:45"
+        },
+        {
+          id: 3,
+          message: "Oportunidade de voluntariado na Creche Sonho Dourado",
+          date: "2024-10-16 07:20"
+        }
+      ];
+      onNotificationClick?.(mockNotifications);
+    }
   };
 
   return (

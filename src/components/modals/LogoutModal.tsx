@@ -18,26 +18,16 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirmLog
     return null;
   }
 
-  // Função para lidar com o clique no botão "Sim" (cancelar o logout na modal, ou seja, voltar)
+  // Função para cancelar o logout (botão "Cancelar")
   const handleCancel = (event: React.MouseEvent) => {
-    // Na imagem, o botão "SIM" está na cor mais neutra, o que geralmente em UX significa CANCELAR ou AÇÃO SECUNDÁRIA.
-    // O "NÃO" está na cor laranja (primária) que geralmente significa CONFIRMAR.
-    // Vamos manter a lógica da modal: "Quer mesmo sair da conta?"
-    // Botão SIM -> Sim, quero sair -> onConfirmLogout (Ação laranja na imagem)
-    // Botão NÃO -> Não, não quero sair -> onClose (Ação neutra na imagem)
-    // Para manter a coerência da pergunta e da cor na imagem:
-    // Ação Principal/Laranja: Sair (Sim)
-    // Ação Secundária/Branca: Cancelar (Não)
-    // No entanto, para ser fiel à imagem enviada (que tem as cores trocadas, laranjado em "Não" e cinza em "Sim"),
-    // vou *inverter* os handlers para que a cor siga a ação visual:
     event.stopPropagation();
-    onClose(); // O botão "Sim" na cor cinza, que é a posição da "Negativa" (Não sair)
+    onClose();
   };
 
-  // Função para lidar com o clique no botão "Não" (confirmar o logout na modal, ou seja, sair)
+  // Função para confirmar o logout (botão "Sair")
   const handleConfirm = (event: React.MouseEvent) => {
     event.stopPropagation();
-    onConfirmLogout(); // O botão "Não" na cor laranja, que é a posição da "Confirmação" (Sair)
+    onConfirmLogout();
   };
 
   // Renderização da modal.
@@ -46,21 +36,21 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirmLog
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <p className={styles.modalText}>Quer mesmo sair da conta?</p>
         <div className={styles.modalActions}>
-          {/* O botão "Sim" na posição esquerda, cor neutra (CANCELAR A AÇÃO DE SAIR) */}
+          {/* Botão para cancelar o logout */}
           <button
             className={`${styles.modalButton} ${styles.cancelButton}`}
             onClick={handleCancel}
             type="button"
           >
-            Sim
+            Cancelar
           </button>
-          {/* O botão "Não" na posição direita, cor primária (CONFIRMAR A AÇÃO DE SAIR) */}
+          {/* Botão para confirmar o logout */}
           <button
             className={`${styles.modalButton} ${styles.confirmButton}`}
             onClick={handleConfirm}
             type="button"
           >
-            Não
+            Sair
           </button>
         </div>
       </div>

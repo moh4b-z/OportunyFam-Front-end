@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-// CORREÇÃO 1: O caminho para styles agora sobe dois níveis para chegar em 'src/' e desce para 'app/styles'
 import styles from "../../app/styles/Perfil.module.css"; 
-// CORREÇÃO 2: O caminho para o LogoutModal agora sobe um nível para 'src/components/' e desce para 'modals/LogoutModal'
-import LogoutModal from "../modals/LogoutModal";
 import TermsModal from "../modals/TermsModal";
-import SimpleAccountModal from "../modals/SimpleAccountModal"; 
+import SimpleAccountModal from "../modals/SimpleAccountModal";
 
 interface PerfilProps {
   user?: {
@@ -27,7 +24,6 @@ const Perfil: React.FC<PerfilProps> = ({
   onLogout,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -72,13 +68,14 @@ const Perfil: React.FC<PerfilProps> = ({
   const handleMenuItemClick = (action: string) => {
     setShowMenu(false);
     
-    if (action === 'profile') {
-      setShowAccountModal(true);
+    if (action === 'logout') {
+      // O logout é gerenciado pela página principal através de onMenuItemClick
+      onMenuItemClick?.(action);
       return;
     }
     
-    if (action === 'logout') {
-      setShowLogoutModal(true); 
+    if (action === 'profile') {
+      setShowAccountModal(true);
       return;
     }
     
@@ -96,39 +93,31 @@ const Perfil: React.FC<PerfilProps> = ({
     onMenuItemClick?.(action);
   };
 
-  const handleLogoutConfirm = () => {
-    console.log("Logout confirmado! Executando a ação de saída...");
-    
-    onLogout && onLogout();
-    
-    setShowLogoutModal(false); 
-  };
-
   const handleCloseTermsModal = () => {
     setShowTermsModal(false);
   };
-  
-  const handleCloseLogoutModal = () => {
-    setShowLogoutModal(false);
-  };
 
-  const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      setShowMenu(false);
+  // Usar useEffect para detectar cliques fora do componente
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showMenu && !target.closest(`.${styles.profileContainer}`)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
-  };
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   return (
     <>
-      {/* Overlay para fechar o menu ao clicar fora */}
-      {showMenu && (
-        <div
-          className={styles.overlay}
-          onClick={handleClickOutside}
-        />
-      )}
-
-      {/* Seu container de perfil existente */}
+      {/* Container de perfil sem overlay */}
       <div className={styles.profileContainer}>
         {/* ... (Conteúdo da Bolinha do Perfil) ... */}
         <div
@@ -222,7 +211,12 @@ const Perfil: React.FC<PerfilProps> = ({
                 {/* ITEM DE SAIR DA CONTA */}
                 <div 
                   className={`${styles.menuItem} ${styles.logoutItem}`}
-                  onClick={() => handleMenuItemClick('logout')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔥 CLIQUE NO BOTÃO SAIR DE CONTA DETECTADO!');
+                    handleMenuItemClick('logout');
+                  }}
                 >
                   <span>Sair de Conta</span> 
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -245,13 +239,6 @@ const Perfil: React.FC<PerfilProps> = ({
           </div>
         )}
       </div>
-
-      {/* RENDERIZAÇÃO DA MODAL DE LOGOUT */}
-      <LogoutModal
-        isOpen={showLogoutModal}
-        onClose={handleCloseLogoutModal}
-        onConfirmLogout={handleLogoutConfirm}
-      />
 
       {/* RENDERIZAÇÃO DA MODAL DE TERMOS */}
       <TermsModal

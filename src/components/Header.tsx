@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { apiRequestWithFallback } from "@/service/api-utils";
+import { API_BASE_URL } from "@/services/config";
 import NotificationsModal from "./modals/NotificationsModal";
 import LogoutModal from "./modals/LogoutModal";
 import JoinModal from "./modals/JoinModal";
@@ -20,13 +20,17 @@ export default function Header({ user }: HeaderProps) {
   const [notifications, setNotifications] = useState<any[]>([]);
 
   const fetchNotifications = async () => {
-    const mockData = [
-      { id: 1, message: "Nova vaga disponível", date: "2024-10-16 09:30" },
-      { id: 2, message: "Evento beneficente", date: "2024-10-16 08:45" }
-    ];
-    
-    const data = await apiRequestWithFallback('/notificacoes', { notificacoes: mockData });
-    setNotifications(data.notificacoes || []);
+    try {
+      const response = await fetch(`${API_BASE_URL}/notificacoes`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new Error("Erro ao buscar notificações");
+      const data = await response.json();
+      setNotifications(data.notificacoes || []);
+    } catch (error) {
+      console.error("Erro ao buscar notificações:", error);
+      setNotifications([]);
+    }
   };
 
   useEffect(() => {

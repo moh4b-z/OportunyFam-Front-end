@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import ModalOverlay from "../shared/ModalOverlay";
 import InputGroup from "../shared/InputGroup";
 import Dropdown from "../shared/Dropdown";
-import { BASE_URL } from "@/service/config";
+import { API_BASE_URL } from "@/services/config";
 
 type RegistrationModalProps = {
   isOpen: boolean;
@@ -56,12 +56,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
         throw new Error("As senhas não coincidem.");
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos para cadastro
-      
-      const response = await fetch(`${BASE_URL}/usuarios/`, {
+      const response = await fetch(`${API_BASE_URL}/usuarios/`, {
         method: "POST",
-        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nome: formData.nome,
@@ -71,8 +67,6 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
           sexo: formData.sexo,
         }),
       });
-      
-      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const text = await response.text();

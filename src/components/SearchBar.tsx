@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Instituicao } from "@/types";
-import { InstituicoesByName } from "@/service/Instituicoes";
+import { InstituicoesByName } from "@/services/Instituicoes";
 import CategoryChips, { Category } from "./shared/CategoryChips";
 import "../app/styles/SearchCard.css";
 import "../app/styles/SearchModal.css";

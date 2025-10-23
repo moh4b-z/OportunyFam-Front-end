@@ -65,16 +65,13 @@ const Perfil: React.FC<PerfilProps> = ({
   };
 
   const handleMenuItemClick = (action: string) => {
-    console.log('🔥 Perfil.handleMenuItemClick chamado com:', action);
     setShowMenu(false);
     
     // Chama a função externa se existir
-    console.log('🔥 onMenuItemClick existe?', !!onMenuItemClick);
     onMenuItemClick?.(action);
     
     // Gerencia os modais locais e funcionalidades (exceto logout que é gerenciado externamente)
     if (action === 'logout') {
-      console.log('🔥 Logout detectado no Perfil - delegando para página principal');
       // O logout é gerenciado pela página principal através de onMenuItemClick
       return;
     }
@@ -94,23 +91,27 @@ const Perfil: React.FC<PerfilProps> = ({
     setShowTermsModal(false);
   };
 
-  const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      setShowMenu(false);
+  // Usar useEffect para detectar cliques fora do componente
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showMenu && !target.closest(`.${styles.profileContainer}`)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
-  };
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   return (
     <>
-      {/* Overlay para fechar o menu ao clicar fora */}
-      {showMenu && (
-        <div
-          className={styles.overlay}
-          onClick={handleClickOutside}
-        />
-      )}
-
-      {/* Seu container de perfil existente */}
+      {/* Container de perfil sem overlay */}
       <div className={styles.profileContainer}>
         {/* ... (Conteúdo da Bolinha do Perfil) ... */}
         <div
@@ -204,7 +205,12 @@ const Perfil: React.FC<PerfilProps> = ({
                 {/* ITEM DE SAIR DA CONTA */}
                 <div 
                   className={`${styles.menuItem} ${styles.logoutItem}`}
-                  onClick={() => handleMenuItemClick('logout')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔥 CLIQUE NO BOTÃO SAIR DE CONTA DETECTADO!');
+                    handleMenuItemClick('logout');
+                  }}
                 >
                   <span>Sair de Conta</span> 
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

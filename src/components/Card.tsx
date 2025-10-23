@@ -372,12 +372,7 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				tipos_instituicao: ongTiposInstituicao.map(id => parseInt(id)) // Converte para array de números
 			}
 
-			const response = await institutionService.register(institutionData)
-			const data = await response.json()
-
-			if (!response.ok) {
-				throw new Error(data.message || 'Erro ao cadastrar instituição')
-			}
+			const data = await institutionService.register(institutionData)
 
 			// Mostra modal de sucesso
 			showSuccessAndRedirect(
@@ -448,12 +443,7 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				estado: responsableUf
 			}
 
-			const response = await userService.register(responsibleData)
-			const data = await response.json()
-
-			if (!response.ok) {
-				throw new Error(data.message || 'Erro ao cadastrar responsável')
-			}
+			const data = await userService.register(responsibleData)
 
 			// Mostra modal de sucesso
 			showSuccessAndRedirect(

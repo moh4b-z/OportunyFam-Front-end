@@ -59,37 +59,26 @@ export default function HomePage() {
 
 
   const handleProfileMenuClick = (action: string): void => {
-    console.log('🚀 HomePage.handleProfileMenuClick chamado com:', action);
     // Aqui você pode implementar as ações do menu do perfil
     switch (action) {
       case 'profile':
-        console.log('🚀 Ação: profile');
         // Abrir perfil
         break;
       case 'settings':
-        console.log('🚀 Ação: settings');
         // Abrir configurações
         break;
       case 'theme':
-        console.log('🚀 Ação: theme');
         // Alternar tema
         break;
       case 'help':
-        console.log('🚀 Ação: help');
         // Abrir ajuda
         break;
       case 'logout':
-        console.log('🚀 Ação: logout - abrindo modal');
-        console.log('🚀 Estado atual do modal:', isLogoutModalOpen);
         setIsLogoutModalOpen(true);
-        console.log('🚀 Modal deveria estar aberto agora');
         break;
       case 'login':
-        console.log('🚀 Ação: login');
         // Fazer login
         break;
-      default:
-        console.log('🚀 Ação desconhecida:', action);
     }
   };
 

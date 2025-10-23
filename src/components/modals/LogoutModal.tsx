@@ -13,15 +13,10 @@ interface LogoutModalProps {
  * Componente funcional para exibir a modal de confirmação de logout com o design solicitado.
  */
 const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirmLogout }) => {
-  console.log('💥 LogoutModal renderizado com isOpen:', isOpen);
-  
   // Se a modal não estiver aberta, não renderiza nada
   if (!isOpen) {
-    console.log('💥 Modal não está aberta, não renderizando');
     return null;
   }
-  
-  console.log('💥 Modal ESTÁ aberta, renderizando conteúdo');
 
   // Função para cancelar o logout (botão "Cancelar")
   const handleCancel = (event: React.MouseEvent) => {

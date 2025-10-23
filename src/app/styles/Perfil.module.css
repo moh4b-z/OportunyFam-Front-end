@@ -4,12 +4,7 @@
  * ===============================================
  */
 
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9998; /* Z-index alto para o overlay */
-  background: transparent;
-}
+/* Overlay removido - não é mais necessário */
 
 .profileContainer {
   position: relative;

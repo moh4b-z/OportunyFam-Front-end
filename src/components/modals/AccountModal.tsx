@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import styles from "../../app/styles/AccountModal.module.css";
 
 interface AccountModalProps {
@@ -15,21 +15,11 @@ interface AccountModalProps {
 }
 
 const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user }) => {
-  const [showManageModal, setShowManageModal] = useState(false);
-
   if (!isOpen) return null;
 
   const handleMenuClick = (action: string) => {
     console.log(`Ação selecionada: ${action}`);
     // Aqui você pode implementar a navegação ou ações específicas
-  };
-
-  const handleManageClick = () => {
-    setShowManageModal(true);
-  };
-
-  const closeManageModal = () => {
-    setShowManageModal(false);
   };
 
   const getInitials = (name: string) => {
@@ -202,77 +192,9 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user }) =>
                 </div>
               </button>
             </div>
-
-            {/* Seção de Filhos */}
-            <div className={styles.menuGroup}>
-              <h4 className={styles.menuGroupTitle}>Filhos</h4>
-              
-              <div className={styles.childrenSection}>
-                <div className={styles.childItem}>
-                  <div className={styles.childInfo}>
-                    <div className={styles.childAvatar}>
-                      <span className={styles.childInitials}>F1</span>
-                    </div>
-                    <div className={styles.childDetails}>
-                      <span className={styles.childName}>Filho 1</span>
-                      <span className={styles.childAge}>12 anos</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.childItem}>
-                  <div className={styles.childInfo}>
-                    <div className={styles.childAvatar}>
-                      <span className={styles.childInitials}>F2</span>
-                    </div>
-                    <div className={styles.childDetails}>
-                      <span className={styles.childName}>Filho 2</span>
-                      <span className={styles.childAge}>8 anos</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botão de Gerenciar Filhos */}
-                <button 
-                  className={styles.manageChildrenButton}
-                  onClick={handleManageClick}
-                  aria-label="Gerenciar filhos"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={styles.xIcon}>
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
-
-      {/* Modal de Gerenciamento */}
-      {showManageModal && (
-        <div className={styles.manageOverlay} onClick={closeManageModal}>
-          <div className={styles.manageModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.manageContent}>
-              <h3 className={styles.manageTitle}>Gerenciar Filhos</h3>
-              <p className={styles.manageDescription}>
-                Aqui você pode gerenciar as informações dos seus filhos
-              </p>
-              
-              <button 
-                className={styles.closeManageButton}
-                onClick={closeManageModal}
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

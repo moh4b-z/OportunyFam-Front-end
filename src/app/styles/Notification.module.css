@@ -219,8 +219,8 @@
 /* CONTEÚDO LATERAL - Mantém design mas adapta para lateral */
 .notificationModalContentLateral {
   background: white;
-  width: 500px;
-  max-width: 500px;
+  width: 600px; /* Aumentado para mesmo tamanho dos modais de conversas */
+  max-width: 90vw;
   height: 100vh;
   border-radius: 0; /* Remove bordas arredondadas para lateral */
   padding: 24px;
@@ -551,5 +551,20 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Responsividade igual aos modais de conversas */
+@media (max-width: 768px) {
+  .notificationModalContentLateral {
+    width: 500px; /* Mantém largura maior em tablets */
+    max-width: calc(100vw - 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .notificationModalContentLateral {
+    width: 100%;
+    max-width: 400px; /* Aumentado para mobile também */
   }
 }

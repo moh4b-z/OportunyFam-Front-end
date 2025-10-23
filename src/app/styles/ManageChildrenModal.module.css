@@ -1,0 +1,337 @@
+/* Modal de Gerenciamento de Filhos */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: #6b7280;
+  border-radius: 20px;
+  width: 600px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+:global(body.dark) .modal {
+  background: #4b5563;
+  border-color: rgba(107, 114, 128, 0.3);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.content {
+  color: white;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 32px 0 32px;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.body {
+  padding: 0 32px 32px 32px;
+  overflow-y: auto;
+  max-height: calc(85vh - 120px);
+}
+
+.description {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+.childrenList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.childCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.childCard:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.childInfo {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.childAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.childDetails h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+}
+
+.childDetails p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.childActions {
+  display: flex;
+  gap: 8px;
+}
+
+.editButton,
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.editButton {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.editButton:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: scale(1.05);
+}
+
+.deleteButton {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: scale(1.05);
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.addButton:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  border-color: rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .modal {
+    width: 95vw;
+    margin: 20px;
+  }
+  
+  .header {
+    padding: 24px 24px 0 24px;
+  }
+  
+  .body {
+    padding: 0 24px 24px 24px;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .childCard {
+    padding: 16px 20px;
+  }
+  
+  .childAvatar {
+    width: 44px;
+    height: 44px;
+    margin-right: 12px;
+    font-size: 14px;
+  }
+  
+  .childDetails h3 {
+    font-size: 16px;
+  }
+  
+  .childDetails p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    width: 100%;
+    max-width: 340px;
+    margin: 16px;
+  }
+  
+  .header {
+    padding: 20px 20px 0 20px;
+    margin-bottom: 20px;
+  }
+  
+  .body {
+    padding: 0 20px 20px 20px;
+  }
+  
+  .title {
+    font-size: 22px;
+  }
+  
+  .description {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  
+  .childCard {
+    padding: 14px 16px;
+  }
+  
+  .childAvatar {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    font-size: 12px;
+  }
+  
+  .childDetails h3 {
+    font-size: 15px;
+  }
+  
+  .childDetails p {
+    font-size: 12px;
+  }
+  
+  .editButton,
+  .deleteButton {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .addButton {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}

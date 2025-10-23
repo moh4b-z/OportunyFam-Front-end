@@ -12,13 +12,20 @@ import PushNotifications from "@/components/PushNotifications";
 import Perfil from "@/components/shared/Perfil";
 import LogoutModal from "@/components/modals/LogoutModal";
 import ConversationsModal from "@/components/modals/ConversationsModal";
+import ChildRegistrationModal from "@/components/modals/ChildRegistrationModal";
 import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import SessionInfo from "@/components/SessionInfo";
 
 export default function HomePage() {
-  const { user: authUser, logout, isLoading } = useAuth();
+  const { 
+    user: authUser, 
+    logout, 
+    isLoading, 
+    showChildRegistration, 
+    setShowChildRegistration 
+  } = useAuth();
   const [selectedInstitution, setSelectedInstitution] = useState<Instituicao | null>(null);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -82,6 +89,20 @@ export default function HomePage() {
     }
   };
 
+  // Funções para o modal de cadastro de criança
+  const handleChildRegistrationSuccess = async () => {
+    // Atualiza o usuário para indicar que agora tem crianças
+    console.log('Criança cadastrada com sucesso!');
+    
+    // Opcionalmente, você pode recarregar os dados do usuário aqui
+    // ou simplesmente fechar o modal já que o usuário agora tem uma criança
+    setShowChildRegistration(false);
+  };
+
+  const handleCloseChildRegistration = () => {
+    setShowChildRegistration(false);
+  };
+
   // Usa os dados do usuário logado do contexto
   const user = authUser || {
     nome: "Usuário",
@@ -128,6 +149,40 @@ export default function HomePage() {
           <Switch onCategoryChange={(category) => {/* Categoria selecionada: ${category} */}} />
         </div>
 
+        {/* Botão temporário para testar modal de criança */}
+        {process.env.NODE_ENV === 'development' && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            background: '#007bff',
+            color: 'white',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+          }}>
+            <button 
+              onClick={() => setShowChildRegistration(!showChildRegistration)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              {showChildRegistration ? '❌ Fechar Modal Criança' : '👶 Abrir Modal Criança'}
+            </button>
+          </div>
+        )}
+
         {/* Header flutuante sobre o mapa */}
         <div className="floating-header">
           <div className="search-wrapper">
@@ -166,6 +221,14 @@ export default function HomePage() {
       <ConversationsModal
         isOpen={isConversationsModalOpen}
         onClose={closeConversationsModal}
+      />
+
+      {/* Modal de cadastro de criança */}
+      <ChildRegistrationModal
+        isOpen={showChildRegistration}
+        onClose={handleCloseChildRegistration}
+        onSuccess={handleChildRegistrationSuccess}
+        userId={authUser ? parseInt(authUser.id) : 999} // ID temporário para testes
       />
       
       {/* Componente para mostrar informações da sessão (apenas para demonstração) */}

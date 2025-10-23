@@ -2,12 +2,16 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { authService } from '@/services/authService'
+import { childService } from '@/services/childService'
 
 interface User {
   id: string
   nome: string
   email: string
   foto_perfil?: string
+  isFirstLogin?: boolean
+  hasChildren?: boolean
 }
 
 interface AuthContextType {
@@ -15,6 +19,8 @@ interface AuthContextType {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>
   logout: () => void
   isLoading: boolean
+  showChildRegistration: boolean
+  setShowChildRegistration: (show: boolean) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -22,6 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showChildRegistration, setShowChildRegistration] = useState(false)
   const router = useRouter()
 
   // Verifica se o usuário está logado ao carregar a página
@@ -54,31 +61,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
       
-      // Aqui você faria a chamada para sua API de login
-      // Por enquanto, vou simular um login bem-sucedido
-      const mockUser: User = {
-        id: '1',
-        nome: 'Usuário Teste',
-        email: email,
-        foto_perfil: undefined
+      // Chama o serviço de autenticação real
+      const response = await authService.login({ email, password })
+      
+      // Verifica se a resposta tem os dados esperados
+      if (!response) {
+        throw new Error('Nenhuma resposta do servidor')
       }
 
-      // Simula uma chamada de API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Verifica se o login foi bem-sucedido
+      if (!response.status) {
+        throw new Error(response.messagem || 'Falha na autenticação')
+      }
+
+      // Verifica se tem dados do usuário na estrutura correta
+      if (!response.result) {
+        throw new Error('Dados do usuário não encontrados na resposta')
+      }
+
+      const userData = response.result
+      const token = `auth-token-${Date.now()}-${userData.id}`
+
+      // Verifica se é responsável
+      const isResponsible = userData.tipo_nivel && userData.tipo_nivel.toLowerCase().includes('família')
+      
+      // Faz uma verificação mais robusta buscando dados completos do usuário
+      let hasChildren = false
+      if (isResponsible) {
+        try {
+          const fullUserData = await childService.getUserById(userData.id)
+          hasChildren = fullUserData.criancas_dependentes && fullUserData.criancas_dependentes.length > 0
+        } catch (error) {
+          console.error('Erro ao verificar crianças do usuário:', error)
+          // Fallback para dados do login
+          hasChildren = userData.criancas_dependentes && userData.criancas_dependentes.length > 0
+        }
+      }
+      
+      // Cria o objeto do usuário com os dados reais da API
+      const user: User = {
+        id: userData.id.toString(),
+        nome: userData.nome,
+        email: userData.email,
+        foto_perfil: userData.foto_perfil || undefined,
+        hasChildren,
+        isFirstLogin: isResponsible && !hasChildren
+      }
 
       // Define a duração do cookie baseado na opção "lembrar-se de mim"
       const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60 // 30 dias ou 24 horas
       
-      // Define o cookie de autenticação (em produção, isso seria feito pelo backend)
-      document.cookie = `auth-token=mock-token-${Date.now()}; path=/; max-age=${maxAge}`
+      // Define o cookie de autenticação
+      document.cookie = `auth-token=${token}; path=/; max-age=${maxAge}`
 
       // Salva os dados do usuário no localStorage
-      localStorage.setItem('user-data', JSON.stringify(mockUser))
+      localStorage.setItem('user-data', JSON.stringify(user))
       
       // Salva a preferência "lembrar-se de mim"
       localStorage.setItem('remember-me', rememberMe.toString())
       
-      setUser(mockUser)
+      setUser(user)
+      
+      // Se é responsável e não tem crianças, mostra modal de cadastro
+      if (isResponsible && !hasChildren) {
+        setShowChildRegistration(true)
+      }
       
       // Redireciona para a home
       router.push('/')
@@ -86,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true
     } catch (error) {
       console.error('Erro no login:', error)
+      // Não salva nada no localStorage em caso de erro
       return false
     } finally {
       setIsLoading(false)
@@ -107,7 +155,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      isLoading, 
+      showChildRegistration, 
+      setShowChildRegistration 
+    }}>
       {children}
     </AuthContext.Provider>
   )

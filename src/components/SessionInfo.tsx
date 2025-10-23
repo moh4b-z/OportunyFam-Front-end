@@ -8,6 +8,8 @@ export default function SessionInfo() {
     rememberMe: boolean
     tokenExpiry?: string
   } | null>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     const checkSession = () => {
@@ -34,16 +36,29 @@ export default function SessionInfo() {
         rememberMe,
         tokenExpiry
       })
+
+      // Mostra a mensagem apenas se houver token
+      if (hasToken) {
+        setIsVisible(true)
+        setIsAnimating(false)
+        
+        // Inicia animação de fade-out após 4.5 segundos
+        setTimeout(() => {
+          setIsAnimating(true)
+        }, 4500)
+        
+        // Esconde completamente após 5 segundos
+        setTimeout(() => {
+          setIsVisible(false)
+          setIsAnimating(false)
+        }, 5000)
+      }
     }
 
     checkSession()
-    // Verifica a cada 5 segundos
-    const interval = setInterval(checkSession, 5000)
-
-    return () => clearInterval(interval)
   }, [])
 
-  if (!sessionInfo) return null
+  if (!sessionInfo || !isVisible) return null
 
   return (
     <div style={{
@@ -56,7 +71,11 @@ export default function SessionInfo() {
       borderRadius: '8px',
       fontSize: '12px',
       zIndex: 9999,
-      maxWidth: '250px'
+      maxWidth: '250px',
+      opacity: isAnimating ? 0 : 1,
+      transition: 'opacity 0.5s ease-out',
+      transform: 'translateY(0)',
+      animation: 'slideInFromBottom 0.3s ease-out'
     }}>
       <div><strong>Status da Sessão:</strong></div>
       <div>Token: {sessionInfo.hasToken ? '✅ Ativo' : '❌ Inativo'}</div>
@@ -67,6 +86,19 @@ export default function SessionInfo() {
       <div style={{ fontSize: '10px', marginTop: '5px', opacity: 0.7 }}>
         {sessionInfo.rememberMe ? 'Sessão de 30 dias' : 'Sessão de 24 horas'}
       </div>
+      
+      <style jsx>{`
+        @keyframes slideInFromBottom {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   )
 }

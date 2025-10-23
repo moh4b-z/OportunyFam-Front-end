@@ -5,6 +5,7 @@ import "./globals.css";
 import "./styles/JoinModal.css";
 import "./styles/GeneralModal.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ThemeController from "@/components/ThemeController";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="pt-br">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AuthProvider>
+          <ThemeController />
           {children}
         </AuthProvider>
       </body>

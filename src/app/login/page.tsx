@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import CardSystem from '@components/Card'
+import TestCredentials from '@/components/TestCredentials'
 
 export default function LoginPage() {
 	const [currentTab, setCurrentTab] = useState<'login' | 'register'>('login')
@@ -13,6 +14,7 @@ export default function LoginPage() {
 
 	return (
 		<main>
+			<TestCredentials />
 			<div className="background_image">
 				<Image src="/img/pres_image-1.png" alt="pres_image-1" fill className="pres_image" id="pres_image-1" quality={100} />
 			</div>

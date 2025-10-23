@@ -5,6 +5,42 @@ export interface LoginData {
   password: string
 }
 
+export interface LoginResponse {
+  status: boolean
+  status_code: number
+  messagem: string
+  tipo: string
+  result: {
+    id: number
+    nome: string
+    foto_perfil: string
+    email: string
+    data_nascimento: string
+    cpf: string
+    criado_em: string
+    atualizado_em: string | null
+    sexo: string
+    tipo_nivel: string
+    criancas_dependentes: any[]
+  }
+}
+
+export interface ChildData {
+  nome: string
+  foto_perfil?: string
+  email?: string
+  cpf: string
+  senha?: string
+  data_nascimento: string
+  id_sexo: number
+  id_usuario: number
+}
+
+export interface SexoOption {
+  id: number
+  nome: string
+}
+
 export interface InstitutionData {
   nome: string
   logo?: string

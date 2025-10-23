@@ -31,6 +31,15 @@ const Perfil: React.FC<PerfilProps> = ({
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isLoginPage = window.location.pathname === '/login';
+    
+    // Se estiver na página de login, sempre usar tema claro
+    if (isLoginPage) {
+      setIsDarkMode(false);
+      document.body.classList.add('light');
+      document.body.classList.remove('dark');
+      return;
+    }
     
     if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
       setIsDarkMode(true);
@@ -45,6 +54,14 @@ const Perfil: React.FC<PerfilProps> = ({
 
   // Função para alternar tema
   const toggleTheme = () => {
+    // Verifica se estamos na página de login
+    const isLoginPage = window.location.pathname === '/login';
+    
+    // Se estiver na página de login, não aplica tema escuro
+    if (isLoginPage) {
+      return;
+    }
+    
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
     
@@ -65,26 +82,30 @@ const Perfil: React.FC<PerfilProps> = ({
   };
 
   const handleMenuItemClick = (action: string) => {
-    setShowMenu(false);
-    
     // Chama a função externa se existir
     onMenuItemClick?.(action);
     
-    // Gerencia os modais locais e funcionalidades (exceto logout que é gerenciado externamente)
+    // Gerencia os modais locais e funcionalidades
     if (action === 'logout') {
       // O logout é gerenciado pela página principal através de onMenuItemClick
+      setShowMenu(false); // Fecha menu apenas para logout
       return;
     }
     
     if (action === 'terms') {
       setShowTermsModal(true);
+      setShowMenu(false); // Fecha menu para abrir modal
       return;
     }
     
     if (action === 'theme') {
       toggleTheme();
+      // NÃO fecha o menu para mudança de tema
       return;
     }
+    
+    // Para outras ações, fecha o menu
+    setShowMenu(false);
   };
 
   const handleCloseTermsModal = () => {
@@ -208,7 +229,6 @@ const Perfil: React.FC<PerfilProps> = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔥 CLIQUE NO BOTÃO SAIR DE CONTA DETECTADO!');
                     handleMenuItemClick('logout');
                   }}
                 >

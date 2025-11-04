@@ -5,15 +5,21 @@
 
 /* 1. Bloco da Logo (Esquerda) */
 .card-logo-block {
-  width: 50px; /* Aumentado */
-  height: 50px;
-  min-width: 50px; 
-  border-radius: 8px; /* Quadrado arredondado */
-  background-color: rgba(74, 144, 226, 0.15); /* Fundo azul suave */
+  width: 64px;
+  height: 64px;
+  min-width: 64px; 
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(231, 111, 81, 0.1));
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
+  margin-right: 20px;
+  margin-top: 2px;
+}
+
+.card-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 
@@ -29,22 +35,80 @@
 .card-main-content {
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Ocupa o máximo de espaço */
-    margin-right: 10px;
+    flex-grow: 1;
+    gap: 6px;
+    min-width: 0;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
 }
 
 
-/* Nome da Instituição - NUNCA CORTA (se couber na largura do input) */
+/* Nome da Instituição */
 .card-name-full {
-  font-weight: 700; /* Mais destaque */
+  font-weight: 600;
   font-size: 17px;
   color: var(--text-darker);
-  /* Removido white-space/overflow para mostrar o nome completo */
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+.card-category {
+  background: rgba(244, 162, 97, 0.12);
+  color: #e76f51;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card-description {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 400;
+  line-height: 1.4;
+  margin: 3px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-location {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 
 body.dark .card-name-full {
     color: var(--text-dark-theme);
+}
+
+body.dark .card-category {
+    background: rgba(244, 162, 97, 0.2);
+    color: #f4a261;
+}
+
+body.dark .card-description,
+body.dark .card-location {
+    color: var(--text-secondary-dark);
 }
 
 
@@ -91,20 +155,21 @@ body.dark .card-subtitle {
 }
 
 
-/* AJUSTE FINAL: Remover padding do contêiner para que os cards tenham a margem */
+/* AJUSTE FINAL: Dropdown profissional com largura expandida */
 .search-results-dropdown {
   position: absolute;
   top: calc(100% + 2px);
-  left: 0;
-  width: 100%;
+  left: -20px;
+  width: calc(100% + 40px);
+  min-width: 500px;
   z-index: 10;
   background: var(--bg-light);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid var(--border-color);
-  max-height: 300px;
+  max-height: 600px;
   overflow-y: auto;
-  padding: 2px 0;
+  padding: 12px 0;
 }
 
 body.dark .search-results-dropdown {
@@ -122,18 +187,19 @@ body.dark .search-results-dropdown {
 /* Item de opção individual (Card) */
 .search-result-card {
   display: flex;
-  align-items: center;
-  padding: 15px 20px; /* Mais padding para ser mais comprido/alto */
+  align-items: flex-start;
+  padding: 18px 24px;
   font-size: 16px;
   color: var(--text-dark);
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 10px; /* Borda arredondada */
-  margin: 8px 10px; /* Espaço entre os cartões */
-  background: var(--bg-light); /* Fundo claro para se destacar */
-  border: 1px solid var(--border-color); /* Borda sutil */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra sutil de card */
-  /* Garante que o nome não seja cortado - O nome agora tem espaço total */
+  border-radius: 12px;
+  margin: 8px 16px;
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  min-height: 85px;
+  width: calc(100% - 32px);
 }
 
 /* Estilos para o tema escuro */
@@ -147,16 +213,31 @@ body.dark .search-result-card {
 /* Efeito ao passar o mouse ou selecionar */
 .search-result-card:hover,
 .search-result-card.selected-card {
-  background-color: var(--bg-hover-light); /* Fundo sutil */
-  border-color: var(--orange); /* Borda Laranja */
-  transform: translateY(-2px); /* Efeito de elevação sutil */
-  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.2); /* Sombra laranja */
+  background-color: var(--bg-hover-light);
+  border-color: var(--orange);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(244, 162, 97, 0.15);
+}
+
+.search-result-card:hover .card-logo-block {
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.25), rgba(231, 111, 81, 0.2));
+  transform: scale(1.05);
+}
+
+.search-result-card:hover .card-category {
+  background: rgba(244, 162, 97, 0.2);
+  color: #e76f51;
 }
 
 body.dark .search-result-card:hover,
 body.dark .search-result-card.selected-card {
   background-color: var(--hover-bg-dark);
-  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3);
+  box-shadow: 0 6px 20px rgba(244, 162, 97, 0.25);
+}
+
+body.dark .search-result-card:hover .card-category {
+  background: rgba(244, 162, 97, 0.3);
+  color: #f4a261;
 }
 
 /* Estilos para mensagens do dropdown (loading, erro, sem resultados) */

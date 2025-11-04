@@ -12,7 +12,6 @@ export async function InstituicoesByName(
 ): Promise<PaginatedResponse<Instituicao>> {
   const params = new URLSearchParams();
 
-  // Inclui o nome mesmo que seja string vazia, caso o backend interprete isso como "sem filtro"
   if (nome !== undefined) {
     params.set("nome", nome);
   }
@@ -34,10 +33,63 @@ export async function InstituicoesByName(
     throw new Error(`Erro ao buscar instituições (${response.status}): ${text || response.statusText}`);
   }
 
-  // Retorna o JSON exatamente como o backend envia
   const data = await response.json();
-  
   return data;
+}
+
+// Nova função para buscar instituição específica por nome
+export async function getInstituicaoByName(nome: string): Promise<Instituicao | null> {
+  try {
+    const response = await InstituicoesByName({ nome, tamanho: 1 });
+    if (response.status && response.data && response.data.length > 0) {
+      return response.data[0];
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao buscar instituição:', error);
+    return null;
+  }
+}
+
+// Função para normalizar dados da instituição
+export function normalizeInstituicao(inst: any): Instituicao {
+  // Se os dados de endereço estão no nível raiz, move para o objeto endereco
+  if (!inst.endereco && (inst.cep || inst.logradouro)) {
+    inst.endereco = {
+      cep: inst.cep,
+      logradouro: inst.logradouro,
+      numero: inst.numero,
+      complemento: inst.complemento,
+      bairro: inst.bairro,
+      cidade: inst.cidade,
+      estado: inst.estado,
+      latitude: inst.latitude,
+      longitude: inst.longitude
+    };
+  }
+  
+  return inst as Instituicao;
+}
+
+// Função para geocodificar endereço usando API externa
+export async function geocodeAddress(endereco: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}&limit=1`
+    );
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon)
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao geocodificar endereço:', error);
+    return null;
+  }
 }
 
 // Utilitário opcional: constrói a URL final (útil para debug/teste)

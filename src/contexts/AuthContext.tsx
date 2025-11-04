@@ -80,30 +80,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const userData = response.result
-      const token = `auth-token-${Date.now()}-${userData.id}`
 
-      // Verifica se é responsável
-      const isResponsible = userData.tipo_nivel && userData.tipo_nivel.toLowerCase().includes('família')
+      const rawId = userData?.id ?? userData?.usuario?.id ?? userData?.user?.id ?? userData?.usuario_id ?? userData?.id_usuario
+      if (rawId == null) {
+        throw new Error('Dados do usuário sem ID na resposta do login')
+      }
+      const userIdNumber = Number(rawId)
+      if (!Number.isFinite(userIdNumber)) {
+        throw new Error('ID de usuário inválido na resposta do login')
+      }
+
+      const token = `auth-token-${Date.now()}-${userIdNumber}`
+
+      const rawTipoNivel = userData?.tipo_nivel ?? userData?.usuario?.tipo_nivel ?? ''
+      const isResponsible = typeof rawTipoNivel === 'string' && rawTipoNivel.toLowerCase().includes('fam')
       
-      // Faz uma verificação mais robusta buscando dados completos do usuário
       let hasChildren = false
       if (isResponsible) {
         try {
-          const fullUserData = await childService.getUserById(userData.id)
-          hasChildren = fullUserData.criancas_dependentes && fullUserData.criancas_dependentes.length > 0
+          const fullUserData = await childService.getUserById(userIdNumber)
+          hasChildren = Array.isArray(fullUserData?.criancas_dependentes) && fullUserData.criancas_dependentes.length > 0
         } catch (error) {
           console.error('Erro ao verificar crianças do usuário:', error)
-          // Fallback para dados do login
-          hasChildren = userData.criancas_dependentes && userData.criancas_dependentes.length > 0
+          const loginChildren = userData?.criancas_dependentes ?? userData?.usuario?.criancas_dependentes
+          hasChildren = Array.isArray(loginChildren) && loginChildren.length > 0
         }
       }
       
-      // Cria o objeto do usuário com os dados reais da API
       const user: User = {
-        id: userData.id.toString(),
-        nome: userData.nome,
-        email: userData.email,
-        foto_perfil: userData.foto_perfil || undefined,
+        id: userIdNumber.toString(),
+        nome: userData?.nome ?? userData?.usuario?.nome ?? '',
+        email: userData?.email ?? userData?.usuario?.email ?? '',
+        foto_perfil: (userData?.foto_perfil ?? userData?.usuario?.foto_perfil) || undefined,
         hasChildren,
         isFirstLogin: isResponsible && !hasChildren
       }

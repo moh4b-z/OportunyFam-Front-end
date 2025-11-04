@@ -5,6 +5,7 @@ import ModalOverlay from "../shared/ModalOverlay";
 import InputGroup from "../shared/InputGroup";
 import Dropdown from "../shared/Dropdown";
 import { API_BASE_URL } from "@/services/config";
+import { utilsService } from "@/services/utilsService";
 
 type RegistrationModalProps = {
   isOpen: boolean;
@@ -54,6 +55,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
     try {
       if (formData.senha !== formData.confirmarSenha) {
         throw new Error("As senhas não coincidem.");
+      }
+
+      if (!utilsService.isPasswordStrong(formData.senha)) {
+        throw new Error(utilsService.getPasswordStrengthMessage());
       }
 
       const response = await fetch(`${API_BASE_URL}/usuarios/`, {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { ChildData, SexoOption } from '@/types'
 import { childService } from '@/services/childService'
+import { utilsService } from '@/services/utilsService'
 import styles from '@/app/styles/GeneralModal.css'
 
 // Hook para detectar tema atual
@@ -47,7 +48,7 @@ export default function ChildRegistrationModal({
   
   const [formData, setFormData] = useState<Partial<ChildData>>({
     nome: '',
-    cpf: '',
+    cpf: '', // armazenar apenas dígitos
     data_nascimento: '',
     id_sexo: 0,
     id_usuario: userId,
@@ -85,8 +86,23 @@ export default function ChildRegistrationModal({
     }
   }
 
+  const formatCPF = (digits: string) => {
+    const s = digits.replace(/\D/g, '').slice(0, 11)
+    if (s.length <= 3) return s
+    if (s.length <= 6) return `${s.slice(0,3)}.${s.slice(3)}`
+    if (s.length <= 9) return `${s.slice(0,3)}.${s.slice(3,6)}.${s.slice(6)}`
+    return `${s.slice(0,3)}.${s.slice(3,6)}.${s.slice(6,9)}-${s.slice(9,11)}`
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+
+    if (name === 'cpf') {
+      const digits = value.replace(/\D/g, '').slice(0, 11)
+      setFormData(prev => ({ ...prev, cpf: digits }))
+      return
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: name === 'id_sexo' ? parseInt(value) : value
@@ -112,12 +128,16 @@ export default function ChildRegistrationModal({
         throw new Error('Senha é obrigatória')
       }
 
+      if (!utilsService.isPasswordStrong(formData.senha)) {
+        throw new Error(utilsService.getPasswordStrengthMessage())
+      }
+
       if (formData.senha !== confirmPassword) {
         throw new Error('As senhas não coincidem')
       }
 
-      if (formData.senha.length < 6) {
-        throw new Error('A senha deve ter pelo menos 6 caracteres')
+      if (!formData.cpf || !utilsService.validateCPF(formData.cpf)) {
+        throw new Error('CPF inválido')
       }
 
       const childData: ChildData = {
@@ -226,10 +246,11 @@ export default function ChildRegistrationModal({
             <input
               type="text"
               name="cpf"
-              value={formData.cpf || ''}
+              value={formatCPF(formData.cpf || '')}
               onChange={handleInputChange}
               placeholder="000.000.000-00"
               required
+              inputMode="numeric"
               style={{
                 width: '100%',
                 padding: '10px',
@@ -238,6 +259,9 @@ export default function ChildRegistrationModal({
                 fontSize: '14px'
               }}
             />
+            {error && error.toLowerCase().includes('cpf') && (
+              <p style={{ color: '#dc2626', fontSize: '12px', marginTop: '6px' }}>{error}</p>
+            )}
           </div>
 
           <div style={{ marginBottom: '15px' }}>
@@ -419,12 +443,15 @@ export default function ChildRegistrationModal({
             </div>
           )}
 
-          <div className="modal-actions">
+          <div className="modal-actions" style={{ display: 'flex', gap: '16px', marginTop: '24px', flexWrap: 'wrap' }}>
             <button 
               type="button" 
               className="btn btn-outline"
               onClick={onClose}
               disabled={isLoading}
+              style={{ flex: 1, minWidth: '140px', transition: 'background-color 0.2s ease' }}
+              onMouseOver={(e) => { e.currentTarget.style.background = '#f3f4f6' }}
+              onMouseOut={(e) => { e.currentTarget.style.background = '' }}
             >
               Pular por agora
             </button>
@@ -432,6 +459,9 @@ export default function ChildRegistrationModal({
               type="submit" 
               className="btn btn-primary"
               disabled={isLoading}
+              style={{ flex: 1, minWidth: '180px', transition: 'filter 0.15s ease' }}
+              onMouseOver={(e) => { e.currentTarget.style.filter = 'brightness(0.95)' }}
+              onMouseOut={(e) => { e.currentTarget.style.filter = '' }}
             >
               {isLoading ? 'Cadastrando...' : 'Cadastrar Criança'}
             </button>

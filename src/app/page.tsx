@@ -17,6 +17,7 @@ import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import SessionInfo from "@/components/SessionInfo";
+import SuccessModal from "@/components/modals/SuccessModal";
 
 export default function HomePage() {
   const { 
@@ -31,6 +32,7 @@ export default function HomePage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
   const [isConversationsModalOpen, setIsConversationsModalOpen] = useState<boolean>(false);
+  const [isChildSuccessOpen, setIsChildSuccessOpen] = useState<boolean>(false);
 
   const handleInstitutionSelect = (institution: Instituicao) => {
     setSelectedInstitution(institution);
@@ -94,9 +96,9 @@ export default function HomePage() {
     // Atualiza o usuário para indicar que agora tem crianças
     console.log('Criança cadastrada com sucesso!');
     
-    // Opcionalmente, você pode recarregar os dados do usuário aqui
-    // ou simplesmente fechar o modal já que o usuário agora tem uma criança
+    // Fechar modal de cadastro e exibir mensagem de sucesso
     setShowChildRegistration(false);
+    setIsChildSuccessOpen(true);
   };
 
   const handleCloseChildRegistration = () => {
@@ -229,6 +231,15 @@ export default function HomePage() {
         onClose={handleCloseChildRegistration}
         onSuccess={handleChildRegistrationSuccess}
         userId={authUser ? parseInt(authUser.id) : 999} // ID temporário para testes
+      />
+      
+      {/* Mensagem de sucesso após cadastrar criança */}
+      <SuccessModal
+        isOpen={isChildSuccessOpen}
+        title="Tudo certo!"
+        message="Criança cadastrada com sucesso."
+        onClose={() => setIsChildSuccessOpen(false)}
+        autoCloseDelay={1500}
       />
       
       {/* Componente para mostrar informações da sessão (apenas para demonstração) */}

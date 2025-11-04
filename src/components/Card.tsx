@@ -311,9 +311,18 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 
 	// Função para validar senhas em tempo real
 	const validatePasswords = (password: string, confirmPassword: string, type: 'responsavel' | 'ong') => {
+		// Força mínima de senha
+		if (password && !utilsService.isPasswordStrong(password)) {
+			setRegisterErrorMessage(utilsService.getPasswordStrengthMessage())
+			return
+		}
+		// Confirmação
 		if (confirmPassword && password !== confirmPassword) {
 			setRegisterErrorMessage('As senhas não coincidem')
-		} else if (registerErrorMessage === 'As senhas não coincidem') {
+		} else if (
+			registerErrorMessage === 'As senhas não coincidem' ||
+			registerErrorMessage === utilsService.getPasswordStrengthMessage()
+		) {
 			setRegisterErrorMessage(false)
 		}
 	}
@@ -341,6 +350,13 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				return
 			}
 
+			// Validação de força de senha
+			if (!utilsService.isPasswordStrong(ongRegisterPassword)) {
+				setRegisterErrorMessage(utilsService.getPasswordStrengthMessage())
+				setIsLoading(false)
+				return
+			}
+
 			if (ongRegisterPassword !== confirmOngPassword) {
 				setRegisterErrorMessage('As senhas não coincidem')
 				setIsLoading(false)
@@ -349,6 +365,13 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 
 			if (ongTiposInstituicao.length === 0) {
 				setRegisterErrorMessage('Selecione pelo menos um tipo de instituição')
+				setIsLoading(false)
+				return
+			}
+
+			// Valida CNPJ da instituição
+			if (!utilsService.validateCNPJ(ongCnpj)) {
+				setRegisterErrorMessage('CNPJ inválido')
 				setIsLoading(false)
 				return
 			}
@@ -411,6 +434,13 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				return
 			}
 
+			// Validação de força de senha
+			if (!utilsService.isPasswordStrong(responsableRegisterPassword)) {
+				setRegisterErrorMessage(utilsService.getPasswordStrengthMessage())
+				setIsLoading(false)
+				return
+			}
+
 			if (responsableRegisterPassword !== confirmResponsablePassword) {
 				setRegisterErrorMessage('As senhas não coincidem')
 				setIsLoading(false)
@@ -419,6 +449,13 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 
 			if (!responsableGender) {
 				setRegisterErrorMessage('Por favor, selecione o gênero')
+				setIsLoading(false)
+				return
+			}
+
+			// Valida CPF do responsável
+			if (!utilsService.validateCPF(responsableCpf)) {
+				setRegisterErrorMessage('CPF inválido')
 				setIsLoading(false)
 				return
 			}
@@ -805,12 +842,14 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 									value={kidDateOfBirth}
 									onChange={setKidDateOfBirth}
 								/>
-								<Input srcImage="/icons-card.svg" inputName="CPF" placeholder="CPF" type="text" value={kidCpf} onChange={setKidCpf} />
+								<Input srcImage="/icons-card.svg" inputName="CPF" placeholder="000.000.000-00" type="text" name="crianca_cpf" mask="cpf" value={kidCpf} onChange={setKidCpf} />
 								<Input
 									srcImage="/icons-card.svg"
 									inputName="CPF do responsável"
-									placeholder="CPF do responsável"
+									placeholder="000.000.000-00"
 									type="text"
+									name="crianca_responsavel_cpf"
+									mask="cpf"
 									value={kidCpfResponsable}
 									onChange={setKidCpfResponsable}
 								/>

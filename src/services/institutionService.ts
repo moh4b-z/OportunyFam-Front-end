@@ -77,29 +77,26 @@ export const institutionService = {
 
   async getTypes(): Promise<Array<{ value: string; label: string }>> {
     try {
+      console.log('🔍 Buscando tipos de instituição...')
       const response = await fetch(`${API_BASE_URL}/tipoInstituicoes`)
+      console.log('📊 Status tipos:', response.status)
       
-      if (!response.ok) {
-        throw new Error('Erro ao carregar tipos de instituição')
+      if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Tipos recebidos:', data)
+        
+        if (data.tipos_instituicao && Array.isArray(data.tipos_instituicao)) {
+          return data.tipos_instituicao.map((item: any) => ({
+            value: item.id.toString(),
+            label: item.nome
+          }))
+        }
       }
-
-      const data = await response.json()
-
-      // Verifica se a resposta tem a estrutura esperada
-      if (!data.status || !data.tipos_instituicao || !Array.isArray(data.tipos_instituicao)) {
-        console.error('Estrutura de resposta inválida:', data)
-        throw new Error('Formato de resposta inválido')
-      }
-
-      // Mapeia os dados da API para o formato esperado pelo componente MultiSelect
-      return data.tipos_instituicao.map((item: any) => ({
-        value: item.id.toString(),
-        label: item.nome
-      }))
+      
+      throw new Error('API indisponível')
     } catch (error) {
-      console.error('Erro ao carregar tipos de instituição:', error)
+      console.log('❌ Usando tipos padrão:', error.message)
       
-      // Retorna opções padrão em caso de erro
       return [
         { value: 'educacao', label: 'Educação' },
         { value: 'saude', label: 'Saúde' },
@@ -113,40 +110,48 @@ export const institutionService = {
 
   async getById(id: number) {
     try {
+      console.log(`🔍 Buscando instituição ID: ${id}`)
       const response = await fetch(`${API_BASE_URL}/instituicoes/${id}`)
+      console.log('📊 Status busca:', response.status)
       
-      if (!response.ok) {
-        throw new Error('Instituição não encontrada')
+      if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Instituição encontrada:', data)
+        return data
       }
-
-      return response.json()
+      
+      throw new Error('Não encontrada')
     } catch (error) {
-      console.error('Erro ao buscar instituição:', error)
+      console.log('❌ Erro busca instituição:', error.message)
       throw error
     }
   },
 
   async search(query: string) {
+    const url = `${API_BASE_URL}/instituicoes/?nome=${encodeURIComponent(query)}&pagina=1&tamanho=20`
+    console.log('🔍 URL da API:', url)
+    
     try {
-      // Busca por nome na API
-      const response = await fetch(`${API_BASE_URL}/instituicoes/?nome=${encodeURIComponent(query)}&pagina=1&tamanho=20`)
+      console.log('📡 Fazendo requisição...')
+      const response = await fetch(url)
+      console.log('📊 Status:', response.status, response.statusText)
+      
+      const data = await response.json()
+      console.log('📊 Resposta da API:', data)
       
       if (response.ok) {
-        return response.json()
-      }
-      
-      // Fallback para dados locais
-      const { populateService } = await import('./populateInstitutions')
-      const localResults = populateService.searchLocal(query)
-      
-      return {
-        status: true,
-        status_code: 200,
-        messagem: 'Resultados encontrados (dados locais)',
-        data: localResults
+        console.log('✅ API funcionou! Dados:', data)
+        return data
+      } else if (response.status === 500 && data.messagem?.includes('erros internos')) {
+        console.log('⚠️ API sem dados ainda (erro 500 esperado)')
+        throw new Error('API sem dados')
+      } else {
+        console.log('❌ Erro da API:', response.status, data.messagem)
+        throw new Error(`Erro ${response.status}`)
       }
     } catch (error) {
-      console.error('Erro na busca de instituições:', error)
+      console.log('❌ API não disponível:', error.message)
+      console.log('🔄 Usando dados locais...')
       
       // Fallback para dados locais
       const { populateService } = await import('./populateInstitutions')
@@ -155,32 +160,11 @@ export const institutionService = {
       return {
         status: true,
         status_code: 200,
-        messagem: 'Resultados encontrados (dados locais)',
+        messagem: 'Dados locais (API indisponível)',
         data: localResults
       }
     }
   },
 
-  async searchByLocation(lat: number, lon: number, tipo?: string, raio?: number) {
-    try {
-      const params = new URLSearchParams({
-        lat: lat.toString(),
-        lon: lon.toString()
-      })
-      
-      if (tipo) params.append('tipo', tipo)
-      if (raio) params.append('raio', raio.toString())
-      
-      const response = await fetch(`${API_BASE_URL}/instituicoes/osm/?${params}`)
-      
-      if (response.ok) {
-        return response.json()
-      }
-      
-      throw new Error('Erro na busca por localização')
-    } catch (error) {
-      console.error('Erro na busca por localização:', error)
-      throw error
-    }
-  }
+
 }

@@ -11,7 +11,7 @@
   width: calc(100% - var(--sidebar-width));
   height: 100%;
   background-color: transparent; /* Sem fundo cinza */
-  z-index: 600;
+  z-index: 9000;
   display: flex;
   justify-content: flex-start;
   align-items: stretch;
@@ -20,8 +20,8 @@
 .chat-modal-card {
   position: relative;
   height: 100vh;
-  width: 500px; /* Mesmo tamanho do modal de conversas */
-  max-width: 100%;
+  width: 600px; /* Aumentado para ficar mais largo */
+  max-width: 90vw;
   background: white;
   color: #333;
   display: flex;
@@ -338,9 +338,17 @@ body.dark .chat-input-field::placeholder {
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .chat-modal-card {
-    width: 450px; /* Tamanho médio para tablets */
+    width: 500px; /* Mantém largura maior em tablets */
+    max-width: calc(100vw - 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-modal-card {
+    width: 100%;
+    max-width: 400px; /* Aumentado para mobile também */
   }
 }
 

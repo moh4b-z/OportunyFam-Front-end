@@ -3,6 +3,9 @@
  * VARIÁVEIS DE CONFIGURAÇÃO (AJUSTE SE NECESSÁRIO)
  * ===============================================
  */
+
+/* Importar configuração de z-index */
+@import './styles/z-index-config.css';
  :root {
   /* Cores do código que você forneceu */
   --orange: #f4a261;
@@ -244,7 +247,8 @@ body.dark .search-input {
 }
 
 .search-and-chips.search-and-chips-active {
-  transform: translateY(-5px);
+  /* Não desloca mais o container inteiro */
+  transform: none;
 }
 
 .search-box {
@@ -252,10 +256,12 @@ body.dark .search-input {
   display: flex;
   align-items: center;
   background: var(--bg-light);
-  padding: 10px 20px;
-  border-radius: 30px;
+  padding: 6px 16px; /* antes 10px 20px */
+  border-radius: 24px; /* antes 30px, menos "gordo" */
   border: 2px solid var(--border-color);
-  transition: all 0.3s ease;
+  /* Transições suaves restauradas */
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  will-change: border-color, box-shadow, transform;
   width: 420px; /* mantém a barra do mesmo tamanho visual */
   flex-shrink: 0; /* impede que a barra encolha quando os chips aparecem */
 }
@@ -263,18 +269,21 @@ body.dark .search-input {
 body.dark .search-box {
   background: var(--bg-card-dark);
   border-color: var(--border-dark);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .search-box.search-box-active {
   border-color: var(--orange);
+  transform: translateY(-3px); /* elevação sutil apenas do input */
+  box-shadow: 0 6px 16px rgba(244, 162, 97, 0.15); /* sombra suave opcional */
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 10px 8px 45px; /* Espaço para o ícone */
+  padding: 6px 10px 6px 45px; /* reduz altura mantendo espaço do ícone */
   border: none;
   outline: none;
-  font-size: 16px;
+  font-size: 15px; /* ligeiramente menor */
   background: transparent;
 }
 

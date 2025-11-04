@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import BarraLateral from "@/components/BarraLateral";
 import SearchBar from "@/components/SearchBar";
@@ -33,12 +33,47 @@ export default function HomePage() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
   const [isConversationsModalOpen, setIsConversationsModalOpen] = useState<boolean>(false);
   const [isChildSuccessOpen, setIsChildSuccessOpen] = useState<boolean>(false);
+  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
+  const [isLocationPanelOpen, setIsLocationPanelOpen] = useState<boolean>(false);
+  const [isCommunityPanelOpen, setIsCommunityPanelOpen] = useState<boolean>(false);
+
+  // refs para fechar ao clicar fora
+  const searchRef = useRef<HTMLDivElement>(null);
+  const locationRef = useRef<HTMLDivElement>(null);
+  const communityRef = useRef<HTMLDivElement>(null);
+
+  // listeners globais para clique fora
+  useEffect(() => {
+    const onDocMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      // Ignora cliques na própria sidebar (ícones) para não causar toggle duplo
+      if (target && target.closest('.sidebar')) return;
+
+      if (isSearchPanelOpen) {
+        const el = searchRef.current; if (el && !el.contains(e.target as Node)) setIsSearchPanelOpen(false);
+      }
+      if (isLocationPanelOpen) {
+        const el = locationRef.current; if (el && !el.contains(e.target as Node)) setIsLocationPanelOpen(false);
+      }
+      if (isCommunityPanelOpen) {
+        const el = communityRef.current; if (el && !el.contains(e.target as Node)) setIsCommunityPanelOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocMouseDown, true);
+    return () => document.removeEventListener('mousedown', onDocMouseDown, true);
+  }, [isSearchPanelOpen, isLocationPanelOpen, isCommunityPanelOpen]);
 
   const handleInstitutionSelect = (institution: Instituicao) => {
     setSelectedInstitution(institution);
   };
 
   const handleNotificationClick = (data?: any) => {
+    // Toggle: se já está aberto, fecha
+    if (isNotificationsModalOpen) {
+      setIsNotificationsModalOpen(false);
+      return;
+    }
+    // Vai abrir: seta dados (se houver) e abre
     if (data) {
       setNotifications(data);
     }
@@ -50,7 +85,8 @@ export default function HomePage() {
   };
 
   const handleConversationsClick = () => {
-    setIsConversationsModalOpen(true);
+    // Toggle abre/fecha
+    setIsConversationsModalOpen(prev => !prev);
   };
 
   const closeConversationsModal = () => {
@@ -65,7 +101,6 @@ export default function HomePage() {
   const handleLogoutCancel = (): void => {
     setIsLogoutModalOpen(false);
   };
-
 
   const handleProfileMenuClick = (action: string): void => {
     // Aqui você pode implementar as ações do menu do perfil
@@ -139,6 +174,8 @@ export default function HomePage() {
       <BarraLateral 
         onNotificationClick={handleNotificationClick}
         onConversationsClick={handleConversationsClick}
+        isNotificationsOpen={isNotificationsModalOpen}
+        isConversationsOpen={isConversationsModalOpen}
       />
       <div className="app-content-wrapper">
         {/* Mapa ocupa toda a área */}
@@ -148,7 +185,9 @@ export default function HomePage() {
         
         {/* Switch de categorias - lado direito da barra lateral */}
         <div className="switch-container-sidebar">
-          <Switch onCategoryChange={(category) => {/* Categoria selecionada: ${category} */}} />
+          <Switch onCategoryChange={(category) => {
+            // Categoria selecionada: ${category}
+          }} />
         </div>
 
         {/* Botão temporário para testar modal de criança */}
@@ -182,6 +221,45 @@ export default function HomePage() {
             >
               {showChildRegistration ? '❌ Fechar Modal Criança' : '👶 Abrir Modal Criança'}
             </button>
+          </div>
+        )}
+
+        {/* Painel de busca */}
+        {isSearchPanelOpen && (
+          <div style={{ position: 'fixed', top: 0, left: 'var(--sidebar-width)', width: 'calc(100% - var(--sidebar-width))', height: '100%', display: 'flex', zIndex: 8000, background: 'rgba(0,0,0,0.1)', pointerEvents: 'none' }}>
+            <div ref={searchRef} style={{ width: 600, maxWidth: '90vw', height: '100vh', background: 'white', boxShadow: '5px 0 15px rgba(0,0,0,0.15)', overflowY: 'auto', pointerEvents: 'auto' }}>
+              <div style={{ position: 'sticky', top: 0, padding: 20, borderBottom: '1px solid #e0e0e0', background: 'white', zIndex: 1 }}>
+                <h2 style={{ margin: 0 }}>Buscar Instituições</h2>
+                <button onClick={() => setIsSearchPanelOpen(false)} style={{ position: 'absolute', right: 16, top: 16, background: 'transparent', border: 0, fontSize: 20, cursor: 'pointer' }}>✕</button>
+              </div>
+              <div style={{ padding: 20 }}>Em breve...</div>
+            </div>
+          </div>
+        )}
+
+        {/* Painel de localização */}
+        {isLocationPanelOpen && (
+          <div style={{ position: 'fixed', top: 0, left: 'var(--sidebar-width)', width: 'calc(100% - var(--sidebar-width))', height: '100%', display: 'flex', zIndex: 8000, background: 'rgba(0,0,0,0.1)', pointerEvents: 'none' }}>
+            <div ref={locationRef} style={{ width: 600, maxWidth: '90vw', height: '100vh', background: 'white', boxShadow: '5px 0 15px rgba(0,0,0,0.15)', overflowY: 'auto', pointerEvents: 'auto' }}>
+              <div style={{ position: 'sticky', top: 0, padding: 20, borderBottom: '1px solid #e0e0e0', background: 'white', zIndex: 1 }}>
+                <h2 style={{ margin: 0 }}>Localização</h2>
+                <button onClick={() => setIsLocationPanelOpen(false)} style={{ position: 'absolute', right: 16, top: 16, background: 'transparent', border: 0, fontSize: 20, cursor: 'pointer' }}>✕</button>
+              </div>
+              <div style={{ padding: 20 }}>Em breve...</div>
+            </div>
+          </div>
+        )}
+
+        {/* Painel de comunidade */}
+        {isCommunityPanelOpen && (
+          <div style={{ position: 'fixed', top: 0, left: 'var(--sidebar-width)', width: 'calc(100% - var(--sidebar-width))', height: '100%', display: 'flex', zIndex: 8000, background: 'rgba(0,0,0,0.1)', pointerEvents: 'none' }}>
+            <div ref={communityRef} style={{ width: 600, maxWidth: '90vw', height: '100vh', background: 'white', boxShadow: '5px 0 15px rgba(0,0,0,0.15)', overflowY: 'auto', pointerEvents: 'auto' }}>
+              <div style={{ position: 'sticky', top: 0, padding: 20, borderBottom: '1px solid #e0e0e0', background: 'white', zIndex: 1 }}>
+                <h2 style={{ margin: 0 }}>Comunidade</h2>
+                <button onClick={() => setIsCommunityPanelOpen(false)} style={{ position: 'absolute', right: 16, top: 16, background: 'transparent', border: 0, fontSize: 20, cursor: 'pointer' }}>✕</button>
+              </div>
+              <div style={{ padding: 20 }}>Em breve...</div>
+            </div>
           </div>
         )}
 

@@ -11,17 +11,18 @@
   width: calc(100% - var(--sidebar-width));
   height: 100%;
   background-color: rgba(0, 0, 0, 0.1);
-  z-index: 500;
+  z-index: 8000;
   display: flex;
   justify-content: flex-start;
   align-items: stretch;
+  pointer-events: none; /* permite clicar no conteúdo por trás */
 }
 
 .conversations-modal-card {
   position: relative;
   height: 100vh;
-  width: 500px; /* Aumentado de 400px para 500px */
-  max-width: 100%;
+  width: 600px; /* Aumentado para ficar mais largo */
+  max-width: 90vw;
   overflow-y: auto;
   background: white;
   color: #333;
@@ -29,6 +30,7 @@
   box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
   transition: background 0.3s ease;
   border-radius: 0;
+  pointer-events: auto; /* captura cliques apenas no card */
 }
 
 /* Estilos para o tema escuro */
@@ -279,9 +281,18 @@ body.dark .conversation-message {
   }
 }
 
-@media (max-width: 1024px) {
+/* Responsividade ajustada para modal mais largo */
+@media (max-width: 768px) {
   .conversations-modal-card {
-    width: 450px; /* Tamanho médio para tablets */
+    width: 500px; /* Mantém largura maior em tablets */
+    max-width: calc(100vw - 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .conversations-modal-card {
+    width: 100%;
+    max-width: 400px; /* Aumentado para mobile também */
   }
 }
 
@@ -299,4 +310,12 @@ body.dark .conversation-message {
 
 .conversations-modal-card {
   animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Área clicável fora do card para fechar */
+.conversations-dismiss-area {
+  flex: 1;
+  height: 100%;
+  pointer-events: auto; /* captura clique para fechar */
+  background: transparent;
 }

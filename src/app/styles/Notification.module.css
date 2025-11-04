@@ -150,6 +150,14 @@
   }
 }
 
+/* Área clicável fora do card para fechar */
+.notificationDismissArea {
+  flex: 1;
+  height: 100%;
+  pointer-events: auto; /* captura clique para fechar */
+  background: transparent;
+}
+
 /* Animação de entrada das notificações push */
 @keyframes pushSlideIn {
   0% {
@@ -202,6 +210,7 @@
   justify-content: flex-start; /* Alinha à esquerda */
   align-items: stretch;
   z-index: 1000;
+  pointer-events: none; /* permite clicar no conteúdo por trás */
 }
 
 .notificationModalContent {
@@ -219,8 +228,8 @@
 /* CONTEÚDO LATERAL - Mantém design mas adapta para lateral */
 .notificationModalContentLateral {
   background: white;
-  width: 500px;
-  max-width: 500px;
+  width: 600px; /* Aumentado para mesmo tamanho dos modais de conversas */
+  max-width: 90vw;
   height: 100vh;
   border-radius: 0; /* Remove bordas arredondadas para lateral */
   padding: 24px;
@@ -228,6 +237,13 @@
   position: relative;
   overflow-y: auto;
   animation: slideInFromLeft 0.3s ease-out;
+  pointer-events: auto; /* captura cliques no card */
+}
+
+:global(body.dark) .notificationModalContentLateral {
+  background: #1f2937;
+  color: #f3f4f6;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
 }
 
 .notificationModalTitle {
@@ -238,6 +254,11 @@
   text-align: left;
   border-bottom: 2px solid #f0f0f0;
   padding-bottom: 12px;
+}
+
+:global(body.dark) .notificationModalTitle {
+  color: #f3f4f6;
+  border-bottom-color: #374151;
 }
 
 .notificationModalClose {
@@ -263,6 +284,15 @@
   color: #333;
 }
 
+:global(body.dark) .notificationModalClose {
+  color: #9ca3af;
+}
+
+:global(body.dark) .notificationModalClose:hover {
+  background: #374151;
+  color: #f3f4f6;
+}
+
 .notificationsList {
   display: flex;
   flex-direction: column;
@@ -286,6 +316,17 @@
 .notificationItem:hover {
   border-color: #ccc;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:global(body.dark) .notificationItem {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+:global(body.dark) .notificationItem:hover {
+  border-color: #6b7280;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .notificationDot {
@@ -551,5 +592,20 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Responsividade igual aos modais de conversas */
+@media (max-width: 768px) {
+  .notificationModalContentLateral {
+    width: 500px; /* Mantém largura maior em tablets */
+    max-width: calc(100vw - 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .notificationModalContentLateral {
+    width: 100%;
+    max-width: 400px; /* Aumentado para mobile também */
   }
 }

@@ -13,7 +13,7 @@
     height: 100%;
     
     background-color: rgba(0, 0, 0, 0.1); /* Sombra leve */
-    z-index: 500; /* Fica acima do conteúdo borrado (blur) */
+    z-index: 7000; /* Fica acima do conteúdo borrado (blur) */
     
     display: flex;
     /* FIX: Alinha o cartão à esquerda */

@@ -39,10 +39,10 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
 
     if (
       highlightedInstitution &&
-      highlightedInstitution.endereco?.latitude !== undefined &&
-      highlightedInstitution.endereco?.longitude !== undefined
+      highlightedInstitution.latitude !== undefined &&
+      highlightedInstitution.longitude !== undefined
     ) {
-      const { latitude, longitude } = highlightedInstitution.endereco;
+      const { latitude, longitude } = highlightedInstitution;
 
       const marker = L.marker([latitude, longitude]).bindPopup(
         `<strong>${highlightedInstitution.nome}</strong><br>${highlightedInstitution.descricao || ""}`

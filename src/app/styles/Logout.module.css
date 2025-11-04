@@ -1,100 +1,231 @@
-/* Arquivo: Logout.module.css
-  Estilização profissional para a modal de confirmação de logout. 
-  Cria o visual exato da imagem enviada.
-*/
+/* 
+ * Modal de Logout - Design baseado na imagem com tons laranjas
+ */
 
-/* 1. Modal Overlay (Fundo que escurece a tela) */
+/* Overlay com fundo escurecido */
 .modalOverlay {
-  /* Fixa a modal sobre todo o viewport */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  /* Cor e opacidade do overlay (preto semi-transparente) */
-  background-color: rgba(0, 0, 0, 0.4); 
-  /* Centraliza o conteúdo (modalContent) */
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Garante que fique acima de outros elementos na página */
-  z-index: 1000; 
-  opacity: 1; 
-  transition: opacity 0.2s ease-in-out;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
 }
 
-/* 2. Conteúdo da Modal (O box cinza escuro) */
+/* Modal content - fundo branco arredondado */
 .modalContent {
-  /* Cor de fundo exata da imagem (cinza escuro) */
-  background-color: #3f3e3e; 
-  /* Arredondamento de bordas */
-  border-radius: 8px; 
-  /* Padding interno */
-  padding: 30px 20px;
-  /* Largura e altura mínima para o visual da imagem */
-  width: 90%; 
-  max-width: 450px; 
-  min-height: 100px;
-  /* Sombra sutil para destaque */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  box-sizing: border-box; 
-  transform: translateY(0); 
-  transition: transform 0.2s ease-in-out;
+  background: white;
+  border-radius: 20px;
+  padding: 32px 28px;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
 }
 
-/* Tema escuro - modal de logout fica mais escura */
 :global(body.dark) .modalContent {
-  background-color: var(--bg-modal-dark);
-  box-shadow: 0 4px 10px var(--shadow-dark);
+  background: #1f2937;
+  color: white;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
 
-/* 3. Texto da Pergunta */
+/* Título principal */
+.modalTitle {
+  font-size: 26px;
+  font-weight: 700;
+  color: #f59e0b;
+  margin: 0 0 24px 0;
+  letter-spacing: -0.025em;
+}
+
+:global(body.dark) .modalTitle {
+  color: #fbbf24;
+}
+
+/* Ícone de saída */
+.modalIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px auto;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+:global(body.dark) .modalIcon {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+/* Texto principal */
 .modalText {
-  color: #fff; /* Texto branco */
-  font-size: 1.15rem; /* Tamanho da fonte */
-  font-weight: 500; /* Peso da fonte */
-  margin: 0; 
-  text-align: left; /* Alinha o texto à esquerda */
-  padding: 0 10px 20px 10px; /* Ajuste de padding para centralização visual */
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
 }
 
-/* 4. Container para os Botões (Ações) */
+:global(body.dark) .modalText {
+  color: #f3f4f6;
+}
+
+/* Subtexto */
+.modalSubtext {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+:global(body.dark) .modalSubtext {
+  color: #9ca3af;
+}
+
+/* Container dos botões */
 .modalActions {
   display: flex;
-  /* Alinha os botões à direita (justificado à direita na imagem) */
-  justify-content: flex-end; 
-  gap: 15px; /* Espaço entre os botões */
-  padding-top: 5px;
+  gap: 16px;
+  justify-content: center;
 }
 
-/* 5. Estilo Base do Botão */
+/* Estilo base dos botões */
 .modalButton {
-  padding: 10px 25px;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
-  min-width: 90px; /* Garante uma largura mínima */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+  border: 2px solid transparent;
 }
 
-/* 6. Botão "Sim" (Cancelamento/Ação Secundária - Cinza Claro) */
+/* Botão Cancelar */
 .cancelButton {
-  background-color: #f0f0f0; 
-  color: #3f3e3e; /* Cor do texto similar ao fundo da modal */
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #e5e7eb;
 }
 
 .cancelButton:hover {
-  background-color: #ddd; /* Escurece no hover */
+  background: #e5e7eb;
+  color: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* 7. Botão "Não" (Confirmação/Ação Primária - Laranja) */
+:global(body.dark) .cancelButton {
+  background: #374151;
+  color: #9ca3af;
+  border-color: #4b5563;
+}
+
+:global(body.dark) .cancelButton:hover {
+  background: #4b5563;
+  color: #d1d5db;
+}
+
+/* Botão Confirmar */
 .confirmButton {
-  background-color: #f59639; 
-  color: #fff; /* Texto branco */
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .confirmButton:hover {
-  background-color: #d17c24; /* Escurece no hover */
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+:global(body.dark) .confirmButton {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+:global(body.dark) .confirmButton:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .modalContent {
+    padding: 40px 32px;
+    max-width: 400px;
+  }
+  
+  .modalTitle {
+    font-size: 28px;
+  }
+  
+  .modalIcon {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .modalText {
+    font-size: 18px;
+  }
+  
+  .modalSubtext {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContent {
+    padding: 32px 24px;
+    max-width: 340px;
+    margin: 20px;
+  }
+  
+  .modalTitle {
+    font-size: 24px;
+  }
+  
+  .modalIcon {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .modalActions {
+    flex-direction: column;
+  }
+  
+  .modalButton {
+    width: 100%;
+  }
 }

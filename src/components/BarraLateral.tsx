@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/services/config";
 
 interface BarraLateralProps {
   onSearchClick?: () => void;
   onNotificationClick?: (data?: any) => void;
   onConversationsClick?: () => void;
+  onLocationClick?: () => void;
+  onCommunityClick?: () => void;
+  isNotificationsOpen?: boolean;
+  isConversationsOpen?: boolean;
+  isSearchOpen?: boolean;
+  isLocationOpen?: boolean;
+  isCommunityOpen?: boolean;
 }
 
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -16,7 +23,7 @@ const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export default function BarraLateral({ onSearchClick, onNotificationClick, onConversationsClick }: BarraLateralProps) {
+export default function BarraLateral({ onSearchClick, onNotificationClick, onConversationsClick, onLocationClick, onCommunityClick, isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isCommunityOpen }: BarraLateralProps) {
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
 
   const handleIconClick = (iconName: string) => {
@@ -24,33 +31,41 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
   };
 
   const handleNotificationClick = async () => {
+    // Se já está aberto, apenas toggle para fechar via callback do pai
+    if (isNotificationsOpen) {
+      onNotificationClick?.();
+      return;
+    }
+    // Vai abrir: busca dados e envia para o pai
     try {
       const res = await fetch(`${API_BASE_URL}/notificacoes`);
       const data = await res.json();
       onNotificationClick?.(data);
     } catch (err) {
       console.error("Erro ao buscar notificações:", err);
-      // Se a API falhar, usar dados de exemplo e ainda assim abrir o modal
       const mockNotifications = [
-        {
-          id: 1,
-          message: "Nova vaga disponível no Instituto Água Viva",
-          date: "2024-10-16 09:30"
-        },
-        {
-          id: 2,
-          message: "Evento beneficente na Casa da Esperança",
-          date: "2024-10-16 08:45"
-        },
-        {
-          id: 3,
-          message: "Oportunidade de voluntariado na Creche Sonho Dourado",
-          date: "2024-10-16 07:20"
-        }
+        { id: 1, message: "Nova vaga disponível no Instituto Água Viva", date: "2024-10-16 09:30" },
+        { id: 2, message: "Evento beneficente na Casa da Esperança", date: "2024-10-16 08:45" },
+        { id: 3, message: "Oportunidade de voluntariado na Creche Sonho Dourado", date: "2024-10-16 07:20" }
       ];
       onNotificationClick?.(mockNotifications);
     }
   };
+
+  useEffect(() => {
+    // Sincroniza estado visual com os paineis abertos/fechados
+    if (isNotificationsOpen === false && activeIcon === 'notification') setActiveIcon(null);
+    if (isConversationsOpen === false && activeIcon === 'messages') setActiveIcon(null);
+    if (isSearchOpen === false && activeIcon === 'new-feature') setActiveIcon(null);
+    if (isLocationOpen === false && activeIcon === 'location') setActiveIcon(null);
+    if (isCommunityOpen === false && activeIcon === 'community') setActiveIcon(null);
+
+    if (isNotificationsOpen) setActiveIcon('notification');
+    if (isConversationsOpen) setActiveIcon('messages');
+    if (isSearchOpen) setActiveIcon('new-feature');
+    if (isLocationOpen) setActiveIcon('location');
+    if (isCommunityOpen) setActiveIcon('community');
+  }, [isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isCommunityOpen]);
 
   return (
     <aside className="sidebar">
@@ -61,6 +76,7 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
       <div className="icon-panel">
         <button
           className={`icon-btn ${activeIcon === "notification" ? "active" : ""}`}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={() => { handleIconClick("notification"); handleNotificationClick(); }}
           aria-label="Notificações"
         >
@@ -72,6 +88,7 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
 
         <button
           className={`icon-btn ${activeIcon === "messages" ? "active" : ""}`}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={() => { handleIconClick("messages"); onConversationsClick?.(); }}
           aria-label="Mensagens"
         >
@@ -82,7 +99,8 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
 
         <button
           className={`icon-btn ${activeIcon === "location" ? "active" : ""}`}
-          onClick={() => handleIconClick("location")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() => { handleIconClick("location"); onLocationClick?.(); }}
           aria-label="Localização"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -93,7 +111,8 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
 
         <button
           className={`icon-btn ${activeIcon === "community" ? "active" : ""}`}
-          onClick={() => handleIconClick("community")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() => { handleIconClick("community"); onCommunityClick?.(); }}
           aria-label="Comunidade"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -106,6 +125,7 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
 
         <button
           className={`icon-btn ${activeIcon === "new-feature" ? "active" : ""}`}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={() => { handleIconClick("new-feature"); onSearchClick?.(); }}
           aria-label="Buscar Instituições"
         >

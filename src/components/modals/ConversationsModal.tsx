@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import "../../app/styles/ConversationsModal.css";
 import ChatModal from './ChatModal';
 
@@ -19,6 +19,7 @@ interface Conversation {
 }
 
 const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Conversation | null>(null);
@@ -82,11 +83,28 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
     setSelectedContact(null);
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleDocClick = (e: MouseEvent) => {
+      // Ignora cliques na própria sidebar (ícones)
+      const target = e.target as HTMLElement | null;
+      if (target && target.closest('.sidebar')) return;
+
+      const card = cardRef.current;
+      if (card && !card.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    // Usa captura para disparar antes de outros handlers
+    document.addEventListener('mousedown', handleDocClick, true);
+    return () => document.removeEventListener('mousedown', handleDocClick, true);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div className="conversations-modal-overlay">
-      <div className="conversations-modal-card">
+      <div className="conversations-modal-card" ref={cardRef}>
         {/* Header com título e botão X */}
         <div className="conversations-modal-header">
           <h1 className="conversations-modal-title">Conversas</h1>

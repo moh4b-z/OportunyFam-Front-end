@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import styles from "../../app/styles/Notification.module.css";
 
 type NotificationsModalProps = {
@@ -14,22 +14,26 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   onClose,
   notifications = [],
 }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
   if (!isOpen) return null;
 
-  const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  // Fechar ao clicar fora usando listener global (overlay continua não-bloqueante)
+  useEffect(() => {
+    const onDocMouseDown = (e: MouseEvent) => {
+      const card = cardRef.current;
+      if (card && !card.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', onDocMouseDown, true);
+    return () => document.removeEventListener('mousedown', onDocMouseDown, true);
+  }, [onClose]);
 
   return (
-    <div
-      onClick={handleBackgroundClick}
-      className={styles.notificationModalLateral}
-    >
+    <div className={styles.notificationModalLateral}>
       <div
+        ref={cardRef}
         className={styles.notificationModalContentLateral}
-        onClick={(e) => e.stopPropagation()}
       >
         <h2 className={styles.notificationModalTitle}>
           Notificação

@@ -34,7 +34,24 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirmLog
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <p className={styles.modalText}>Quer mesmo sair da conta?</p>
+        {/* Título principal */}
+        <h2 className={styles.modalTitle}>Confirmar Saída</h2>
+        
+        {/* Ícone de saída */}
+        <div className={styles.modalIcon}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16,17 21,12 16,7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        
+        {/* Texto de confirmação */}
+        <p className={styles.modalText}>Tem certeza que deseja sair da sua conta?</p>
+        
+        {/* Texto de aviso */}
+        <p className={styles.modalSubtext}>Você precisará fazer login novamente para acessar sua conta.</p>
+        
         <div className={styles.modalActions}>
           {/* Botão para cancelar o logout */}
           <button
@@ -50,7 +67,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirmLog
             onClick={handleConfirm}
             type="button"
           >
-            Sair
+            Sim, Sair
           </button>
         </div>
       </div>

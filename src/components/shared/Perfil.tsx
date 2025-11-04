@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-// CORREÇÃO 1: O caminho para styles agora sobe dois níveis para chegar em 'src/' e desce para 'app/styles'
 import styles from "../../app/styles/Perfil.module.css"; 
-import TermsModal from "../modals/TermsModal"; 
+import TermsModal from "../modals/TermsModal";
+import SimpleAccountModal from "../modals/SimpleAccountModal";
 
 interface PerfilProps {
   user?: {
@@ -25,6 +25,7 @@ const Perfil: React.FC<PerfilProps> = ({
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Carregar tema do localStorage na inicialização
@@ -82,30 +83,36 @@ const Perfil: React.FC<PerfilProps> = ({
   };
 
   const handleMenuItemClick = (action: string) => {
-    // Chama a função externa se existir
-    onMenuItemClick?.(action);
-    
-    // Gerencia os modais locais e funcionalidades
-    if (action === 'logout') {
-      // O logout é gerenciado pela página principal através de onMenuItemClick
-      setShowMenu(false); // Fecha menu apenas para logout
-      return;
-    }
-    
-    if (action === 'terms') {
-      setShowTermsModal(true);
-      setShowMenu(false); // Fecha menu para abrir modal
-      return;
-    }
-    
+    // Ação de tema: não fechar o menu
     if (action === 'theme') {
       toggleTheme();
-      // NÃO fecha o menu para mudança de tema
       return;
     }
-    
-    // Para outras ações, fecha o menu
+
+    // Logout: fechar menu e delegar para o pai
+    if (action === 'logout') {
+      setShowMenu(false);
+      onMenuItemClick?.(action);
+      return;
+    }
+
+    // Abrir modal de conta
+    if (action === 'profile') {
+      setShowMenu(false);
+      setShowAccountModal(true);
+      return;
+    }
+
+    // Abrir modal de termos
+    if (action === 'terms') {
+      setShowTermsModal(true);
+      setShowMenu(false);
+      return;
+    }
+
+    // Outras ações: fechar menu e delegar
     setShowMenu(false);
+    onMenuItemClick?.(action);
   };
 
   const handleCloseTermsModal = () => {
@@ -258,6 +265,13 @@ const Perfil: React.FC<PerfilProps> = ({
       <TermsModal
         isOpen={showTermsModal}
         onClose={handleCloseTermsModal}
+      />
+
+      {/* RENDERIZAÇÃO DA MODAL DE CONTA */}
+      <SimpleAccountModal
+        isOpen={showAccountModal}
+        onClose={() => setShowAccountModal(false)}
+        userName={user?.nome || "Usuário"}
       />
     </>
   );

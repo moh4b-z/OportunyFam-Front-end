@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Instituicao } from "@/types";
-import { InstituicoesByName, geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
+import { geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
 import { logApiResponse, logInstitutionData, logGeocoding } from "@/services/debug";
 import { searchMockInstitutions } from "@/services/mockData";
 import CategoryChips, { Category } from "./shared/CategoryChips";
@@ -80,6 +80,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [institutions, setInstitutions] = useState<Instituicao[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<'api' | 'local' | null>(null);
 
   // Categorias dos chips - apenas as mais relevantes
   const [categories, setCategories] = useState<Category[]>([
@@ -104,6 +105,8 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+
+
   useEffect(() => {
     const fetchInstitutions = async () => {
       if (!debouncedSearchTerm.trim()) {
@@ -116,61 +119,29 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       setError(null);
 
       try {
-        const data = await InstituicoesByName({ nome: debouncedSearchTerm });
-        logApiResponse('InstituicoesByName', data);
+        // Primeiro tenta a API real
+        const { institutionService } = await import('../services/institutionService');
+        const data = await institutionService.search(debouncedSearchTerm);
         
         if (data.status && data.data && data.data.length > 0) {
-          // Processa as instituições para garantir que tenham coordenadas
-          const processedInstitutions = await Promise.all(
-            data.data.map(async (rawInst) => {
-              // Normaliza os dados da instituição
-              const inst = normalizeInstituicao(rawInst);
-              logInstitutionData(inst, 'after normalization');
-              
-              // Se a instituição não tem coordenadas, tenta geocodificar
-              if (!inst.endereco?.latitude || !inst.endereco?.longitude) {
-                const addressParts = [
-                  inst.endereco?.logradouro,
-                  inst.endereco?.numero,
-                  inst.endereco?.bairro,
-                  inst.endereco?.cidade,
-                  inst.endereco?.estado,
-                  inst.endereco?.cep
-                ].filter(Boolean);
-                
-                if (addressParts.length > 0) {
-                  const fullAddress = addressParts.join(', ');
-                  const coords = await geocodeAddress(fullAddress);
-                  logGeocoding(fullAddress, coords);
-                  
-                  if (coords) {
-                    if (!inst.endereco) {
-                      inst.endereco = {};
-                    }
-                    inst.endereco.latitude = coords.lat;
-                    inst.endereco.longitude = coords.lng;
-                    logInstitutionData(inst, 'after geocoding');
-                  }
-                }
-              }
-              return inst;
-            })
-          );
-          setInstitutions(processedInstitutions);
+          setInstitutions(data.data.map(normalizeInstituicao));
+          setDataSource('api');
+          console.log('✅ Dados carregados da API:', data.data.length, 'instituições');
         } else {
-          setInstitutions([]);
+          // Fallback: busca local (inclui busca por endereço/CEP)
+          const { populateService } = await import('../services/populateInstitutions');
+          const localResults = populateService.searchLocal(debouncedSearchTerm);
+          setInstitutions(localResults);
+          setDataSource('local');
+          console.log('📁 Dados carregados localmente:', localResults.length, 'instituições');
         }
       } catch (err: any) {
-        console.warn('API falhou, usando dados mock:', err.message);
-        // Fallback para dados mock
-        const mockResults = searchMockInstitutions(debouncedSearchTerm);
-        if (mockResults.length > 0) {
-          setInstitutions(mockResults);
-          setError(null);
-        } else {
-          setError(err.message || "Erro ao buscar instituições");
-          setInstitutions([]);
-        }
+        console.warn('❌ API falhou, usando dados locais:', err.message);
+        const { populateService } = await import('../services/populateInstitutions');
+        const localResults = populateService.searchLocal(debouncedSearchTerm);
+        setInstitutions(localResults);
+        setDataSource('local');
+        console.log('📁 Fallback: dados carregados localmente:', localResults.length, 'instituições');
       } finally {
         setLoading(false);
       }
@@ -248,13 +219,23 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     setError(null);
     
     try {
-      const { populateService } = await import('../services/populateInstitutions');
-      const locationTerms = getLocationTerms(location);
-      
       if (location === 'todas') {
-        const allResults = populateService.searchLocal('');
-        setInstitutions(allResults.slice(0, 100));
+        // Para "todas", usa busca geral na API
+        const { institutionService } = await import('../services/institutionService');
+        const data = await institutionService.search('');
+        
+        if (data.status && data.data && data.data.length > 0) {
+          setInstitutions(data.data.slice(0, 100).map(normalizeInstituicao));
+        } else {
+          // Fallback para dados locais
+          const { populateService } = await import('../services/populateInstitutions');
+          const allResults = populateService.searchLocal('');
+          setInstitutions(allResults.slice(0, 100));
+        }
       } else {
+        // Para regiões específicas, usa dados locais (mais rápido)
+        const { populateService } = await import('../services/populateInstitutions');
+        const locationTerms = getLocationTerms(location);
         const locations = locationTerms.split('|');
         const results: Instituicao[] = [];
         
@@ -291,13 +272,15 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       };
       
       const searchTerm = categoryMap[categoryId] || categoryId;
-      const data = await InstituicoesByName({ nome: searchTerm });
+      const { institutionService } = await import('../services/institutionService');
+      const data = await institutionService.search(searchTerm);
       
       if (data.status && data.data && data.data.length > 0) {
         setInstitutions(data.data.map(normalizeInstituicao));
       } else {
-        const mockResults = searchMockInstitutions(searchTerm);
-        setInstitutions(mockResults);
+        const { populateService } = await import('../services/populateInstitutions');
+        const localResults = populateService.searchLocal(searchTerm);
+        setInstitutions(localResults);
       }
     } catch (err: any) {
       const categoryMap: Record<string, string> = {
@@ -306,8 +289,9 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         'saude': 'saude',
         'culinaria': 'culinaria'
       };
-      const mockResults = searchMockInstitutions(categoryMap[categoryId] || categoryId);
-      setInstitutions(mockResults);
+      const { populateService } = await import('../services/populateInstitutions');
+      const localResults = populateService.searchLocal(categoryMap[categoryId] || categoryId);
+      setInstitutions(localResults);
     } finally {
       setLoading(false);
     }
@@ -380,6 +364,15 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           <div className="search-results-dropdown">
             {loading && <div className="dropdown-message">Buscando instituições...</div>}
             {error && <div className="dropdown-message error">{error}</div>}
+            {!loading && !error && institutions.length > 0 && (
+              <div className="data-source-indicator">
+                {dataSource === 'api' ? (
+                  <span className="source-badge api">🌐 API</span>
+                ) : (
+                  <span className="source-badge local">📁 Local</span>
+                )}
+              </div>
+            )}
             {!loading && !error && institutions.map(inst => (
               <SearchResultOption
                 key={inst.instituicao_id || inst.id}

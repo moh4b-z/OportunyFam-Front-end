@@ -128,14 +128,14 @@ export const institutionService = {
 
   async search(query: string) {
     try {
-      // Primeiro tenta buscar na API
-      const response = await fetch(`${API_BASE_URL}/instituicoes?search=${encodeURIComponent(query)}`)
+      // Busca por nome na API
+      const response = await fetch(`${API_BASE_URL}/instituicoes/?nome=${encodeURIComponent(query)}&pagina=1&tamanho=20`)
       
       if (response.ok) {
         return response.json()
       }
       
-      // Se a API falhar, usa dados locais
+      // Fallback para dados locais
       const { populateService } = await import('./populateInstitutions')
       const localResults = populateService.searchLocal(query)
       
@@ -149,19 +149,38 @@ export const institutionService = {
       console.error('Erro na busca de instituições:', error)
       
       // Fallback para dados locais
-      try {
-        const { populateService } = await import('./populateInstitutions')
-        const localResults = populateService.searchLocal(query)
-        
-        return {
-          status: true,
-          status_code: 200,
-          messagem: 'Resultados encontrados (dados locais)',
-          data: localResults
-        }
-      } catch (localError) {
-        throw error
+      const { populateService } = await import('./populateInstitutions')
+      const localResults = populateService.searchLocal(query)
+      
+      return {
+        status: true,
+        status_code: 200,
+        messagem: 'Resultados encontrados (dados locais)',
+        data: localResults
       }
+    }
+  },
+
+  async searchByLocation(lat: number, lon: number, tipo?: string, raio?: number) {
+    try {
+      const params = new URLSearchParams({
+        lat: lat.toString(),
+        lon: lon.toString()
+      })
+      
+      if (tipo) params.append('tipo', tipo)
+      if (raio) params.append('raio', raio.toString())
+      
+      const response = await fetch(`${API_BASE_URL}/instituicoes/osm/?${params}`)
+      
+      if (response.ok) {
+        return response.json()
+      }
+      
+      throw new Error('Erro na busca por localização')
+    } catch (error) {
+      console.error('Erro na busca por localização:', error)
+      throw error
     }
   }
 }

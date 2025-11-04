@@ -675,5 +675,54 @@ body.dark .switch-container-sidebar {
   animation: markerDrop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+/* Indicadores de fonte de dados */
+.data-source-indicator {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(244, 162, 97, 0.05);
+  display: flex;
+  justify-content: center;
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.source-badge.api {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.source-badge.local {
+  background: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ff9800;
+}
+
+/* Tema escuro */
+body.dark .data-source-indicator {
+  background: rgba(244, 162, 97, 0.1);
+  border-color: var(--border-dark);
+}
+
+body.dark .source-badge.api {
+  background: rgba(76, 175, 80, 0.2);
+  color: #81c784;
+}
+
+body.dark .source-badge.local {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ffb74d;
+}
+
 
 

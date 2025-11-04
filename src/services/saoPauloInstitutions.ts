@@ -1,4 +1,4 @@
-// BASE COMPLETA DE INSTITUIÇÕES DE SÃO PAULO - NÍVEL PROFISSIONAL
+// BASE EXPANDIDA DE INSTITUIÇÕES DE SÃO PAULO - TODAS AS REGIÕES
 export const saoPauloInstitutions = {
   // SENAI - TODAS AS UNIDADES
   senai: [
@@ -119,5 +119,83 @@ export const saoPauloInstitutions = {
     {name: 'SENAC Culinária - Lapa', institution: 'SENAC', location: 'Lapa', coords: [-23.5267, -46.7017]},
     {name: 'Anhembi - Gastronomia', institution: 'Anhembi', location: 'Vila Olímpia', coords: [-23.5967, -46.6889]},
     {name: 'Centro Culinário - Vila Madalena', institution: 'Centro Culinário', location: 'Vila Madalena', coords: [-23.5506, -46.6889]}
+  ],
+
+  // REGIÃO NORTE
+  zona_norte: [
+    {name: 'SENAI Santana', institution: 'SENAI', location: 'Santana', coords: [-23.5186, -46.6264]},
+    {name: 'ETEC Parque Belém', institution: 'ETEC', location: 'Belém', coords: [-23.5186, -46.5831]},
+    {name: 'SENAC Casa Verde', institution: 'SENAC', location: 'Casa Verde', coords: [-23.4889, -46.6506]},
+    {name: 'FATEC Zona Norte', institution: 'FATEC', location: 'Santana', coords: [-23.5186, -46.6264]},
+    {name: 'ETEC Tucuruvi', institution: 'ETEC', location: 'Tucuruvi', coords: [-23.4667, -46.6031]},
+    {name: 'SENAC Mandaqui', institution: 'SENAC', location: 'Mandaqui', coords: [-23.4889, -46.6264]},
+    {name: 'UNINOVE Santana', institution: 'UNINOVE', location: 'Santana', coords: [-23.5186, -46.6264]},
+    {name: 'Anhanguera Santana', institution: 'Anhanguera', location: 'Santana', coords: [-23.5186, -46.6264]}
+  ],
+
+  // REGIÃO SUL
+  zona_sul: [
+    {name: 'SENAI Santo Amaro', institution: 'SENAI', location: 'Santo Amaro', coords: [-23.6528, -46.7081]},
+    {name: 'ETEC Campo Limpo', institution: 'ETEC', location: 'Campo Limpo', coords: [-23.6389, -46.7664]},
+    {name: 'SENAC Jabaquara', institution: 'SENAC', location: 'Jabaquara', coords: [-23.6528, -46.6431]},
+    {name: 'FATEC Zona Sul', institution: 'FATEC', location: 'Santo Amaro', coords: [-23.6528, -46.7081]},
+    {name: 'ETEC Cidade Dutra', institution: 'ETEC', location: 'Cidade Dutra', coords: [-23.7167, -46.6889]},
+    {name: 'SENAC Campo Limpo', institution: 'SENAC', location: 'Campo Limpo', coords: [-23.6389, -46.7664]},
+    {name: 'UNINOVE Santo Amaro', institution: 'UNINOVE', location: 'Santo Amaro', coords: [-23.6528, -46.7081]},
+    {name: 'ETEC Sapopemba', institution: 'ETEC', location: 'Sapopemba', coords: [-23.6167, -46.4831]},
+    {name: 'SENAC Vila Prudente', institution: 'SENAC', location: 'Vila Prudente', coords: [-23.5875, -46.5831]},
+    {name: 'ETEC Heliópolis', institution: 'ETEC', location: 'Heliópolis', coords: [-23.6167, -46.5997]}
+  ],
+
+  // REGIÃO LESTE
+  zona_leste: [
+    {name: 'SENAI Vila Alpina', institution: 'SENAI', location: 'Vila Alpina', coords: [-23.5729, -46.5664]},
+    {name: 'ETEC Itaquera', institution: 'ETEC', location: 'Itaquera', coords: [-23.5378, -46.4581]},
+    {name: 'SENAC Penha', institution: 'SENAC', location: 'Penha', coords: [-23.5267, -46.5431]},
+    {name: 'FATEC Zona Leste', institution: 'FATEC', location: 'Itaquera', coords: [-23.5378, -46.4581]},
+    {name: 'ETEC Cidade Tiradentes', institution: 'ETEC', location: 'Cidade Tiradentes', coords: [-23.5967, -46.4031]},
+    {name: 'SENAC Tatuapé', institution: 'SENAC', location: 'Tatuapé', coords: [-23.5378, -46.5664]},
+    {name: 'UNINOVE Tatuapé', institution: 'UNINOVE', location: 'Tatuapé', coords: [-23.5378, -46.5664]},
+    {name: 'ETEC São Mateus', institution: 'ETEC', location: 'São Mateus', coords: [-23.6167, -46.4581]},
+    {name: 'SENAC Itaquera', institution: 'SENAC', location: 'Itaquera', coords: [-23.5378, -46.4581]},
+    {name: 'ETEC Guaianases', institution: 'ETEC', location: 'Guaianases', coords: [-23.5378, -46.4031]}
+  ],
+
+  // REGIÃO OESTE
+  zona_oeste: [
+    {name: 'SENAI Vila Leopoldina', institution: 'SENAI', location: 'Vila Leopoldina', coords: [-23.5267, -46.7378]},
+    {name: 'ETEC Pinheiros', institution: 'ETEC', location: 'Pinheiros', coords: [-23.5729, -46.6889]},
+    {name: 'SENAC Lapa', institution: 'SENAC', location: 'Lapa', coords: [-23.5267, -46.7017]},
+    {name: 'FATEC Osasco', institution: 'FATEC', location: 'Osasco', coords: [-23.5267, -46.7917]},
+    {name: 'ETEC Butantã', institution: 'ETEC', location: 'Butantã', coords: [-23.5729, -46.7378]},
+    {name: 'SENAC Osasco', institution: 'SENAC', location: 'Osasco', coords: [-23.5267, -46.7917]},
+    {name: 'UNINOVE Osasco', institution: 'UNINOVE', location: 'Osasco', coords: [-23.5267, -46.7917]},
+    {name: 'ETEC Raposo Tavares', institution: 'ETEC', location: 'Raposo Tavares', coords: [-23.5729, -46.7664]},
+    {name: 'SENAC Pirituba', institution: 'SENAC', location: 'Pirituba', coords: [-23.4889, -46.7378]},
+    {name: 'ETEC Jaguaré', institution: 'ETEC', location: 'Jaguaré', coords: [-23.5506, -46.7378]}
+  ],
+
+  // REGIÃO CENTRO
+  centro: [
+    {name: 'ETEC Centro - República', institution: 'ETEC', location: 'República', coords: [-23.5505, -46.6333]},
+    {name: 'SENAC Centro', institution: 'SENAC', location: 'Centro', coords: [-23.5505, -46.6333]},
+    {name: 'FATEC Centro', institution: 'FATEC', location: 'Bela Vista', coords: [-23.5618, -46.6565]},
+    {name: 'ETEC Liberdade', institution: 'ETEC', location: 'Liberdade', coords: [-23.5587, -46.6347]},
+    {name: 'SENAC Liberdade', institution: 'SENAC', location: 'Liberdade', coords: [-23.5587, -46.6347]},
+    {name: 'UNINOVE Centro', institution: 'UNINOVE', location: 'Barra Funda', coords: [-23.5186, -46.6506]},
+    {name: 'ETEC Santa Ifigênia', institution: 'ETEC', location: 'Santa Ifigênia', coords: [-23.5378, -46.6406]},
+    {name: 'SENAC Sé', institution: 'SENAC', location: 'Sé', coords: [-23.5505, -46.6333]}
+  ],
+
+  // CURSOS PROFISSIONALIZANTES DIVERSOS
+  profissionalizantes: [
+    {name: 'SENAI Mecânica - Ipiranga', institution: 'SENAI', location: 'Ipiranga', coords: [-23.5875, -46.6103]},
+    {name: 'SENAC Beleza - Paulista', institution: 'SENAC', location: 'Paulista', coords: [-23.5618, -46.6565]},
+    {name: 'ETEC Eletrônica - Mooca', institution: 'ETEC', location: 'Mooca', coords: [-23.5506, -46.5997]},
+    {name: 'SENAI Soldagem - Santo Amaro', institution: 'SENAI', location: 'Santo Amaro', coords: [-23.6528, -46.7081]},
+    {name: 'SENAC Administração - Santana', institution: 'SENAC', location: 'Santana', coords: [-23.5186, -46.6264]},
+    {name: 'ETEC Logística - Itaquera', institution: 'ETEC', location: 'Itaquera', coords: [-23.5378, -46.4581]},
+    {name: 'SENAI Automação - Vila Leopoldina', institution: 'SENAI', location: 'Vila Leopoldina', coords: [-23.5267, -46.7378]},
+    {name: 'SENAC Marketing - Lapa', institution: 'SENAC', location: 'Lapa', coords: [-23.5267, -46.7017]}
   ]
 };

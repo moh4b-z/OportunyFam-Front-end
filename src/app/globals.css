@@ -259,8 +259,9 @@ body.dark .search-input {
   border-radius: 30px;
   border: 2px solid var(--border-color);
   transition: all 0.3s ease;
-  width: 420px; /* mantém a barra do mesmo tamanho visual */
-  flex-shrink: 0; /* impede que a barra encolha quando os chips aparecem */
+  width: 520px;
+  flex-shrink: 0;
+  gap: 12px;
 }
 
 body.dark .search-box {
@@ -273,12 +274,144 @@ body.dark .search-box {
 }
 
 .search-input {
-  width: 100%;
-  padding: 8px 10px 8px 45px; /* Espaço para o ícone */
+  flex: 1;
+  padding: 8px 10px 8px 45px;
   border: none;
   outline: none;
   font-size: 16px;
   background: transparent;
+}
+
+/* Filtro de Localização */
+.location-filter {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.location-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(244, 162, 97, 0.1);
+  border: 1px solid rgba(244, 162, 97, 0.3);
+  border-radius: 20px;
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.location-filter-btn:hover {
+  background: rgba(244, 162, 97, 0.15);
+  border-color: var(--orange);
+  transform: translateY(-1px);
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.location-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  min-width: 200px;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.location-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.location-option:hover {
+  background: rgba(244, 162, 97, 0.08);
+}
+
+.location-option.active {
+  background: rgba(244, 162, 97, 0.12);
+  color: var(--orange);
+  font-weight: 500;
+}
+
+.option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 16px;
+  color: var(--text-gray);
+}
+
+.location-option.active .option-icon {
+  color: var(--orange);
+}
+
+.location-option:hover .option-icon {
+  color: var(--orange);
+}
+
+.option-label {
+  flex: 1;
+}
+
+.check-icon {
+  color: var(--orange);
+}
+
+/* Tema escuro */
+body.dark .location-filter-btn {
+  background: rgba(244, 162, 97, 0.15);
+  border-color: rgba(244, 162, 97, 0.4);
+}
+
+body.dark .location-dropdown {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .location-option {
+  color: var(--text-dark-theme);
+}
+
+body.dark .location-option:hover {
+  background: rgba(244, 162, 97, 0.12);
 }
 
 .search-icon {
@@ -491,6 +624,55 @@ body.dark .switch-container-sidebar {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* Estilos para o ícone personalizado de marcador */
+.custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.marker-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 48px;
+}
+
+.custom-marker-icon svg {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center bottom;
+}
+
+.custom-marker-icon:hover svg {
+  transform: scale(1.15) translateY(-2px);
+}
+
+.custom-marker-icon:active svg {
+  transform: scale(0.95);
+  transition: all 0.1s ease;
+}
+
+/* Animação de entrada do marcador */
+@keyframes markerDrop {
+  0% {
+    transform: translateY(-20px) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(5px) scale(1.1);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.custom-marker-icon {
+  animation: markerDrop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 

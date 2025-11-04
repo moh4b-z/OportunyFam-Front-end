@@ -1,4 +1,4 @@
-import { InstituicaoRequest, TipoInstituicao } from '@/types'
+import { InstituicaoRequest, TipoInstituicao, Instituicao } from '@/types'
 import { API_BASE_URL } from './config'
 
 // Serviços de Instituições
@@ -108,6 +108,60 @@ export const institutionService = {
         { value: 'esporte', label: 'Esporte' },
         { value: 'meio_ambiente', label: 'Meio Ambiente' }
       ]
+    }
+  },
+
+  async getById(id: number) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/instituicoes/${id}`)
+      
+      if (!response.ok) {
+        throw new Error('Instituição não encontrada')
+      }
+
+      return response.json()
+    } catch (error) {
+      console.error('Erro ao buscar instituição:', error)
+      throw error
+    }
+  },
+
+  async search(query: string) {
+    try {
+      // Primeiro tenta buscar na API
+      const response = await fetch(`${API_BASE_URL}/instituicoes?search=${encodeURIComponent(query)}`)
+      
+      if (response.ok) {
+        return response.json()
+      }
+      
+      // Se a API falhar, usa dados locais
+      const { populateService } = await import('./populateInstitutions')
+      const localResults = populateService.searchLocal(query)
+      
+      return {
+        status: true,
+        status_code: 200,
+        messagem: 'Resultados encontrados (dados locais)',
+        data: localResults
+      }
+    } catch (error) {
+      console.error('Erro na busca de instituições:', error)
+      
+      // Fallback para dados locais
+      try {
+        const { populateService } = await import('./populateInstitutions')
+        const localResults = populateService.searchLocal(query)
+        
+        return {
+          status: true,
+          status_code: 200,
+          messagem: 'Resultados encontrados (dados locais)',
+          data: localResults
+        }
+      } catch (localError) {
+        throw error
+      }
     }
   }
 }

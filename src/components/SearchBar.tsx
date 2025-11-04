@@ -86,12 +86,12 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     { id: "informatica", name: "Informática", isActive: false },
     { id: "ingles", name: "Inglês", isActive: false },
     { id: "saude", name: "Saúde", isActive: false },
-    { id: "culinaria", name: "Culinária", isActive: false },
-    { id: "design", name: "Design", isActive: false },
-    { id: "administracao", name: "Administração", isActive: false },
-    { id: "mecanica", name: "Mecânica", isActive: false },
-    { id: "musica", name: "Música", isActive: false }
+    { id: "culinaria", name: "Culinária", isActive: false }
   ]);
+
+  // Estado do filtro de localização
+  const [locationFilter, setLocationFilter] = useState<string>('todas');
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
   const useDebounce = (value: string, delay: number) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -210,94 +210,104 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     });
   };
 
+  const locationOptions = [
+    { value: 'todas', label: 'Todas as regiões', icon: 'globe' },
+    { value: 'zona_norte', label: 'Zona Norte', icon: 'north' },
+    { value: 'zona_sul', label: 'Zona Sul', icon: 'south' },
+    { value: 'zona_leste', label: 'Zona Leste', icon: 'east' },
+    { value: 'zona_oeste', label: 'Zona Oeste', icon: 'west' },
+    { value: 'centro', label: 'Centro', icon: 'building' }
+  ];
+
+  const getLocationIcon = (iconType: string) => {
+    const icons = {
+      globe: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m5 5 14 14"/></svg>,
+      north: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M5 9l7-7 7 7"/></svg>,
+      south: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M19 15l-7 7-7-7"/></svg>,
+      east: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M15 5l7 7-7 7"/></svg>,
+      west: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M9 19l-7-7 7-7"/></svg>,
+      building: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12h12"/><path d="M6 16h12"/></svg>
+    };
+    return icons[iconType as keyof typeof icons] || icons.globe;
+  };
+
+  const getLocationTerms = (location: string): string => {
+    const locationMap: Record<string, string> = {
+      'todas': '',
+      'zona_norte': 'Santana|Casa Verde|Tucuruvi|Mandaqui|Belém',
+      'zona_sul': 'Santo Amaro|Campo Limpo|Jabaquara|Sapopemba|Heliópolis|Cidade Dutra',
+      'zona_leste': 'Itaquera|Penha|Tatuapé|São Mateus|Guaianases|Cidade Tiradentes',
+      'zona_oeste': 'Vila Leopoldina|Pinheiros|Lapa|Osasco|Butantã|Pirituba|Jaguaré',
+      'centro': 'República|Centro|Liberdade|Santa Ifigênia|Sé|Bela Vista'
+    };
+    return locationMap[location] || '';
+  };
+
+  const fetchInstitutionsByLocation = async (location: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { populateService } = await import('../services/populateInstitutions');
+      const locationTerms = getLocationTerms(location);
+      
+      if (location === 'todas') {
+        const allResults = populateService.searchLocal('');
+        setInstitutions(allResults.slice(0, 100));
+      } else {
+        const locations = locationTerms.split('|');
+        const results: Instituicao[] = [];
+        
+        locations.forEach(loc => {
+          const localResults = populateService.searchLocal(loc);
+          results.push(...localResults);
+        });
+        
+        setInstitutions(results);
+      }
+    } catch (error) {
+      setError('Erro ao carregar instituições');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLocationChange = (location: string) => {
+    setLocationFilter(location);
+    setShowLocationDropdown(false);
+    fetchInstitutionsByLocation(location);
+  };
+
   const fetchInstitutionsByCategory = async (categoryId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mapeia IDs dos chips para termos de busca
       const categoryMap: Record<string, string> = {
-        'jiu-jitsu': 'jiu jitsu',
-        'ti': 'informatica',
-        'centro-cultural': 'centro cultural',
-        'biblioteca': 'biblioteca',
         'informatica': 'informatica',
         'ingles': 'ingles',
-        'culinaria': 'culinaria',
-        'design': 'design',
-        'enfermagem': 'enfermagem',
-        'administracao': 'administracao',
-        'mecanica': 'mecanica',
-        'eletronica': 'eletronica',
-        'marketing': 'marketing',
-        'musica': 'musica',
         'saude': 'saude',
-        'gastronomia': 'gastronomia',
-        'programacao': 'programacao',
-        'soldagem': 'soldagem'
+        'culinaria': 'culinaria'
       };
       
       const searchTerm = categoryMap[categoryId] || categoryId;
-      
-      // Usa a mesma lógica de busca
       const data = await InstituicoesByName({ nome: searchTerm });
-      logApiResponse('CategorySearch', data);
       
       if (data.status && data.data && data.data.length > 0) {
-        const processedInstitutions = await Promise.all(
-          data.data.map(async (rawInst) => {
-            const inst = normalizeInstituicao(rawInst);
-            logInstitutionData(inst, 'category search');
-            
-            if (!inst.endereco?.latitude || !inst.endereco?.longitude) {
-              const addressParts = [
-                inst.endereco?.logradouro,
-                inst.endereco?.numero,
-                inst.endereco?.bairro,
-                inst.endereco?.cidade,
-                inst.endereco?.estado,
-                inst.endereco?.cep
-              ].filter(Boolean);
-              
-              if (addressParts.length > 0) {
-                const fullAddress = addressParts.join(', ');
-                const coords = await geocodeAddress(fullAddress);
-                logGeocoding(fullAddress, coords);
-                
-                if (coords) {
-                  if (!inst.endereco) {
-                    inst.endereco = {};
-                  }
-                  inst.endereco.latitude = coords.lat;
-                  inst.endereco.longitude = coords.lng;
-                  logInstitutionData(inst, 'after geocoding');
-                }
-              }
-            }
-            return inst;
-          })
-        );
-        setInstitutions(processedInstitutions);
+        setInstitutions(data.data.map(normalizeInstituicao));
       } else {
-        // Fallback para dados mock da categoria
         const mockResults = searchMockInstitutions(searchTerm);
-        if (mockResults.length > 0) {
-          setInstitutions(mockResults);
-          setError(null);
-        } else {
-          setInstitutions([]);
-        }
+        setInstitutions(mockResults);
       }
     } catch (err: any) {
-      console.warn('Busca por categoria falhou, usando dados mock:', err.message);
+      const categoryMap: Record<string, string> = {
+        'informatica': 'informatica',
+        'ingles': 'ingles', 
+        'saude': 'saude',
+        'culinaria': 'culinaria'
+      };
       const mockResults = searchMockInstitutions(categoryMap[categoryId] || categoryId);
-      if (mockResults.length > 0) {
-        setInstitutions(mockResults);
-        setError(null);
-      } else {
-        setError('Nenhuma instituição encontrada para esta categoria');
-        setInstitutions([]);
-      }
+      setInstitutions(mockResults);
     } finally {
       setLoading(false);
     }
@@ -329,7 +339,44 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
         />
-        {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive)) && (
+        
+        {/* Filtro de Localização */}
+        <div className="location-filter">
+          <button 
+            className="location-filter-btn"
+            onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span>{locationOptions.find(opt => opt.value === locationFilter)?.label}</span>
+            <svg className={`dropdown-arrow ${showLocationDropdown ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="6,9 12,15 18,9"/>
+            </svg>
+          </button>
+          
+          {showLocationDropdown && (
+            <div className="location-dropdown">
+              {locationOptions.map(option => (
+                <button
+                  key={option.value}
+                  className={`location-option ${locationFilter === option.value ? 'active' : ''}`}
+                  onClick={() => handleLocationChange(option.value)}
+                >
+                  <span className="option-icon">{getLocationIcon(option.icon)}</span>
+                  <span className="option-label">{option.label}</span>
+                  {locationFilter === option.value && (
+                    <svg className="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas') && (
           <div className="search-results-dropdown">
             {loading && <div className="dropdown-message">Buscando instituições...</div>}
             {error && <div className="dropdown-message error">{error}</div>}

@@ -3,18 +3,12 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import InstitutionDetailModal from "@/components/InstitutionDetailModal";
-
-// Tipo para os dados da instituição
-interface Institution {
-  id?: string;
-  nome: string;
-  // Adicione outros campos conforme necessário
-}
+import { Instituicao } from "@/types";
 
 export default function InstitutionPage() {
   const params = useParams();
   const router = useRouter();
-  const [institution, setInstitution] = useState<Institution | null>(null);
+  const [institution, setInstitution] = useState<Instituicao | null>(null);
 
   // Pega o ID da URL (ex: /instituicao/agua-viva)
   const institutionId = params.id as string;
@@ -25,8 +19,9 @@ export default function InstitutionPage() {
     if (institutionId) {
       // Simular busca da instituição
       setInstitution({
-        id: institutionId,
-        nome: "Instituição Água Viva" // Você pode buscar da API depois
+        instituicao_id: parseInt(institutionId),
+        nome: "Instituição Água Viva", // Você pode buscar da API depois
+        email: "contato@aguaviva.org"
       });
     }
   }, [institutionId]);

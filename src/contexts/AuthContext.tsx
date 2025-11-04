@@ -2,13 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Usuario, Instituicao, Crianca } from '@/types'
 
-interface User {
-  id: string
-  nome: string
-  email: string
-  foto_perfil?: string
-}
+type User = Usuario | Instituicao | Crianca
 
 interface AuthContextType {
   user: User | null
@@ -56,11 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Aqui você faria a chamada para sua API de login
       // Por enquanto, vou simular um login bem-sucedido
-      const mockUser: User = {
-        id: '1',
+      const mockUser: Usuario = {
+        usuario_id: 1,
         nome: 'Usuário Teste',
         email: email,
-        foto_perfil: undefined
+        foto_perfil: null
       }
 
       // Simula uma chamada de API

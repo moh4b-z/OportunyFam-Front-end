@@ -1,9 +1,19 @@
-import { InstitutionData, InstitutionType } from '@/types'
+import { InstituicaoRequest, TipoInstituicao } from '@/types'
 import { API_BASE_URL } from './config'
 
 // Serviços de Instituições
 export const institutionService = {
-  async register(data: InstitutionData) {
+  async register(data: InstituicaoRequest & {
+    cep: string;
+    logradouro: string;
+    numero?: string;
+    complemento?: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    tipos_instituicao: number[];
+    logo?: string;
+  }) {
     const {
       nome,
       logo,
@@ -65,7 +75,7 @@ export const institutionService = {
     return response.json()
   },
 
-  async getTypes(): Promise<InstitutionType[]> {
+  async getTypes(): Promise<Array<{ value: string; label: string }>> {
     try {
       const response = await fetch(`${API_BASE_URL}/tipoInstituicoes`)
       

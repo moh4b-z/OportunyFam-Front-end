@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-import { GetInstituicoesResponse } from "../types";
+import { PaginatedResponse, Instituicao } from "../types";
 
 export type FetchInstituicoesParams = {
   nome?: string;
@@ -9,7 +9,7 @@ export type FetchInstituicoesParams = {
 
 export async function InstituicoesByName(
   { nome, pagina = 1, tamanho = 20 }: FetchInstituicoesParams = {}
-): Promise<GetInstituicoesResponse> {
+): Promise<PaginatedResponse<Instituicao>> {
   const params = new URLSearchParams();
 
   // Inclui o nome mesmo que seja string vazia, caso o backend interprete isso como "sem filtro"

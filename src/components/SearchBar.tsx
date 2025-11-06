@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Instituicao } from "@/types";
 import { geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
 import { logApiResponse, logInstitutionData, logGeocoding } from "@/services/debug";
@@ -75,6 +75,9 @@ const SearchResultOption = ({ institution, onClick, isSelected }: SearchResultOp
 export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchFocused, setSearchFocused] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const locationRef = useRef<HTMLDivElement>(null);
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
 
   const [institutions, setInstitutions] = useState<Instituicao[]>([]);
@@ -105,7 +108,23 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+  // Fechar dropdowns ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Fechar dropdown de localização se clicar fora
+      if (locationRef.current && !locationRef.current.contains(event.target as Node)) {
+        setShowLocationDropdown(false);
+      }
+      // Minimizar modal de instituições se clicar fora (mas não fechar)
+      if (searchRef.current && !searchRef.current.contains(event.target as Node) && institutions.length > 0) {
+        setIsMinimized(true);
+        setSearchFocused(false);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [institutions.length]);
 
   useEffect(() => {
     const fetchInstitutions = async () => {
@@ -256,6 +275,8 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const handleLocationChange = (location: string) => {
     setLocationFilter(location);
     setShowLocationDropdown(false);
+    setSearchFocused(false); // Fecha o modal de instituições imediatamente
+    setIsMinimized(false);
     fetchInstitutionsByLocation(location);
   };
 
@@ -298,7 +319,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   };
 
   return (
-    <div className={`search-and-chips ${searchFocused ? "search-and-chips-active" : ""}`}>
+    <div ref={searchRef} className={`search-and-chips ${searchFocused ? "search-and-chips-active" : ""}`}>
       <div className={`search-box ${searchFocused ? "search-box-active" : ""}`}>
         <svg 
           className="search-icon" 
@@ -321,14 +342,21 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setSearchFocused(true)}
-          onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+          onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
         />
         
         {/* Filtro de Localização */}
-        <div className="location-filter">
+        <div ref={locationRef} className="location-filter">
           <button 
             className="location-filter-btn"
-            onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+            onClick={() => {
+              // Se o modal de instituições estiver aberto, fecha ele primeiro
+              if (searchFocused || institutions.length > 0) {
+                setSearchFocused(false);
+                setIsMinimized(true);
+              }
+              setShowLocationDropdown(!showLocationDropdown);
+            }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -360,19 +388,11 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             </div>
           )}
         </div>
-        {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas') && (
+        {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas') && !isMinimized && (
           <div className="search-results-dropdown">
             {loading && <div className="dropdown-message">Buscando instituições...</div>}
             {error && <div className="dropdown-message error">{error}</div>}
-            {!loading && !error && institutions.length > 0 && (
-              <div className="data-source-indicator">
-                {dataSource === 'api' ? (
-                  <span className="source-badge api">🌐 API</span>
-                ) : (
-                  <span className="source-badge local">📁 Local</span>
-                )}
-              </div>
-            )}
+
             {!loading && !error && institutions.map(inst => (
               <SearchResultOption
                 key={inst.instituicao_id || inst.id}
@@ -393,6 +413,23 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         categories={categories}
         onCategoryClick={handleCategoryClick}
       />
+      
+      {/* Bolinha minimizada */}
+      {isMinimized && institutions.length > 0 && (
+        <div 
+          className="minimized-bubble"
+          onClick={() => {
+            setIsMinimized(false);
+            setSearchFocused(true);
+          }}
+        >
+          <span className="bubble-count">{institutions.length}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+      )}
     </div>
   );
 }

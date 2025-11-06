@@ -8,7 +8,7 @@ import Switch from "@/components/Switch";
 const Mapa = dynamic(() => import("../components/Mapa"), { ssr: false });
 import { Instituicao } from "@/types";
 import NotificationsModal from "@/components/modals/NotificationsModal";
-import PushNotifications from "@/components/PushNotifications";
+
 import Perfil from "@/components/shared/Perfil";
 import LogoutModal from "@/components/modals/LogoutModal";
 import ConversationsModal from "@/components/modals/ConversationsModal";
@@ -88,23 +88,7 @@ export default function HomePage() {
     foto_perfil: undefined
   };
 
-  // Dados de exemplo para as notificações push
-  const pushNotifications = [
-    {
-      id: 1,
-      name: "Instituto Água Viva",
-      message: "Nova vaga disponível para voluntário",
-      time: "Agora",
-      isLate: false
-    },
-    {
-      id: 2,
-      name: "Casa da Esperança",
-      message: "Evento beneficente neste sábado",
-      time: "2 min",
-      isLate: false
-    }
-  ];
+
 
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
@@ -143,12 +127,7 @@ export default function HomePage() {
         </div>
       </div>
       
-      {/* Componente de notificações push que aparecem automaticamente */}
-      <PushNotifications 
-        notifications={pushNotifications}
-        autoShow={true}
-        showDelay={3000}
-      />
+
       
       {/* Modal de notificações */}
       <NotificationsModal

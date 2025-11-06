@@ -107,3 +107,31 @@ body.dark .search-modal-content {
   display: flex;
   justify-content: flex-end;
 }
+
+/* Dropdown de localização com z-index alto */
+.location-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 1001 !important;
+  padding: 8px 0;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+.location-filter {
+  position: relative;
+  z-index: 1001 !important;
+}
+
+.location-filter-btn {
+  z-index: 1001 !important;
+}
+
+body.dark .location-dropdown {
+  background: #1f2937;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(55, 65, 81, 0.3);
+}

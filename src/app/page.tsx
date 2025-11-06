@@ -190,40 +190,6 @@ export default function HomePage() {
           }} />
         </div>
 
-        {/* Botão temporário para testar modal de criança */}
-        {process.env.NODE_ENV === 'development' && (
-          <div style={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 9999,
-            background: '#007bff',
-            color: 'white',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-          }}>
-            <button 
-              onClick={() => setShowChildRegistration(!showChildRegistration)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}
-            >
-              {showChildRegistration ? '❌ Fechar Modal Criança' : '👶 Abrir Modal Criança'}
-            </button>
-          </div>
-        )}
-
         {/* Painel de busca */}
         {isSearchPanelOpen && (
           <div style={{ position: 'fixed', top: 0, left: 'var(--sidebar-width)', width: 'calc(100% - var(--sidebar-width))', height: '100%', display: 'flex', zIndex: 8000, background: 'rgba(0,0,0,0.1)', pointerEvents: 'none' }}>

@@ -72,22 +72,42 @@ export const utilsService = {
   },
 
   validateCNPJ(cnpj: string): boolean {
-    const s = (cnpj || '').replace(/\D/g, '')
-    if (!s || s.length !== 14) return false
-    if (/^(\d)\1{13}$/.test(s)) return false
-    const calc = (base: number) => {
-      let sum = 0
-      let pos = base - 7
-      for (let i = 0; i < base - 1; i++) {
-        sum += parseInt(s.charAt(i)) * pos
-        pos = pos === 2 ? 9 : pos - 1
-      }
-      const res = sum % 11
-      return res < 2 ? 0 : 11 - res
+    const s = (cnpj || '').replace(/\D/g, '');
+    
+    if (!s || s.length !== 14 || /^(\d)\1{13}$/.test(s)) {
+      return false;
     }
-    const d1 = calc(13)
-    if (d1 !== parseInt(s.charAt(12))) return false
-    const d2 = calc(14)
-    return d2 === parseInt(s.charAt(13))
+    
+    // Primeiro dígito verificador
+    let tamanho = s.length - 2;
+    let numeros = s.substring(0, tamanho);
+    const digitos = s.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    
+    // Cálculo do primeiro dígito verificador
+    for (let i = tamanho; i >= 1; i--) {
+      soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0), 10)) {
+      return false;
+    }
+    
+    // Cálculo do segundo dígito verificador
+    tamanho = tamanho + 1;
+    numeros = s.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    
+    for (let i = tamanho; i >= 1; i--) {
+      soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    return resultado === parseInt(digitos.charAt(1), 10);
   }
 }

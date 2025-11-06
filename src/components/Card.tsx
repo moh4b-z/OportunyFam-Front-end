@@ -369,8 +369,10 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				return
 			}
 
-			// Valida CNPJ da instituição
-			if (!utilsService.validateCNPJ(ongCnpj)) {
+			// Limpa o CNPJ removendo caracteres não numéricos e valida
+			const cnpjLimpo = ongCnpj.replace(/\D/g, '');
+			
+			if (!utilsService.validateCNPJ(cnpjLimpo)) {
 				setRegisterErrorMessage('CNPJ inválido')
 				setIsLoading(false)
 				return
@@ -380,7 +382,7 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 			const institutionData = {
 				nome: ongName,
 				logo: "", // Vazio por padrão
-				cnpj: ongCnpj, // Já vem limpo do componente Input
+				cnpj: cnpjLimpo, // Já está limpo
 				telefone: ongPhone, // Já vem limpo do componente Input
 				email: ongRegisterEmail,
 				senha: ongRegisterPassword,

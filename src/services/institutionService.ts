@@ -104,17 +104,18 @@ export const institutionService = {
       }
       
       throw new Error('API indisponível')
-    } catch (error) {
-      console.log('❌ Usando tipos padrão:', error.message)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.log('❌ Usando tipos padrão:', errorMessage);
       
       return [
-        { value: 'educacao', label: 'Educação' },
-        { value: 'saude', label: 'Saúde' },
-        { value: 'assistencia_social', label: 'Assistência Social' },
-        { value: 'cultura', label: 'Cultura' },
-        { value: 'esporte', label: 'Esporte' },
-        { value: 'meio_ambiente', label: 'Meio Ambiente' }
-      ]
+        { value: '1', label: 'Educação' },
+        { value: '2', label: 'Saúde' },
+        { value: '3', label: 'Assistência Social' },
+        { value: '4', label: 'Cultura' },
+        { value: '5', label: 'Esporte' },
+        { value: '6', label: 'Meio Ambiente' }
+      ];
     }
   },
 
@@ -124,57 +125,95 @@ export const institutionService = {
       const response = await fetch(`${API_BASE_URL}/instituicoes/${id}`)
       console.log('📊 Status busca:', response.status)
       
-      if (response.ok) {
-        const data = await response.json()
-        console.log('✅ Instituição encontrada:', data)
-        return data
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}`)
       }
       
-      throw new Error('Não encontrada')
-    } catch (error) {
-      console.log('❌ Erro busca instituição:', error.message)
+      const data = await response.json()
+      
+      if (data.status && data.instituicao) {
+        console.log('✅ Instituição encontrada:', data.instituicao)
+        return data.instituicao
+      }
+      
+      throw new Error('Formato de resposta inesperado da API')
+      
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      console.error(`Erro ao buscar instituição com ID ${id}:`, errorMessage)
+      throw error
+    }
+  },
+
+  async getAll() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/instituicoes`)
+      
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.status && Array.isArray(data.instituicoes)) {
+        return data.instituicoes
+      }
+      
+      throw new Error('Formato de resposta inesperado da API')
+      
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      console.error('Erro ao buscar todas as instituições:', errorMessage)
       throw error
     }
   },
 
   async search(query: string) {
     const url = `${API_BASE_URL}/instituicoes/?nome=${encodeURIComponent(query)}&pagina=1&tamanho=20`
-    console.log('🔍 URL da API:', url)
     
     try {
-      console.log('📡 Fazendo requisição...')
       const response = await fetch(url)
-      console.log('📊 Status:', response.status, response.statusText)
+      
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}`)
+      }
       
       const data = await response.json()
-      console.log('📊 Resposta da API:', data)
       
-      if (response.ok) {
-        console.log('✅ API funcionou! Dados:', data)
-        return data
-      } else if (response.status === 500 && data.messagem?.includes('erros internos')) {
-        console.log('⚠️ API sem dados ainda (erro 500 esperado)')
-        throw new Error('API sem dados')
-      } else {
-        console.log('❌ Erro da API:', response.status, data.messagem)
-        throw new Error(`Erro ${response.status}`)
+      // Verifica se a resposta tem o formato esperado
+      if (data.status && Array.isArray(data.instituicoes)) {
+        return {
+          status: data.status,
+          status_code: data.status_code || 200,
+          message: data.messagem || 'Busca realizada com sucesso',
+          data: data.instituicoes
+        }
       }
-    } catch (error) {
-      console.log('❌ API não disponível:', error.message)
-      console.log('🔄 Usando dados locais...')
       
-      // Fallback para dados locais
-      const { populateService } = await import('./populateInstitutions')
-      const localResults = populateService.searchLocal(query)
+      // Se chegou aqui, a resposta não está no formato esperado
+      throw new Error('Formato de resposta inesperado da API')
       
-      return {
-        status: true,
-        status_code: 200,
-        messagem: 'Dados locais (API indisponível)',
-        data: localResults
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('Erro ao buscar instituições:', errorMessage)
+      
+      // Fallback para dados locais em caso de erro
+      try {
+        const { populateService } = await import('./populateInstitutions')
+        const localResults = populateService.searchLocal(query)
+        
+        return {
+          status: true,
+          status_code: 200,
+          message: 'Dados locais (API indisponível)',
+          data: localResults
+        }
+      } catch (localError: unknown) {
+        const localErrorMessage = localError instanceof Error ? localError.message : 'Erro desconhecido';
+        console.error('Erro ao carregar dados locais:', localErrorMessage)
+        throw new Error('Não foi possível carregar as instituições')
       }
     }
   },
-
 
 }

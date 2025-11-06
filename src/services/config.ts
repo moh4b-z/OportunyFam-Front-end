@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'http://localhost:8080/v1/oportunyfam'
+export const API_BASE_URL = 'https://oportunyfam-back-end.onrender.com/v1/oportunyfam'

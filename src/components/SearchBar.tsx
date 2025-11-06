@@ -151,7 +151,13 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   }, [debouncedSearchTerm]);
 
   const handleInstitutionClick = (institution: Instituicao) => {
-    setSelectedInstitution(institution.instituicao_id || institution.id);
+    const institutionId = institution.instituicao_id || institution.id;
+    if (institutionId !== undefined) {
+      setSelectedInstitution(institutionId);
+    } else {
+      console.error('ID da instituição não encontrado');
+      return;
+    }
     setSearchFocused(false);
     setSearchTerm("");
     onInstitutionSelect(institution);
@@ -219,22 +225,29 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     setError(null);
     
     try {
-      if (location === 'todas') {
-        // Para "todas", usa busca geral na API
-        const { institutionService } = await import('../services/institutionService');
-        const data = await institutionService.search('');
+      const { institutionService } = await import('../services/institutionService');
+      const searchTerm = location === 'todas' ? '' : location;
+      
+      // Tenta buscar da API primeiro
+      try {
+        const data = await institutionService.search(searchTerm);
         
-        if (data.status && data.data && data.data.length > 0) {
-          setInstitutions(data.data.slice(0, 100).map(normalizeInstituicao));
-        } else {
-          // Fallback para dados locais
-          const { populateService } = await import('../services/populateInstitutions');
-          const allResults = populateService.searchLocal('');
-          setInstitutions(allResults.slice(0, 100));
+        if (data?.data?.length > 0) {
+          // Se encontrou resultados na API, usa eles
+          setInstitutions(data.data.map(normalizeInstituicao));
+          return;
         }
+      } catch (apiError) {
+        console.warn('Erro ao buscar da API, usando dados locais:', apiError);
+      }
+      
+      // Se chegou aqui, ou a API não retornou resultados ou deu erro
+      const { populateService } = await import('../services/populateInstitutions');
+      
+      if (location === 'todas') {
+        const allResults = populateService.searchLocal('');
+        setInstitutions(allResults.slice(0, 100));
       } else {
-        // Para regiões específicas, usa dados locais (mais rápido)
-        const { populateService } = await import('../services/populateInstitutions');
         const locationTerms = getLocationTerms(location);
         const locations = locationTerms.split('|');
         const results: Instituicao[] = [];
@@ -247,7 +260,8 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         setInstitutions(results);
       }
     } catch (error) {
-      setError('Erro ao carregar instituições');
+      console.error('Erro ao buscar instituições:', error);
+      setError('Não foi possível carregar as instituições. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }
@@ -257,6 +271,33 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     setLocationFilter(location);
     setShowLocationDropdown(false);
     fetchInstitutionsByLocation(location);
+  };
+
+  // Função para normalizar os dados da API para o formato esperado pelo componente
+  const normalizeInstituicao = (instituicao: any): Instituicao => {
+    return {
+      id: instituicao.instituicao_id || instituicao.id,
+      instituicao_id: instituicao.instituicao_id || instituicao.id,
+      nome: instituicao.nome,
+      email: instituicao.email,
+      cnpj: instituicao.cnpj,
+      telefone: instituicao.telefone,
+      descricao: instituicao.descricao || '',
+      foto_perfil: instituicao.foto_perfil || null,
+      endereco: {
+        id: instituicao.endereco?.id || 0,
+        cep: instituicao.endereco?.cep || '',
+        logradouro: instituicao.endereco?.logradouro || '',
+        numero: instituicao.endereco?.numero || '',
+        complemento: instituicao.endereco?.complemento || '',
+        bairro: instituicao.endereco?.bairro || '',
+        cidade: instituicao.endereco?.cidade || '',
+        estado: instituicao.endereco?.estado || '',
+        latitude: instituicao.endereco?.latitude || 0,
+        longitude: instituicao.endereco?.longitude || 0
+      },
+      tipos_instituicao: instituicao.tipos_instituicao || []
+    };
   };
 
   const fetchInstitutionsByCategory = async (categoryId: string) => {
@@ -273,25 +314,27 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       
       const searchTerm = categoryMap[categoryId] || categoryId;
       const { institutionService } = await import('../services/institutionService');
-      const data = await institutionService.search(searchTerm);
       
-      if (data.status && data.data && data.data.length > 0) {
-        setInstitutions(data.data.map(normalizeInstituicao));
-      } else {
-        const { populateService } = await import('../services/populateInstitutions');
-        const localResults = populateService.searchLocal(searchTerm);
-        setInstitutions(localResults);
+      // Tenta buscar da API primeiro
+      try {
+        const data = await institutionService.search(searchTerm);
+        
+        if (data?.data?.length > 0) {
+          setInstitutions(data.data.map(normalizeInstituicao));
+          return;
+        }
+      } catch (apiError) {
+        console.warn('Erro ao buscar da API, usando dados locais:', apiError);
       }
-    } catch (err: any) {
-      const categoryMap: Record<string, string> = {
-        'informatica': 'informatica',
-        'ingles': 'ingles', 
-        'saude': 'saude',
-        'culinaria': 'culinaria'
-      };
+      
+      // Fallback para dados locais
       const { populateService } = await import('../services/populateInstitutions');
-      const localResults = populateService.searchLocal(categoryMap[categoryId] || categoryId);
+      const localResults = populateService.searchLocal(searchTerm);
       setInstitutions(localResults);
+      
+    } catch (error) {
+      console.error('Erro ao buscar instituições por categoria:', error);
+      setError('Não foi possível carregar as instituições desta categoria. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }

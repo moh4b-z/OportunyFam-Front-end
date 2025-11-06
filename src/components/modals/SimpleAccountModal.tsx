@@ -6,26 +6,27 @@ import styles from "../../app/styles/SimpleAccountModal.module.css";
 interface SimpleAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userName: string;
-  email?: string;
-  phone?: string;
+  user: {
+    nome: string;
+    email: string;
+    telefone?: string | null;
+    foto_perfil?: string | null;
+  };
   childrenNames?: string[];
 }
 
 const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   isOpen,
   onClose,
-  userName,
-  email,
-  phone,
+  user,
   childrenNames,
 }) => {
   if (!isOpen) return null;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const storageKey = useMemo(
-    () => `account_avatar_${(userName || "usuario").toLowerCase()}`,
-    [userName]
+    () => `account_avatar_${(user.nome || "usuario").toLowerCase()}`,
+    [user.nome]
   );
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
@@ -53,7 +54,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2>Conta</h2>
+          <h2>Olá {user.nome.split(' ')[0]}</h2>
           <button className={styles.closeButton} onClick={onClose} aria-label="Fechar">×</button>
         </div>
 
@@ -63,7 +64,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
               {avatarUrl ? (
                 <img src={avatarUrl} alt="avatar" />
               ) : (
-                <span>{(userName || "U").charAt(0).toUpperCase()}</span>
+                <span>{(user.nome || "U").charAt(0).toUpperCase()}</span>
               )}
               <button className={styles.editBadge} aria-label="Editar foto" onClick={onPickAvatar}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,7 +92,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
               </div>
               <div className={styles.fieldContent}>
                 <span className={styles.label}>Email:</span>
-                <span className={styles.value}>{maskEmail(email || "usuario@dominio.com")}</span>
+                <span className={styles.value}>{maskEmail(user.email || "usuario@dominio.com")}</span>
               </div>
               <button className={styles.editBtn} aria-label="Editar email">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -109,7 +110,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
               </div>
               <div className={styles.fieldContent}>
                 <span className={styles.label}>Numero:</span>
-                <span className={styles.value}>{maskPhone(phone || "11000000000")}</span>
+                <span className={styles.value}>{maskPhone(user.telefone || "11000000000")}</span>
               </div>
               <button className={styles.editBtn} aria-label="Editar número">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

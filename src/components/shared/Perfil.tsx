@@ -8,6 +8,8 @@ import SimpleAccountModal from "../modals/SimpleAccountModal";
 interface PerfilProps {
   user?: {
     nome?: string;
+    email?: string;
+    telefone?: string | null;
     foto_perfil?: string;
   } | null;
   hasNotifications?: boolean;
@@ -247,11 +249,18 @@ const Perfil: React.FC<PerfilProps> = ({
       />
 
       {/* RENDERIZAÇÃO DA MODAL DE CONTA */}
-      <SimpleAccountModal
-        isOpen={showAccountModal}
-        onClose={() => setShowAccountModal(false)}
-        userName={user?.nome || "Usuário"}
-      />
+      {user && (
+        <SimpleAccountModal
+          isOpen={showAccountModal}
+          onClose={() => setShowAccountModal(false)}
+          user={{
+            nome: user.nome || "Usuário",
+            email: user.email || "usuario@exemplo.com",
+            telefone: user.telefone || null,
+            foto_perfil: user.foto_perfil || null
+          }}
+        />
+      )}
     </>
   );
 };

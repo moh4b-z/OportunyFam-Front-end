@@ -14,7 +14,7 @@ interface CardSystemProps {
 }
 
 export default function CardSystem({ onTabChange }: CardSystemProps) {
-	const { login, isLoading: authLoading } = useAuth()
+	const { login, register, isLoading: authLoading } = useAuth()
 	const [loginEmail, setLoginEmail] = useState<string>('')
 	const [responsableRegisterEmail, setResponsableRegisterEmail] = useState<string>('')
 	const [kidRegisterEmail, setKidRegisterEmail] = useState<string>('')
@@ -443,13 +443,20 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				estado: responsableUf
 			}
 
-			const data = await userService.register(responsibleData)
+			// Usa a função register do AuthContext para salvar os dados
+			const success = await register({
+				nome: responsableName,
+				email: responsableRegisterEmail,
+				telefone: responsablePhone,
+				password: responsableRegisterPassword
+			})
 
-			// Mostra modal de sucesso
-			showSuccessAndRedirect(
-				'Cadastro Realizado!',
-				'Responsável cadastrado com sucesso! Agora você pode fazer login com suas credenciais.'
-			)
+			if (success) {
+				// O AuthContext já redireciona automaticamente após o registro
+				return
+			} else {
+				setRegisterErrorMessage('Erro ao cadastrar usuário')
+			}
 
 		} catch (error) {
 			console.error('Erro ao cadastrar responsável:', error)

@@ -15,6 +15,7 @@
   justify-content: center;
   margin-right: 20px;
   margin-top: 2px;
+  overflow: hidden;
 }
 
 .card-icon {
@@ -22,80 +23,107 @@
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
+/* Default institution icon - more minimalistic */
+.default-institution-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  background: transparent;
+  border: 1.5px solid rgba(244, 162, 97, 0.3);
+  border-radius: 50%;
+  padding: 8px;
+  box-sizing: border-box;
+}
 
+.default-institution-icon svg {
+  width: 70%;
+  height: 70%;
+  opacity: 0.8;
+}
+
+/* Profile image - more minimalistic */
 .card-logo-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  border-radius: 6px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1.5px solid rgba(244, 162, 97, 0.2);
+}
+
+/* Ensure the logo block is circular */
+.card-logo-block {
+  border-radius: 50%;
+  padding: 2px;
 }
 
 
-/* 2. Conteúdo Central (Nome e Subtítulo) */
+/* 2. Conteúdo Central (Nome e Categorias) */
 .card-main-content {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    gap: 6px;
     min-width: 0;
+    height: 100%;
+    justify-content: space-between; /* Push location to bottom */
 }
 
 .card-header {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 4px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
+.card-name-category-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
 /* Nome da Instituição */
 .card-name-full {
-  font-weight: 600;
-  font-size: 17px;
-  color: var(--text-darker);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 300px;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--text-darker);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .card-category {
-  background: rgba(244, 162, 97, 0.12);
-  color: #e76f51;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.card-description {
-  font-size: 14px;
-  color: var(--text-muted);
-  font-weight: 400;
-  line-height: 1.4;
-  margin: 3px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    background: rgba(244, 162, 97, 0.12);
+    color: #e76f51;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    align-self: flex-start;
 }
 
 .card-location {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 500;
-  opacity: 0.9;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+body.dark .card-location {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
 
 body.dark .card-name-full {
     color: var(--text-dark-theme);
@@ -165,7 +193,6 @@ body.dark .card-subtitle {
   z-index: 10;
   background: var(--bg-light);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid var(--border-color);
   max-height: 600px;
   overflow-y: auto;
@@ -175,7 +202,6 @@ body.dark .card-subtitle {
 body.dark .search-results-dropdown {
   background: var(--bg-card-dark);
   border-color: var(--border-dark);
-  box-shadow: 0 8px 25px var(--shadow-dark);
 }
 
 /*
@@ -192,12 +218,11 @@ body.dark .search-results-dropdown {
   font-size: 16px;
   color: var(--text-dark);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   border-radius: 12px;
   margin: 8px 16px;
   background: var(--bg-light);
   border: 1px solid var(--border-color);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   min-height: 85px;
   width: calc(100% - 32px);
 }
@@ -207,7 +232,6 @@ body.dark .search-result-card {
   color: var(--text-dark-theme);
   background: var(--bg-card-dark);
   border-color: var(--border-dark);
-  box-shadow: 0 2px 8px var(--shadow-dark);
 }
 
 /* Efeito ao passar o mouse ou selecionar */
@@ -215,8 +239,13 @@ body.dark .search-result-card {
 .search-result-card.selected-card {
   background-color: var(--bg-hover-light);
   border-color: var(--orange);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(244, 162, 97, 0.15);
+  transform: translateY(-2px);
+}
+
+body.dark .search-result-card:hover,
+body.dark .search-result-card.selected-card {
+  background-color: var(--hover-bg-dark);
+  border-color: var(--orange);
 }
 
 .search-result-card:hover .card-logo-block {
@@ -232,7 +261,6 @@ body.dark .search-result-card {
 body.dark .search-result-card:hover,
 body.dark .search-result-card.selected-card {
   background-color: var(--hover-bg-dark);
-  box-shadow: 0 6px 20px rgba(244, 162, 97, 0.25);
 }
 
 body.dark .search-result-card:hover .card-category {

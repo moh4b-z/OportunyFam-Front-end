@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Instituicao } from "@/types";
+import { Instituicao, TipoInstituicao } from "@/types";
 import { geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
 import { logApiResponse, logInstitutionData, logGeocoding } from "@/services/debug";
 import { searchMockInstitutions } from "@/services/mockData";
+import { API_BASE_URL } from "@/services/config";
 import CategoryChips, { Category } from "./shared/CategoryChips";
 import "../app/styles/SearchCard.css";
 import "../app/styles/SearchModal.css";
@@ -20,36 +21,74 @@ interface SearchResultOptionProps {
 }
 
 const SearchResultOption = ({ institution, onClick, isSelected }: SearchResultOptionProps) => {
-  // Determina o ícone baseado no tipo
-  const getIcon = (name: string) => {
-    if (name.toLowerCase().includes('curso')) return '📚';
-    if (name.toLowerCase().includes('instituto')) return '🏛️';
-    if (name.toLowerCase().includes('casa')) return '🏠';
-    if (name.toLowerCase().includes('centro')) return '🏢';
-    if (name.toLowerCase().includes('escola')) return '🎓';
-    if (name.toLowerCase().includes('fundação')) return '🏛️';
-    return '🏢';
-  };
-
-  // Determina a categoria
-  const getCategory = (name: string) => {
-    if (name.toLowerCase().includes('curso técnico')) return 'Curso Técnico';
-    if (name.toLowerCase().includes('curso de')) return 'Curso Profissionalizante';
-    if (name.toLowerCase().includes('curso')) return 'Capacitação';
-    if (name.toLowerCase().includes('instituto')) return 'Instituto';
-    if (name.toLowerCase().includes('casa')) return 'Casa de Apoio';
-    if (name.toLowerCase().includes('centro')) return 'Centro';
-    if (name.toLowerCase().includes('escola')) return 'Escola';
-    if (name.toLowerCase().includes('fundação')) return 'Fundação';
-    return 'Organização';
-  };
-
-  // Gera descrição baseada no nome
-  const getDescription = (name: string) => {
-    if (name.toLowerCase().includes('curso')) {
-      return 'Capacitação profissional • Certificado incluso';
+  // Retorna o caminho da imagem de perfil ou o ícone padrão
+  const getProfileImage = () => {
+    // Se houver uma foto de perfil, retorna a imagem
+    if (institution.foto_perfil) {
+      return (
+        <>
+          <img 
+            src={institution.foto_perfil} 
+            alt={institution.nome}
+            className="card-logo-img"
+            onError={(e) => {
+              // Se houver erro ao carregar a imagem, mostra o ícone padrão
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const icon = target.nextSibling as HTMLElement;
+              if (icon) icon.style.display = 'flex';
+            }}
+          />
+          <div className="default-institution-icon">
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            </svg>
+          </div>
+        </>
+      );
     }
-    return 'Organização social • Atividades comunitárias';
+    
+    // Ícone padrão (mais minimalista)
+    return (
+      <div className="default-institution-icon">
+        <svg 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        </svg>
+      </div>
+    );
+  };
+
+  // Obtém as categorias da instituição a partir de tipos_instituicao
+  const getCategories = () => {
+    if (!institution.tipos_instituicao || institution.tipos_instituicao.length === 0) {
+      return 'Organização';
+    }
+    
+    // Verifica se é um array de números (IDs) ou de objetos TipoInstituicao
+    if (typeof institution.tipos_instituicao[0] === 'number') {
+      // Se for array de números, retorna um texto genérico
+      return 'Organização';
+    } else {
+      // Se for array de TipoInstituicao, mapeia os nomes
+      const tipos = institution.tipos_instituicao as TipoInstituicao[];
+      return tipos.map(tipo => tipo.nome).join(' • ');
+    }
   };
 
   return (
@@ -58,14 +97,13 @@ const SearchResultOption = ({ institution, onClick, isSelected }: SearchResultOp
       onClick={onClick}
     >
       <div className="card-logo-block">
-        <span className="card-icon">{getIcon(institution.nome)}</span>
+        {getProfileImage()}
       </div>
       <div className="card-main-content">
         <div className="card-header">
           <span className="card-name-full">{institution.nome}</span>
-          <span className="card-category">{getCategory(institution.nome)}</span>
+          <span className="card-category">{getCategories()}</span>
         </div>
-        <span className="card-description">{getDescription(institution.nome)}</span>
         <span className="card-location">📍 {institution.endereco?.bairro}, São Paulo</span>
       </div>
     </div>
@@ -106,12 +144,94 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
 
-
+  // Fetch all institutions when component mounts
   useEffect(() => {
-    const fetchInstitutions = async () => {
+    const fetchAllInstitutions = async () => {
+      setLoading(true);
+      try {
+        const { institutionService } = await import('../services/institutionService');
+        const response = await fetch(`${API_BASE_URL}/instituicoes`);
+        
+        if (!response.ok) {
+          throw new Error('Erro ao carregar instituições');
+        }
+        
+        const data = await response.json();
+        
+        if (data.status && data.instituicoes) {
+          const formattedInstitutions = data.instituicoes.map((inst: any) => ({
+            id: inst.instituicao_id,
+            instituicao_id: inst.instituicao_id,
+            nome: inst.nome,
+            email: inst.email,
+            foto_perfil: inst.foto_perfil || null,
+            cnpj: inst.cnpj || '',
+            telefone: inst.telefone || '',
+            descricao: inst.descricao || '',
+            endereco: {
+              id: inst.endereco?.id || 0,
+              cep: inst.endereco?.cep || '',
+              logradouro: inst.endereco?.logradouro || '',
+              numero: inst.endereco?.numero || '',
+              complemento: inst.endereco?.complemento || '',
+              bairro: inst.endereco?.bairro || '',
+              cidade: inst.endereco?.cidade || '',
+              estado: inst.endereco?.estado || '',
+              latitude: inst.endereco?.latitude || 0,
+              longitude: inst.endereco?.longitude || 0
+            },
+            tipos_instituicao: inst.tipos_instituicao || []
+          }));
+          
+          setInstitutions(formattedInstitutions);
+          setDataSource('api');
+        }
+      } catch (err) {
+        console.error('Erro ao carregar instituições:', err);
+        setError('Não foi possível carregar as instituições. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllInstitutions();
+  }, []);
+
+  // Search functionality
+  useEffect(() => {
+    const searchInstitutions = async () => {
       if (!debouncedSearchTerm.trim()) {
-        setInstitutions([]);
-        setError(null);
+        // If search is empty, show all institutions
+        const response = await fetch(`${API_BASE_URL}/instituicoes`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.status && data.instituicoes) {
+            const formattedInstitutions = data.instituicoes.map((inst: any) => ({
+              id: inst.instituicao_id,
+              instituicao_id: inst.instituicao_id,
+              nome: inst.nome,
+              email: inst.email,
+              foto_perfil: inst.foto_perfil || null,
+              cnpj: inst.cnpj || '',
+              telefone: inst.telefone || '',
+              descricao: inst.descricao || '',
+              endereco: {
+                id: inst.endereco?.id || 0,
+                cep: inst.endereco?.cep || '',
+                logradouro: inst.endereco?.logradouro || '',
+                numero: inst.endereco?.numero || '',
+                complemento: inst.endereco?.complemento || '',
+                bairro: inst.endereco?.bairro || '',
+                cidade: inst.endereco?.cidade || '',
+                estado: inst.endereco?.estado || '',
+                latitude: inst.endereco?.latitude || 0,
+                longitude: inst.endereco?.longitude || 0
+              },
+              tipos_instituicao: inst.tipos_instituicao || []
+            }));
+            setInstitutions(formattedInstitutions);
+          }
+        }
         return;
       }
 
@@ -119,35 +239,51 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       setError(null);
 
       try {
-        // Primeiro tenta a API real
-        const { institutionService } = await import('../services/institutionService');
-        const data = await institutionService.search(debouncedSearchTerm);
+        const response = await fetch(`${API_BASE_URL}/instituicoes?nome=${encodeURIComponent(debouncedSearchTerm)}`);
         
-        if (data.status && data.data && data.data.length > 0) {
-          setInstitutions(data.data.map(normalizeInstituicao));
-          setDataSource('api');
-          console.log('✅ Dados carregados da API:', data.data.length, 'instituições');
-        } else {
-          // Fallback: busca local (inclui busca por endereço/CEP)
-          const { populateService } = await import('../services/populateInstitutions');
-          const localResults = populateService.searchLocal(debouncedSearchTerm);
-          setInstitutions(localResults);
-          setDataSource('local');
-          console.log('📁 Dados carregados localmente:', localResults.length, 'instituições');
+        if (!response.ok) {
+          throw new Error('Erro ao buscar instituições');
         }
-      } catch (err: any) {
-        console.warn('❌ API falhou, usando dados locais:', err.message);
-        const { populateService } = await import('../services/populateInstitutions');
-        const localResults = populateService.searchLocal(debouncedSearchTerm);
-        setInstitutions(localResults);
-        setDataSource('local');
-        console.log('📁 Fallback: dados carregados localmente:', localResults.length, 'instituições');
+        
+        const data = await response.json();
+        
+        if (data.status && data.instituicoes) {
+          const formattedInstitutions = data.instituicoes.map((inst: any) => ({
+            id: inst.instituicao_id,
+            instituicao_id: inst.instituicao_id,
+            nome: inst.nome,
+            email: inst.email,
+            foto_perfil: inst.foto_perfil || null,
+            cnpj: inst.cnpj || '',
+            telefone: inst.telefone || '',
+            descricao: inst.descricao || '',
+            endereco: {
+              id: inst.endereco?.id || 0,
+              cep: inst.endereco?.cep || '',
+              logradouro: inst.endereco?.logradouro || '',
+              numero: inst.endereco?.numero || '',
+              complemento: inst.endereco?.complemento || '',
+              bairro: inst.endereco?.bairro || '',
+              cidade: inst.endereco?.cidade || '',
+              estado: inst.endereco?.estado || '',
+              latitude: inst.endereco?.latitude || 0,
+              longitude: inst.endereco?.longitude || 0
+            },
+            tipos_instituicao: inst.tipos_instituicao || []
+          }));
+          
+          setInstitutions(formattedInstitutions);
+          setDataSource('api');
+        }
+      } catch (err) {
+        console.error('Erro na busca:', err);
+        setError('Não foi possível realizar a busca. Tente novamente.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInstitutions();
+    searchInstitutions();
   }, [debouncedSearchTerm]);
 
   const handleInstitutionClick = (institution: Instituicao) => {
@@ -407,15 +543,6 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           <div className="search-results-dropdown">
             {loading && <div className="dropdown-message">Buscando instituições...</div>}
             {error && <div className="dropdown-message error">{error}</div>}
-            {!loading && !error && institutions.length > 0 && (
-              <div className="data-source-indicator">
-                {dataSource === 'api' ? (
-                  <span className="source-badge api">🌐 API</span>
-                ) : (
-                  <span className="source-badge local">📁 Local</span>
-                )}
-              </div>
-            )}
             {!loading && !error && institutions.map(inst => (
               <SearchResultOption
                 key={inst.instituicao_id || inst.id}

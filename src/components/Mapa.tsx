@@ -7,6 +7,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "leaflet.markercluster";
 import { Instituicao } from "@/types";
+import { geocodeAddress } from "@/services/Instituicoes";
 import styles from "../app/styles/Mapa.module.css"
 
 // Ícone personalizado de pin de localização profissional
@@ -67,22 +68,40 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
     const markersLayer = markersLayerRef.current!;
     markersLayer.clearLayers();
 
-    if (
-      highlightedInstitution &&
-      highlightedInstitution.endereco &&
-      highlightedInstitution.endereco.latitude !== undefined &&
-      highlightedInstitution.endereco.longitude !== undefined
-    ) {
-      const { latitude, longitude } = highlightedInstitution.endereco;
+    const updateMapWithInstitution = async () => {
+      if (!highlightedInstitution) return;
 
-      const marker = L.marker([latitude, longitude], { icon: customIcon }).bindPopup(
-        `<strong>${highlightedInstitution.nome}</strong><br>${highlightedInstitution.descricao || ""}`
+      try {
+        // Tenta usar as coordenadas existentes primeiro
+        if (
+          highlightedInstitution.endereco?.latitude && 
+          highlightedInstitution.endereco?.longitude
+        ) {
+          const { latitude, longitude } = highlightedInstitution.endereco;
+          addMarkerToMap(highlightedInstitution, latitude, longitude);
+          map.setView([latitude, longitude], 15);
+        } else {
+          // Se não tiver coordenadas, faz a geocodificação
+          const coords = await geocodeAddress(highlightedInstitution);
+          if (coords) {
+            addMarkerToMap(highlightedInstitution, coords.lat, coords.lng);
+            map.setView([coords.lat, coords.lng], 15);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar o mapa com a instituição:', error);
+      }
+    };
+
+    const addMarkerToMap = (institution: Instituicao, lat: number, lng: number) => {
+      const marker = L.marker([lat, lng], { icon: customIcon }).bindPopup(
+        `<strong>${institution.nome}</strong><br>${institution.descricao || ""}`
       );
-
       markersLayer.addLayer(marker);
+    };
 
-      map.setView([latitude, longitude], 15);
-    }
+    updateMapWithInstitution();
+
   }, [highlightedInstitution]);
 
   return <div ref={mapRef} style={{ width: "100%", height: "100%", minHeight: "500px" }} />;

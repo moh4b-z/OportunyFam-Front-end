@@ -145,26 +145,37 @@ export const institutionService = {
     }
   },
 
-  async getAll() {
+  async getAllInstitutions() {
     try {
-      const response = await fetch(`${API_BASE_URL}/instituicoes`)
+      const response = await fetch(`${API_BASE_URL}/instituicoes`);
       
       if (!response.ok) {
-        throw new Error(`Erro na requisição: ${response.status}`)
+        throw new Error('Erro ao buscar instituições');
       }
       
-      const data = await response.json()
+      const data = await response.json();
       
-      if (data.status && Array.isArray(data.instituicoes)) {
-        return data.instituicoes
+      if (data.status && data.instituicoes) {
+        return {
+          status: true,
+          data: data.instituicoes.map((inst: any) => ({
+            id: inst.instituicao_id,
+            nome: inst.nome,
+            descricao: inst.descricao || 'Sem descrição',
+            endereco: inst.endereco ? `${inst.endereco.logradouro}, ${inst.endereco.numero} - ${inst.endereco.bairro}, ${inst.endereco.cidade} - ${inst.endereco.estado}` : 'Endereço não disponível',
+            tipos_instituicao: inst.tipos_instituicao || [],
+            foto_perfil: inst.foto_perfil || '/default-institution.png',
+            email: inst.email,
+            telefone: inst.telefone,
+            enderecoCompleto: inst.endereco
+          }))
+        };
       }
       
-      throw new Error('Formato de resposta inesperado da API')
-      
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
-      console.error('Erro ao buscar todas as instituições:', errorMessage)
-      throw error
+      return { status: false, data: [] };
+    } catch (error) {
+      console.error('Erro ao buscar instituições:', error);
+      return { status: false, data: [], error: error instanceof Error ? error.message : 'Erro desconhecido' };
     }
   },
 

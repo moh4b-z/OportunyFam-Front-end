@@ -84,23 +84,55 @@ export function normalizeInstituicao(inst: any): Instituicao {
 }
 
 // Função para geocodificar endereço usando API externa
-export async function geocodeAddress(endereco: string): Promise<{ lat: number; lng: number } | null> {
+export async function geocodeAddress(instituicao: any): Promise<{ lat: number; lng: number } | null> {
   try {
+    // Construir o endereço completo
+    const endereco = [
+      instituicao.endereco?.logradouro,
+      instituicao.endereco?.numero,
+      instituicao.endereco?.bairro,
+      instituicao.endereco?.cidade,
+      'São Paulo',
+      'Brasil',
+      instituicao.endereco?.cep
+    ].filter(Boolean).join(', ');
+
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}&limit=1`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}&limit=1&countrycodes=br&addressdetails=1`
     );
+    
+    if (!response.ok) {
+      throw new Error(`Erro na requisição: ${response.status}`);
+    }
+
     const data = await response.json();
     
     if (data && data.length > 0) {
+      // Verificar a qualidade do resultado
+      const result = data[0];
+      console.log('Resultado da geocodificação:', {
+        endereco,
+        resultado: result.display_name,
+        importancia: result.importance,
+        tipo: result.type
+      });
+
       return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon)
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon)
       };
     }
+    
+    console.warn('Nenhum resultado encontrado para o endereço:', endereco);
     return null;
+    
   } catch (error) {
     console.error('Erro ao geocodificar endereço:', error);
-    return null;
+    // Retornar uma localização padrão em São Paulo em caso de erro
+    return {
+      lat: -23.5505,  // Latitude de São Paulo
+      lng: -46.6333   // Longitude de São Paulo
+    };
   }
 }
 

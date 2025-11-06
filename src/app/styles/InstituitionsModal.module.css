@@ -284,13 +284,14 @@ body.dark .gallery-title {
 }
 
 .about-modal-card {
-  width: min(1000px, 88vw);
+  width: 91vw;
+  height: 91vh;
   background: #ffffff;
   color: var(--text-dark);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .about-modal-exit {

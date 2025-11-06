@@ -30,7 +30,7 @@ export default function InstitutionDetailModal({ onClose }: InstitutionDetailMod
     <>
       {/* Modal principal da Instituição */}
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" style={{zIndex: 8500}}>
-        <div className="bg-white p-6 rounded-2xl w-[600px] shadow-xl relative">
+        <div className="bg-white p-6 rounded-2xl w-[91vw] h-[91vh] shadow-xl relative overflow-y-auto">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-500 hover:text-orange-500"

@@ -169,9 +169,45 @@ body.dark .card-subtitle {
   border: none;
   max-height: 89vh;
   overflow-y: auto;
-  padding: 16px 0;
+  padding: 50px 0 16px 0;
   backdrop-filter: blur(10px);
   animation: dropdownFadeIn 0.2s ease-out;
+}
+
+
+
+.search-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.search-modal-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+  transform: scale(1.1);
+}
+
+body.dark .search-modal-close {
+  color: var(--text-secondary-dark);
+}
+
+body.dark .search-modal-close:hover {
+  background: var(--hover-bg-dark);
+  color: var(--text-dark-theme);
 }
 
 @keyframes dropdownFadeIn {

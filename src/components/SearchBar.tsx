@@ -102,6 +102,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [locationFilter, setLocationFilter] = useState<string>('todas');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
+
   const useDebounce = (value: string, delay: number) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
     useEffect(() => {
@@ -392,6 +393,16 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         </div>
         {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas') && (
           <div className="search-results-dropdown">
+            <button 
+              className="search-modal-close"
+              onClick={() => {
+                setSearchFocused(false);
+                setSearchTerm("");
+                setInstitutions([]);
+              }}
+            >
+              ✕
+            </button>
             {loading && <div className="dropdown-message">Buscando instituições...</div>}
             {error && <div className="dropdown-message error">{error}</div>}
 

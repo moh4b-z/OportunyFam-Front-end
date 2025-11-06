@@ -59,6 +59,13 @@ export default function HomePage() {
 
 
   const handleProfileMenuClick = (action: string): void => {
+    // Fecha dropdown de localização se estiver aberto
+    const searchBarComponent = document.querySelector('.search-and-chips');
+    if (searchBarComponent) {
+      const event = new CustomEvent('closeLocationDropdown');
+      searchBarComponent.dispatchEvent(event);
+    }
+    
     // Aqui você pode implementar as ações do menu do perfil
     switch (action) {
       case 'profile':

@@ -130,8 +130,17 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       }
     };
 
+    const handleCloseLocationDropdown = () => {
+      setShowLocationDropdown(false);
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('closeLocationDropdown', handleCloseLocationDropdown);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('closeLocationDropdown', handleCloseLocationDropdown);
+    };
   }, []);
 
   useEffect(() => {

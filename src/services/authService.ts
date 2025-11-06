@@ -1,10 +1,10 @@
-import { LoginData } from '@/types'
+import { LoginRequest } from '@/types'
 import { API_BASE_URL } from './config'
 
 // Serviços de Autenticação
 export const authService = {
-  async login(data: LoginData) {
-    const { email, password } = data
+  async login(data: LoginRequest) {
+    const { email, senha: password } = data
 
     if (!email || !password) {
       throw new Error('Email e senha são obrigatórios')

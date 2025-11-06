@@ -179,14 +179,23 @@ export interface Instituicao {
     email: string
     foto_perfil?: string | null
     cnpj?: string | null
+    telefone?: string | null
     descricao?: string | null
     criado_em?: string | null
     atualizado_em?: string | null
     endereco?: Endereco | null
-    tipos_instituicao?: TipoInstituicao[]
+    tipos_instituicao?: TipoInstituicao[] | number[]
     publicacoes?: PublicacaoInstituicao[]
     conversas?: any[]
     atividades?: AtividadeResumo[]
+    // Campos que podem vir diretamente da API
+    cep?: string
+    logradouro?: string
+    numero?: string
+    complemento?: string
+    bairro?: string
+    cidade?: string
+    estado?: string
 }
 
 export interface InstituicaoRequest {

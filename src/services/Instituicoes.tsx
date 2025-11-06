@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-import { GetInstituicoesResponse } from "../types";
+import { PaginatedResponse, Instituicao } from "../types";
 
 export type FetchInstituicoesParams = {
   nome?: string;
@@ -9,10 +9,9 @@ export type FetchInstituicoesParams = {
 
 export async function InstituicoesByName(
   { nome, pagina = 1, tamanho = 20 }: FetchInstituicoesParams = {}
-): Promise<GetInstituicoesResponse> {
+): Promise<PaginatedResponse<Instituicao>> {
   const params = new URLSearchParams();
 
-  // Inclui o nome mesmo que seja string vazia, caso o backend interprete isso como "sem filtro"
   if (nome !== undefined) {
     params.set("nome", nome);
   }
@@ -47,6 +46,61 @@ export async function InstituicoesByName(
       ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
       : (err?.message || 'Erro ao buscar instituições.')
     throw new Error(msg)
+  }
+}
+
+// Nova função para buscar instituição específica por nome
+export async function getInstituicaoByName(nome: string): Promise<Instituicao | null> {
+  try {
+    const response = await InstituicoesByName({ nome, tamanho: 1 });
+    if (response.status && response.data && response.data.length > 0) {
+      return response.data[0];
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao buscar instituição:', error);
+    return null;
+  }
+}
+
+// Função para normalizar dados da instituição
+export function normalizeInstituicao(inst: any): Instituicao {
+  // Se os dados de endereço estão no nível raiz, move para o objeto endereco
+  if (!inst.endereco && (inst.cep || inst.logradouro)) {
+    inst.endereco = {
+      cep: inst.cep,
+      logradouro: inst.logradouro,
+      numero: inst.numero,
+      complemento: inst.complemento,
+      bairro: inst.bairro,
+      cidade: inst.cidade,
+      estado: inst.estado,
+      latitude: inst.latitude,
+      longitude: inst.longitude
+    };
+  }
+  
+  return inst as Instituicao;
+}
+
+// Função para geocodificar endereço usando API externa
+export async function geocodeAddress(endereco: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}&limit=1`
+    );
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon)
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao geocodificar endereço:', error);
+    return null;
   }
 }
 

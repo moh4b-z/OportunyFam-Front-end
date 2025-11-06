@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true)
       
       // Chama o serviço de autenticação real
-      const response = await authService.login({ email, password })
+      const response = await authService.login({ email, senha: password })
       
       // Verifica se a resposta tem os dados esperados
       if (!response) {

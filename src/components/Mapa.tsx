@@ -9,6 +9,36 @@ import "leaflet.markercluster";
 import { Instituicao } from "@/types";
 import styles from "../app/styles/Mapa.module.css"
 
+// Ícone personalizado de pin de localização profissional
+const customIcon = L.divIcon({
+  html: `
+    <div class="marker-container">
+      <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#FF5252;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#D32F2F;stop-opacity:1" />
+          </linearGradient>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+          </filter>
+        </defs>
+        <path d="M18 0C8.059 0 0 8.059 0 18C0 28.5 18 48 18 48S36 28.5 36 18C36 8.059 27.941 0 18 0Z" 
+              fill="url(#pinGradient)" 
+              stroke="#FFFFFF" 
+              stroke-width="2" 
+              filter="url(#shadow)"/>
+        <circle cx="18" cy="18" r="8" fill="#FFFFFF" opacity="0.9"/>
+        <circle cx="18" cy="18" r="4" fill="url(#pinGradient)"/>
+      </svg>
+    </div>
+  `,
+  className: 'custom-marker-icon',
+  iconSize: [36, 48],
+  iconAnchor: [18, 48],
+  popupAnchor: [0, -48]
+});
+
 interface MapaProps {
   highlightedInstitution?: Instituicao | null;
 }
@@ -39,12 +69,13 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
 
     if (
       highlightedInstitution &&
-      highlightedInstitution.latitude !== undefined &&
-      highlightedInstitution.longitude !== undefined
+      highlightedInstitution.endereco &&
+      highlightedInstitution.endereco.latitude !== undefined &&
+      highlightedInstitution.endereco.longitude !== undefined
     ) {
-      const { latitude, longitude } = highlightedInstitution;
+      const { latitude, longitude } = highlightedInstitution.endereco;
 
-      const marker = L.marker([latitude, longitude]).bindPopup(
+      const marker = L.marker([latitude, longitude], { icon: customIcon }).bindPopup(
         `<strong>${highlightedInstitution.nome}</strong><br>${highlightedInstitution.descricao || ""}`
       );
 

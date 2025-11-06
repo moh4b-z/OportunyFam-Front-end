@@ -1,9 +1,9 @@
-import { ResponsibleData } from '@/types'
+import { UsuarioRequest } from '@/types'
 import { API_BASE_URL } from './config'
 
 // Serviços de Usuários
 export const userService = {
-  async register(data: ResponsibleData) {
+  async register(data: UsuarioRequest) {
     const {
       nome,
       foto_perfil,

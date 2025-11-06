@@ -1,0 +1,1 @@
+// Script removido - usar Postman manual

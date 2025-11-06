@@ -6,8 +6,11 @@ import { geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
 import { logApiResponse, logInstitutionData, logGeocoding } from "@/services/debug";
 import { searchMockInstitutions } from "@/services/mockData";
 import CategoryChips, { Category } from "./shared/CategoryChips";
+import ProfessionalLoader from "./shared/ProfessionalLoader";
+import EmptyState from "./shared/EmptyState";
 import "../app/styles/SearchCard.css";
 import "../app/styles/SearchModal.css";
+import "../app/styles/SearchModals.css";
 
 interface SearchBarProps {
   onInstitutionSelect: (institution: Instituicao) => void;
@@ -354,10 +357,6 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           <button 
             className="location-filter-btn"
             onClick={() => {
-              // Se o modal de instituições estiver aberto, fecha ele primeiro
-              if (searchFocused) {
-                setSearchFocused(false);
-              }
               setShowLocationDropdown(!showLocationDropdown);
             }}
           >
@@ -391,10 +390,22 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             </div>
           )}
         </div>
-        {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas') && (
-          <div className="search-results-dropdown">
+        {loading && (
+          <div className="search-status-modal">
+            <ProfessionalLoader message="Buscando instituições..." size="small" />
+          </div>
+        )}
+        
+        {!loading && searchTerm && institutions.length === 0 && (
+          <div className="search-status-modal">
+            <EmptyState message="Nenhuma instituição encontrada" icon="🏢" />
+          </div>
+        )}
+        
+        {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas') && institutions.length > 0 && (
+          <div className="search-results-modal">
             <button 
-              className="search-modal-close"
+              className="modal-close-btn"
               onClick={() => {
                 setSearchFocused(false);
                 setSearchTerm("");
@@ -403,20 +414,17 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             >
               ✕
             </button>
-            {loading && <div className="dropdown-message">Buscando instituições...</div>}
-            {error && <div className="dropdown-message error">{error}</div>}
-
-            {!loading && !error && institutions.map(inst => (
-              <SearchResultOption
-                key={inst.instituicao_id || inst.id}
-                institution={inst}
-                isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
-                onClick={() => handleInstitutionClick(inst)}
-              />
-            ))}
-            {!loading && !error && searchTerm && institutions.length === 0 && (
-              <div className="dropdown-message">Nenhuma instituição encontrada</div>
-            )}
+            
+            <div className="results-container">
+              {institutions.map(inst => (
+                <SearchResultOption
+                  key={inst.instituicao_id || inst.id}
+                  institution={inst}
+                  isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
+                  onClick={() => handleInstitutionClick(inst)}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>

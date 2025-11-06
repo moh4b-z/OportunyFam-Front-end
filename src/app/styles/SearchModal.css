@@ -108,7 +108,7 @@ body.dark .search-modal-content {
   justify-content: flex-end;
 }
 
-/* Dropdown de localização com z-index menor que o modal de conta */
+/* Dropdown de localização com z-index maior que o modal de instituições */
 .location-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -117,18 +117,18 @@ body.dark .search-modal-content {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  z-index: 1000;
+  z-index: 1100;
   padding: 8px 0;
   animation: dropdownFadeIn 0.2s ease-out;
 }
 
 .location-filter {
   position: relative;
-  z-index: 1000;
+  z-index: 1100;
 }
 
 .location-filter-btn {
-  z-index: 1000;
+  z-index: 1100;
 }
 
 body.dark .location-dropdown {

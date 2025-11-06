@@ -163,14 +163,9 @@ body.dark .card-subtitle {
   width: calc(100% + 40px);
   min-width: 520px;
   z-index: 999;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  border: none;
   max-height: 89vh;
   overflow-y: auto;
-  padding: 50px 0 16px 0;
-  backdrop-filter: blur(10px);
+  padding: 16px 0;
   animation: dropdownFadeIn 0.2s ease-out;
 }
 
@@ -221,11 +216,7 @@ body.dark .search-modal-close:hover {
   }
 }
 
-body.dark .search-results-dropdown {
-  background: var(--bg-card-dark);
-  border-color: var(--border-dark);
-  box-shadow: 0 8px 25px var(--shadow-dark);
-}
+
 
 /*
  * ===============================================

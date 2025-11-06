@@ -1,0 +1,95 @@
+/* Modal compacto para status (loading e empty state) */
+.search-status-modal {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 8px 12px;
+  z-index: 1000;
+  min-width: 180px;
+  backdrop-filter: blur(10px);
+}
+
+/* Modal principal para resultados */
+.search-results-modal {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  max-height: 70vh;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+/* Botão X para fechar */
+.modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f8f9fa;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 14px;
+  z-index: 1001;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: var(--orange);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Container dos resultados com scroll */
+.results-container {
+  padding: 50px 16px 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.results-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.results-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+  background: var(--orange);
+  border-radius: 3px;
+}
+
+/* Tema escuro */
+body.dark .search-status-modal,
+body.dark .search-results-modal {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .modal-close-btn {
+  background: var(--bg-dark);
+  color: var(--text-dark-theme);
+}
+
+body.dark .modal-close-btn:hover {
+  background: var(--orange);
+  color: white;
+}

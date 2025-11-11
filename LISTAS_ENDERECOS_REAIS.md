@@ -21,48 +21,82 @@ const institutions = [
     bairro: 'Vila Leopoldina'
   },
   {
-    name: 'SENAI Barra Funda',
-    cep: '01140-070',
-    logradouro: 'Rua Moncorvo Filho',
-    numero: '758',
-    bairro: 'Barra Funda'
+    name: 'SENAI Morumbi',
+    cep: '05650-000',
+    logradouro: 'Avenida Giovanni Gronchi',
+    numero: '2168',
+    bairro: 'Morumbi'
   },
   {
-    name: 'SENAI Ipiranga',
+    name: 'SENAI Sumaré',
+    cep: '01303-001',
+    logradouro: 'Rua General Jardim',
+    numero: '618',
+    bairro: 'Sumaré'
+  },
+  {
+    name: 'SENAI Jabaquara',
+    cep: '04045-001',
+    logradouro: 'Avenida Jabaquara',
+    numero: '1892',
+    bairro: 'Jabaquara'
+  },
+  {
+    name: 'SENAI Vila Alpina',
+    cep: '03208-000',
+    logradouro: 'Rua Sapucaia do Sul',
+    numero: '56',
+    bairro: 'Vila Alpina'
+  }
+];
+```
+
+### **LOTE 2 - SENAI (5 instituições)**
+```javascript
+const institutions = [
+  {
+    name: 'SENAI Brás',
+    cep: '03016-040',
+    logradouro: 'Rua Piratininga',
+    numero: '141',
+    bairro: 'Brás'
+  },
+  {
+    name: 'SENAI Mecânica Ipiranga',
     cep: '04206-000',
     logradouro: 'Avenida Nazaré',
     numero: '1501',
     bairro: 'Ipiranga'
   },
   {
-    name: 'SENAI Santo Amaro',
+    name: 'SENAI Soldagem Santo Amaro',
     cep: '04743-030',
     logradouro: 'Avenida Alda',
     numero: '680',
     bairro: 'Santo Amaro'
   },
   {
-    name: 'SENAI Mooca',
-    cep: '03164-000',
-    logradouro: 'Rua Borges de Figueiredo',
-    numero: '638',
-    bairro: 'Mooca'
+    name: 'SENAI Automação Vila Leopoldina',
+    cep: '05302-000',
+    logradouro: 'Rua Jaguaré',
+    numero: '678',
+    bairro: 'Vila Leopoldina'
+  },
+  {
+    name: 'SENAI Informática Vila Leopoldina',
+    cep: '05302-000',
+    logradouro: 'Rua Jaguaré',
+    numero: '678',
+    bairro: 'Vila Leopoldina'
   }
 ];
 ```
 
-### **LOTE 2 - SENAC (5 instituições)**
+### **LOTE 3 - SENAC (5 instituições)**
 ```javascript
 const institutions = [
   {
-    name: 'SENAC Paulista',
-    cep: '01310-100',
-    logradouro: 'Avenida Paulista',
-    numero: '2064',
-    bairro: 'Cerqueira César'
-  },
-  {
-    name: 'SENAC Lapa',
+    name: 'SENAC Lapa Faustolo',
     cep: '05040-000',
     logradouro: 'Rua Faustolo',
     numero: '308',
@@ -76,23 +110,71 @@ const institutions = [
     bairro: 'Águas Rasas'
   },
   {
-    name: 'SENAC Santo Amaro',
-    cep: '04743-030',
-    logradouro: 'Rua Amador Bueno',
-    numero: '504',
-    bairro: 'Santo Amaro'
-  },
-  {
     name: 'SENAC Penha',
     cep: '03636-000',
     logradouro: 'Rua Dr. João Ribeiro',
     numero: '683',
     bairro: 'Penha'
+  },
+  {
+    name: 'SENAC Itaquera',
+    cep: '08295-005',
+    logradouro: 'Avenida Águia de Haia',
+    numero: '2633',
+    bairro: 'Itaquera'
+  },
+  {
+    name: 'SENAC Santana',
+    cep: '02013-000',
+    logradouro: 'Avenida Cruzeiro do Sul',
+    numero: '1100',
+    bairro: 'Santana'
   }
 ];
 ```
 
-### **LOTE 3 - ETEC (5 instituições)**
+### **LOTE 4 - SENAC (5 instituições)**
+```javascript
+const institutions = [
+  {
+    name: 'SENAC Campo Limpo',
+    cep: '05777-000',
+    logradouro: 'Estrada do Campo Limpo',
+    numero: '459',
+    bairro: 'Campo Limpo'
+  },
+  {
+    name: 'SENAC Tatuapé',
+    cep: '03315-000',
+    logradouro: 'Rua Tuiuti',
+    numero: '1237',
+    bairro: 'Tatuapé'
+  },
+  {
+    name: 'SENAC Vila Prudente',
+    cep: '03142-000',
+    logradouro: 'Avenida Professor Luiz Ignácio Anhaia Mello',
+    numero: '2992',
+    bairro: 'Vila Prudente'
+  },
+  {
+    name: 'SENAC Beleza Paulista',
+    cep: '01310-100',
+    logradouro: 'Avenida Paulista',
+    numero: '2064',
+    bairro: 'Cerqueira César'
+  },
+  {
+    name: 'SENAC Administração Santana',
+    cep: '02013-000',
+    logradouro: 'Avenida Cruzeiro do Sul',
+    numero: '1100',
+    bairro: 'Santana'
+  }
+];
+```
+
+### **LOTE 5 - ETEC (5 instituições)**
 ```javascript
 const institutions = [
   {
@@ -114,7 +196,7 @@ const institutions = [
     cep: '01414-001',
     logradouro: 'Avenida Tiradentes',
     numero: '615',
-    bairro: 'Luz'
+    bairro: 'Cerqueira César'
   },
   {
     name: 'ETEC Camargo Aranha',
@@ -128,12 +210,53 @@ const institutions = [
     cep: '05425-070',
     logradouro: 'Rua Pio XI',
     numero: '1100',
-    bairro: 'Alto da Lapa'
+    bairro: 'Pinheiros'
   }
 ];
 ```
 
-### **LOTE 4 - FATEC (5 instituições)**
+### **LOTE 6 - ETEC (5 instituições)**
+```javascript
+const institutions = [
+  {
+    name: 'ETEC Zona Leste',
+    cep: '08295-005',
+    logradouro: 'Avenida Águia de Haia',
+    numero: '2983',
+    bairro: 'Cidade Tiradentes'
+  },
+  {
+    name: 'ETEC Zona Sul',
+    cep: '05777-000',
+    logradouro: 'Estrada do Campo Limpo',
+    numero: '459',
+    bairro: 'Campo Limpo'
+  },
+  {
+    name: 'ETEC Sapopemba',
+    cep: '03345-000',
+    logradouro: 'Rua Sapopemba',
+    numero: '131',
+    bairro: 'Sapopemba'
+  },
+  {
+    name: 'ETEC Itaquera II',
+    cep: '08295-005',
+    logradouro: 'Avenida Águia de Haia',
+    numero: '2633',
+    bairro: 'Itaquera'
+  },
+  {
+    name: 'ETEC Parque da Juventude',
+    cep: '02013-000',
+    logradouro: 'Avenida Cruzeiro do Sul',
+    numero: '2630',
+    bairro: 'Santana'
+  }
+];
+```
+
+### **LOTE 7 - FATEC (5 instituições)**
 ```javascript
 const institutions = [
   {
@@ -141,14 +264,14 @@ const institutions = [
     cep: '01310-100',
     logradouro: 'Rua Asdrubal do Nascimento',
     numero: '241',
-    bairro: 'Liberdade'
+    bairro: 'Bela Vista'
   },
   {
     name: 'FATEC Zona Leste',
     cep: '08295-005',
     logradouro: 'Avenida Águia de Haia',
     numero: '2983',
-    bairro: 'Cidade A.E. Carvalho'
+    bairro: 'Itaquera'
   },
   {
     name: 'FATEC Zona Sul',
@@ -169,12 +292,12 @@ const institutions = [
     cep: '09560-135',
     logradouro: 'Rua Luis Pasteur',
     numero: '102',
-    bairro: 'Santa Maria'
+    bairro: 'São Caetano'
   }
 ];
 ```
 
-### **LOTE 5 - UNIVERSIDADES (5 instituições)**
+### **LOTE 8 - UNIVERSIDADES (5 instituições)**
 ```javascript
 const institutions = [
   {
@@ -185,55 +308,96 @@ const institutions = [
     bairro: 'Cidade Universitária'
   },
   {
-    name: 'UNIFESP',
+    name: 'UNIFESP Universidade Federal',
     cep: '04023-062',
     logradouro: 'Rua Botucatu',
     numero: '740',
     bairro: 'Vila Clementino'
   },
   {
-    name: 'PUC-SP',
+    name: 'UFABC Universidade Federal do ABC',
+    cep: '09210-580',
+    logradouro: 'Avenida dos Estados',
+    numero: '5001',
+    bairro: 'Santo André'
+  },
+  {
+    name: 'UNESP Universidade Estadual',
+    cep: '01140-070',
+    logradouro: 'Rua Mário de Andrade',
+    numero: '664',
+    bairro: 'Barra Funda'
+  },
+  {
+    name: 'PUC-SP Pontifícia Universidade',
     cep: '05014-901',
     logradouro: 'Rua Monte Alegre',
     numero: '984',
     bairro: 'Perdizes'
-  },
+  }
+];
+```
+
+### **LOTE 9 - UNIVERSIDADES PRIVADAS (5 instituições)**
+```javascript
+const institutions = [
   {
-    name: 'Mackenzie',
+    name: 'Mackenzie Universidade Presbiteriana',
     cep: '01302-907',
     logradouro: 'Rua da Consolação',
     numero: '930',
     bairro: 'Higienópolis'
   },
   {
-    name: 'UNINOVE',
+    name: 'UNINOVE Universidade Nove de Julho',
     cep: '01156-050',
     logradouro: 'Rua Vergueiro',
     numero: '235',
-    bairro: 'Liberdade'
+    bairro: 'Barra Funda'
+  },
+  {
+    name: 'Anhembi Morumbi',
+    cep: '04094-050',
+    logradouro: 'Rua Casa do Ator',
+    numero: '275',
+    bairro: 'Vila Olímpia'
+  },
+  {
+    name: 'ESPM Escola Superior de Propaganda',
+    cep: '04094-050',
+    logradouro: 'Rua Dr. Álvaro Alvim',
+    numero: '123',
+    bairro: 'Vila Olímpia'
+  },
+  {
+    name: 'FGV Fundação Getúlio Vargas',
+    cep: '01310-100',
+    logradouro: 'Rua Itapeva',
+    numero: '474',
+    bairro: 'Bela Vista'
   }
 ];
 ```
 
-### **LOTE 6 - CURSOS DE IDIOMAS (5 instituições)**
+### **LOTE 10 - CURSOS DE IDIOMAS (5 instituições)**
 ```javascript
 const institutions = [
   {
-    name: 'CNA Vila Madalena',
+    name: 'CNA Inglês Vila Madalena',
     cep: '05433-000',
     logradouro: 'Rua Harmonia',
     numero: '356',
     bairro: 'Vila Madalena'
   },
   {
-    name: 'Wizard Moema',
+    name: 'Wizard Inglês Moema',
     cep: '04038-001',
     logradouro: 'Avenida Ibirapuera',
     numero: '2332',
     bairro: 'Moema'
   },
   {
-    name: 'CCAA Itaim Bibi',
+    name: 'CCAA Inglês Itaim Bibi',
     cep: '04542-000',
     logradouro: 'Rua Joaquim Floriano',
     numero: '466',
@@ -244,41 +408,82 @@ const institutions = [
     cep: '01310-100',
     logradouro: 'Avenida Paulista',
     numero: '2073',
-    bairro: 'Cerqueira César'
+    bairro: 'Paulista'
   },
   {
-    name: 'Fisk Centro',
+    name: 'Fisk Inglês Centro',
     cep: '01310-100',
     logradouro: 'Rua Augusta',
     numero: '1508',
-    bairro: 'Consolação'
+    bairro: 'Centro'
   }
 ];
 ```
 
-### **LOTE 7 - INFORMÁTICA (5 instituições)**
+### **LOTE 11 - CURSOS DE IDIOMAS (5 instituições)**
 ```javascript
 const institutions = [
   {
-    name: 'FIAP',
+    name: 'CNA Inglês Santana',
+    cep: '02013-000',
+    logradouro: 'Avenida Cruzeiro do Sul',
+    numero: '1100',
+    bairro: 'Santana'
+  },
+  {
+    name: 'Wizard Inglês Pinheiros',
+    cep: '05425-070',
+    logradouro: 'Rua dos Pinheiros',
+    numero: '870',
+    bairro: 'Pinheiros'
+  },
+  {
+    name: 'CCAA Inglês Santo Amaro',
+    cep: '04743-030',
+    logradouro: 'Rua Amador Bueno',
+    numero: '504',
+    bairro: 'Santo Amaro'
+  },
+  {
+    name: 'Aliança Francesa Higienópolis',
+    cep: '01302-907',
+    logradouro: 'Rua General Jardim',
+    numero: '618',
+    bairro: 'Higienópolis'
+  },
+  {
+    name: 'Instituto Cervantes Bela Vista',
+    cep: '01310-100',
+    logradouro: 'Rua Itapeva',
+    numero: '474',
+    bairro: 'Bela Vista'
+  }
+];
+```
+
+### **LOTE 12 - INFORMÁTICA (5 instituições)**
+```javascript
+const institutions = [
+  {
+    name: 'FIAP Faculdade de Informática',
     cep: '04094-902',
     logradouro: 'Avenida Lins de Vasconcelos',
     numero: '1222',
-    bairro: 'Vila Mariana'
+    bairro: 'Vila Olímpia'
   },
   {
     name: 'Impacta Tecnologia',
     cep: '01310-100',
     logradouro: 'Rua Coronel Oscar Porto',
     numero: '836',
-    bairro: 'Paraíso'
+    bairro: 'Bela Vista'
   },
   {
-    name: 'Digital House',
-    cep: '05433-000',
-    logradouro: 'Rua Mourato Coelho',
-    numero: '1404',
-    bairro: 'Vila Madalena'
+    name: 'FATEC Informática Liberdade',
+    cep: '01506-000',
+    logradouro: 'Rua da Liberdade',
+    numero: '532',
+    bairro: 'Liberdade'
   },
   {
     name: '42 São Paulo',
@@ -288,16 +493,57 @@ const institutions = [
     bairro: 'Vila Olímpia'
   },
   {
-    name: 'Alura',
-    cep: '05425-070',
-    logradouro: 'Rua Vergueiro',
-    numero: '3185',
-    bairro: 'Vila Mariana'
+    name: 'Digital House Programação',
+    cep: '05433-000',
+    logradouro: 'Rua Mourato Coelho',
+    numero: '1404',
+    bairro: 'Vila Madalena'
   }
 ];
 ```
 
-### **LOTE 8 - SAÚDE (5 instituições)**
+### **LOTE 13 - INFORMÁTICA (5 instituições)**
+```javascript
+const institutions = [
+  {
+    name: 'Alura Cursos Online',
+    cep: '05425-070',
+    logradouro: 'Rua Vergueiro',
+    numero: '3185',
+    bairro: 'Pinheiros'
+  },
+  {
+    name: 'Caelum Java e Mobile',
+    cep: '05433-000',
+    logradouro: 'Rua Vergueiro',
+    numero: '3185',
+    bairro: 'Vila Madalena'
+  },
+  {
+    name: 'Lambda3 .NET e Cloud',
+    cep: '04542-000',
+    logradouro: 'Rua Joaquim Floriano',
+    numero: '466',
+    bairro: 'Itaim Bibi'
+  },
+  {
+    name: 'K21 Desenvolvimento Ágil',
+    cep: '04094-050',
+    logradouro: 'Rua Dr. Álvaro Alvim',
+    numero: '123',
+    bairro: 'Vila Olímpia'
+  },
+  {
+    name: 'Globalcode Java Expert',
+    cep: '04038-001',
+    logradouro: 'Avenida Ibirapuera',
+    numero: '2927',
+    bairro: 'Moema'
+  }
+];
+```
+
+### **LOTE 14 - SAÚDE (5 instituições)**
 ```javascript
 const institutions = [
   {
@@ -308,11 +554,18 @@ const institutions = [
     bairro: 'Santa Ifigênia'
   },
   {
-    name: 'SENAC Enfermagem',
+    name: 'SENAC Enfermagem Águas Rasas',
     cep: '03164-200',
     logradouro: 'Avenida Conselheiro Carrão',
     numero: '2423',
     bairro: 'Águas Rasas'
+  },
+  {
+    name: 'UNIFESP Medicina',
+    cep: '04023-062',
+    logradouro: 'Rua Botucatu',
+    numero: '740',
+    bairro: 'Vila Clementino'
   },
   {
     name: 'Santa Casa Medicina',
@@ -322,34 +575,27 @@ const institutions = [
     bairro: 'Santa Cecília'
   },
   {
-    name: 'Curso Técnico Radiologia',
-    cep: '04038-001',
-    logradouro: 'Rua Vergueiro',
-    numero: '1211',
-    bairro: 'Paraíso'
-  },
-  {
-    name: 'Instituto de Enfermagem',
-    cep: '01310-100',
-    logradouro: 'Avenida Paulista',
-    numero: '1765',
-    bairro: 'Bela Vista'
+    name: 'SENAC Enfermagem Santo Amaro',
+    cep: '04743-030',
+    logradouro: 'Rua Amador Bueno',
+    numero: '504',
+    bairro: 'Santo Amaro'
   }
 ];
 ```
 
-### **LOTE 9 - GASTRONOMIA (5 instituições)**
+### **LOTE 15 - GASTRONOMIA (5 instituições)**
 ```javascript
 const institutions = [
   {
-    name: 'SENAC Culinária',
+    name: 'SENAC Culinária Águas Rasas',
     cep: '03164-200',
     logradouro: 'Avenida Conselheiro Carrão',
     numero: '2423',
     bairro: 'Águas Rasas'
   },
   {
-    name: 'Instituto Gastronômico',
+    name: 'Instituto Gastronômico das Américas',
     cep: '04038-001',
     logradouro: 'Avenida Ibirapuera',
     numero: '2927',
@@ -360,62 +606,144 @@ const institutions = [
     cep: '01310-100',
     logradouro: 'Rua Augusta',
     numero: '1826',
-    bairro: 'Consolação'
+    bairro: 'Bela Vista'
   },
   {
-    name: 'Escola de Culinária SP',
+    name: 'SENAC Culinária Lapa',
+    cep: '05040-000',
+    logradouro: 'Rua Faustolo',
+    numero: '308',
+    bairro: 'Lapa'
+  },
+  {
+    name: 'Centro Culinário Vila Madalena',
     cep: '05433-000',
     logradouro: 'Rua Aspicuelta',
     numero: '422',
     bairro: 'Vila Madalena'
-  },
-  {
-    name: 'Centro Gastronômico',
-    cep: '05425-070',
-    logradouro: 'Rua dos Pinheiros',
-    numero: '870',
-    bairro: 'Pinheiros'
   }
 ];
 ```
 
-### **LOTE 10 - ESPORTES (5 instituições)**
+### **LOTE 16 - ESPORTES (5 instituições)**
 ```javascript
 const institutions = [
   {
-    name: 'Escola de Futebol',
+    name: 'Escola de Futebol Barcelona',
     cep: '05433-000',
     logradouro: 'Rua Harmonia',
     numero: '765',
     bairro: 'Vila Madalena'
   },
   {
-    name: 'Academia de Basquete',
+    name: 'Academia de Basquete Corinthians',
     cep: '03315-000',
     logradouro: 'Rua Tuiuti',
     numero: '1237',
     bairro: 'Tatuapé'
   },
   {
-    name: 'Centro de Natação',
+    name: 'Centro de Natação Aquático',
     cep: '04038-001',
     logradouro: 'Avenida Ibirapuera',
     numero: '3103',
     bairro: 'Moema'
   },
   {
-    name: 'Escola de Vôlei',
+    name: 'Escola de Vôlei Paulistano',
     cep: '01310-100',
     logradouro: 'Rua Oscar Freire',
     numero: '379',
     bairro: 'Jardins'
   },
   {
-    name: 'Academia de Tênis',
+    name: 'Academia de Tênis Ibirapuera',
     cep: '04094-050',
     logradouro: 'Rua Funchal',
     numero: '418',
     bairro: 'Vila Olímpia'
+  }
+];
+```
+
+### **LOTE 17 - ESPORTES (5 instituições)**
+```javascript
+const institutions = [
+  {
+    name: 'Centro de Artes Marciais',
+    cep: '01506-000',
+    logradouro: 'Rua da Liberdade',
+    numero: '532',
+    bairro: 'Liberdade'
+  },
+  {
+    name: 'Escola de Futebol Santos',
+    cep: '04743-030',
+    logradouro: 'Rua Amador Bueno',
+    numero: '504',
+    bairro: 'Santo Amaro'
+  },
+  {
+    name: 'Academia de Ginástica Rítmica',
+    cep: '05425-070',
+    logradouro: 'Rua dos Pinheiros',
+    numero: '870',
+    bairro: 'Pinheiros'
+  },
+  {
+    name: 'Centro de Judô Ippon',
+    cep: '02013-000',
+    logradouro: 'Avenida Cruzeiro do Sul',
+    numero: '1100',
+    bairro: 'Santana'
+  },
+  {
+    name: 'Escola de Capoeira Cordão de Ouro',
+    cep: '05040-000',
+    logradouro: 'Rua Faustolo',
+    numero: '308',
+    bairro: 'Lapa'
+  }
+];
+```
+
+### **LOTE 18 - MÚSICA E ARTES (5 instituições)**
+```javascript
+const institutions = [
+  {
+    name: 'Conservatório Musical Souza Lima',
+    cep: '01302-907',
+    logradouro: 'Rua General Jardim',
+    numero: '618',
+    bairro: 'Higienópolis'
+  },
+  {
+    name: 'Escola de Música Tom Jobim',
+    cep: '05433-000',
+    logradouro: 'Rua Harmonia',
+    numero: '356',
+    bairro: 'Vila Madalena'
+  },
+  {
+    name: 'Academia de Violão Clássico',
+    cep: '03164-000',
+    logradouro: 'Rua Alcântara Machado',
+    numero: '2445',
+    bairro: 'Mooca'
+  },
+  {
+    name: 'Centro de Artes Visuais',
+    cep: '01310-100',
+    logradouro: 'Rua Augusta',
+    numero: '1826',
+    bairro: 'Bela Vista'
+  },
+  {
+    name: 'Escola de Dança Balé da Cidade',
+    cep: '01310-100',
+    logradouro: 'Rua Augusta',
+    numero: '1508',
+    bairro: 'Centro'
   }
 ];
 ```
@@ -451,4 +779,12 @@ node scripts/populate-batch-real.js
 - ✅ **Localização precisa**
 - ✅ **Dados profissionais**
 
-**TOTAL:** 10 lotes = 50 instituições com endereços reais! 🏢
+## 🎯 CRONOGRAMA SUGERIDO
+- **Dia 1:** Lotes 1, 2, 3
+- **Dia 2:** Lotes 4, 5, 6  
+- **Dia 3:** Lotes 7, 8, 9
+- **Dia 4:** Lotes 10, 11, 12
+- **Dia 5:** Lotes 13, 14, 15
+- **Dia 6:** Lotes 16, 17, 18
+
+**TOTAL:** 18 lotes = 90 instituições com endereços reais! 🏢

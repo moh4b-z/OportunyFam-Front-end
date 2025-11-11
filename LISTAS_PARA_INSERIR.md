@@ -25,8 +25,8 @@ node scripts/populate-batch.js
 
 ---
 
-```javascript
-/*************
+
+
  * ## 📝 LISTAS PARA COPIAR E COLAR
 /*
 ### **LOTE 1 - SENAI (5 instituições)**
@@ -42,7 +42,7 @@ const institutions = [
 
 
 ```javascript
-/*************
+**
  * 
 ### **LOTE 2 - SENAI (5 instituições)**
 ```javascript

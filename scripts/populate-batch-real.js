@@ -3,42 +3,42 @@ const https = require('https');
 
 const API_URL = 'https://oportunyfam-back-end.onrender.com/v1/oportunyfam/instituicoes';
 
-// LOTE 4 - SENAC COM ENDEREÇOS REAIS
+// LOTE 18 - MÚSICA E ARTES COM ENDEREÇOS REAIS
 const institutions = [
   {
-    name: 'SENAC Campo Limpo',
-    cep: '05777-000',
-    logradouro: 'Estrada do Campo Limpo',
-    numero: '459',
-    bairro: 'Campo Limpo'
+    name: 'Conservatório Musical Souza Lima',
+    cep: '01302-907',
+    logradouro: 'Rua General Jardim',
+    numero: '618',
+    bairro: 'Higienópolis'
   },
   {
-    name: 'SENAC Tatuapé',
-    cep: '03315-000',
-    logradouro: 'Rua Tuiuti',
-    numero: '1237',
-    bairro: 'Tatuapé'
+    name: 'Escola de Música Tom Jobim',
+    cep: '05433-000',
+    logradouro: 'Rua Harmonia',
+    numero: '356',
+    bairro: 'Vila Madalena'
   },
   {
-    name: 'SENAC Vila Prudente',
-    cep: '03142-000',
-    logradouro: 'Avenida Professor Luíz Ignacio Anhaia Mello',
-    numero: '2992',
-    bairro: 'Vila Prudente'
+    name: 'Academia de Violão Clássico',
+    cep: '03164-000',
+    logradouro: 'Rua Alcântara Machado',
+    numero: '2445',
+    bairro: 'Mooca'
   },
   {
-    name: 'SENAC Beleza Paulista',
+    name: 'Centro de Artes Visuais',
     cep: '01310-100',
-    logradouro: 'Avenida Paulista',
-    numero: '2064',
-    bairro: 'Cerqueira César'
+    logradouro: 'Rua Augusta',
+    numero: '1826',
+    bairro: 'Bela Vista'
   },
   {
-    name: 'SENAC Administração Santana',
-    cep: '02013-000',
-    logradouro: 'Avenida Cruzeiro do Sul',
-    numero: '1105',
-    bairro: 'Santana'
+    name: 'Escola de Dança Balé da Cidade',
+    cep: '01310-100',
+    logradouro: 'Rua Augusta',
+    numero: '1508',
+    bairro: 'Centro'
   }
 ];
 

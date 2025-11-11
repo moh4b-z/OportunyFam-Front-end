@@ -3,41 +3,41 @@ const https = require('https');
 
 const API_URL = 'https://oportunyfam-back-end.onrender.com/v1/oportunyfam/instituicoes';
 
-// LOTE 3 - SENAC COM ENDEREÇOS REAIS
+// LOTE 4 - SENAC COM ENDEREÇOS REAIS
 const institutions = [
   {
-    name: 'SENAC Lapa Faustolo',
-    cep: '05040-000',
-    logradouro: 'Rua Faustolo',
-    numero: '308',
-    bairro: 'Lapa'
+    name: 'SENAC Campo Limpo',
+    cep: '05777-000',
+    logradouro: 'Estrada do Campo Limpo',
+    numero: '459',
+    bairro: 'Campo Limpo'
   },
   {
-    name: 'SENAC Águas Rasas',
-    cep: '03164-200',
-    logradouro: 'Avenida Conselheiro Carrão',
-    numero: '2423',
-    bairro: 'Águas Rasas'
+    name: 'SENAC Tatuapé',
+    cep: '03315-000',
+    logradouro: 'Rua Tuiuti',
+    numero: '1237',
+    bairro: 'Tatuapé'
   },
   {
-    name: 'SENAC Penha',
-    cep: '03636-000',
-    logradouro: 'Rua Dr. João Ribeiro',
-    numero: '683',
-    bairro: 'Penha'
+    name: 'SENAC Vila Prudente',
+    cep: '03142-000',
+    logradouro: 'Avenida Professor Luíz Ignacio Anhaia Mello',
+    numero: '2992',
+    bairro: 'Vila Prudente'
   },
   {
-    name: 'SENAC Itaquera',
-    cep: '08295-005',
-    logradouro: 'Avenida Águia de Haia',
-    numero: '2983',
-    bairro: 'Itaquera'
+    name: 'SENAC Beleza Paulista',
+    cep: '01310-100',
+    logradouro: 'Avenida Paulista',
+    numero: '2064',
+    bairro: 'Cerqueira César'
   },
   {
-    name: 'SENAC Santana',
+    name: 'SENAC Administração Santana',
     cep: '02013-000',
     logradouro: 'Avenida Cruzeiro do Sul',
-    numero: '1100',
+    numero: '1105',
     bairro: 'Santana'
   }
 ];

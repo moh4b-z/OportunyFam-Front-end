@@ -70,7 +70,6 @@ const institutions = [
 ```*
  * 
 
-```
 
 ### **LOTE 4 - SENAC (5 instituições)**
 ```javascript

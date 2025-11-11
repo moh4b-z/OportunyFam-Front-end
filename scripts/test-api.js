@@ -63,20 +63,20 @@ async function testApi() {
         return;
       }
 
-      // Filtrar instituições do LOTE 4 (SENAC)
-      const lote4Institutions = institutions.filter(inst =>
-        inst.nome.includes('SENAC Campo Limpo') ||
-        inst.nome.includes('SENAC Tatuapé') ||
-        inst.nome.includes('SENAC Vila Prudente') ||
-        inst.nome.includes('SENAC Beleza Paulista') ||
-        inst.nome.includes('SENAC Administração Santana')
+      // Filtrar instituições do LOTE 16 (ESPORTES)
+      const lote16Institutions = institutions.filter(inst =>
+        inst.nome.includes('Escola de Futebol Barcelona') ||
+        inst.nome.includes('Academia de Basquete Corinthians') ||
+        inst.nome.includes('Centro de Natação Aquático') ||
+        inst.nome.includes('Escola de Vôlei Paulistano') ||
+        inst.nome.includes('Academia de Tênis Ibirapuera')
       );
 
-      console.log('🏢 INSTITUIÇÕES DO LOTE 4 (SENAC) ENCONTRADAS:');
+      console.log('🏢 INSTITUIÇÕES DO LOTE 16 (ESPORTES) ENCONTRADAS:');
       console.log('='.repeat(60));
 
-      if (lote4Institutions.length > 0) {
-        lote4Institutions.forEach((inst, index) => {
+      if (lote16Institutions.length > 0) {
+        lote16Institutions.forEach((inst, index) => {
           console.log(`${index + 1}. ${inst.nome}`);
           console.log(`   📍 ${inst.endereco?.logradouro || 'N/A'}, ${inst.endereco?.numero || 'N/A'} - ${inst.endereco?.bairro || 'N/A'}`);
           console.log(`   📮 CEP: ${inst.endereco?.cep || 'N/A'}`);
@@ -85,10 +85,10 @@ async function testApi() {
           console.log('');
         });
 
-        console.log(`🎉 TOTAL: ${lote4Institutions.length} instituições do LOTE 4 inseridas com sucesso!`);
+        console.log(`🎉 TOTAL: ${lote16Institutions.length} instituições do LOTE 16 inseridas com sucesso!`);
         console.log('🗺️ Elas agora aparecem na barra de pesquisa e no mapa com endereços reais.');
       } else {
-        console.log('❌ Nenhuma instituição do LOTE 4 encontrada na API.');
+        console.log('❌ Nenhuma instituição do LOTE 16 encontrada na API.');
         console.log('💡 Execute o script populate-batch-real.js para inserir.');
       }
 

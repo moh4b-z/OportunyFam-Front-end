@@ -767,5 +767,77 @@ body.dark .source-badge.local {
   color: #ffb74d;
 }
 
+/* =============================
+   Paginação do dropdown de busca
+   ============================= */
+.search-results-dropdown {
+  max-height: 420px;
+  overflow: auto;
+  padding: 0 !important; /* sem padding para encostar a barra */
+  display: flex;
+  flex-direction: column;
+}
 
+.search-results-list {
+  padding: 12px; /* espaço interno apenas para a lista */
+}
 
+.search-results-dropdown .pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* centraliza e aproxima os elementos */
+  gap: 32px; /* meio termo */
+  padding: 10px 12px;
+  min-height: 56px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-card);
+  position: sticky;
+  bottom: 0;
+  z-index: 20; /* garante que fique acima dos itens */
+  width: 100%;
+}
+
+.search-results-dropdown .page-btn {
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: none;
+  background: var(--orange);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.search-results-dropdown .page-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+}
+
+.search-results-dropdown .page-btn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.9);
+}
+
+.search-results-dropdown .page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-results-dropdown .page-info {
+  flex: 0 0 auto; /* impede esticar e separar os botões */
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-gray);
+  margin: 0 8px; /* leve respiro */
+}
+
+/* Dark theme */
+body.dark .search-results-dropdown .pagination-controls {
+  background: var(--bg-card-dark);
+  border-top: 1px solid var(--border-dark);
+}
+
+body.dark .search-results-dropdown .page-info {
+  color: var(--text-secondary-dark);
+}

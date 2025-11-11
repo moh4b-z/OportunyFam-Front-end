@@ -10,34 +10,30 @@ import { Instituicao } from "@/types";
 import { geocodeAddress } from "@/services/Instituicoes";
 import styles from "../app/styles/Mapa.module.css"
 
-// Ícone personalizado de pin de localização profissional
+// Ícone personalizado: pin laranja, minimalista (maior para destaque) e sem sombras
 const customIcon = L.divIcon({
   html: `
     <div class="marker-container">
-      <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="32" height="44" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="pinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#FF5252;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#D32F2F;stop-opacity:1" />
+            <stop offset="0%" style="stop-color:#FFA726;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#FB8C00;stop-opacity:1" />
           </linearGradient>
-          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
-          </filter>
         </defs>
-        <path d="M18 0C8.059 0 0 8.059 0 18C0 28.5 18 48 18 48S36 28.5 36 18C36 8.059 27.941 0 18 0Z" 
-              fill="url(#pinGradient)" 
-              stroke="#FFFFFF" 
-              stroke-width="2" 
-              filter="url(#shadow)"/>
-        <circle cx="18" cy="18" r="8" fill="#FFFFFF" opacity="0.9"/>
-        <circle cx="18" cy="18" r="4" fill="url(#pinGradient)"/>
+        <path d="M12 0C5.373 0 0 5.373 0 12C0 19 12 32 12 32S24 19 24 12C24 5.373 18.627 0 12 0Z"
+              fill="url(#pinGradient)"
+              stroke="#FFFFFF"
+              stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="5" fill="#FFFFFF" opacity="0.92"/>
+        <circle cx="12" cy="12" r="2.5" fill="url(#pinGradient)"/>
       </svg>
     </div>
   `,
   className: 'custom-marker-icon',
-  iconSize: [36, 48],
-  iconAnchor: [18, 48],
-  popupAnchor: [0, -48]
+  iconSize: [32, 44],
+  iconAnchor: [16, 44],
+  popupAnchor: [0, -38]
 });
 
 interface MapaProps {
@@ -72,8 +68,9 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
       if (!highlightedInstitution) return;
 
       try {
-        // Tenta usar as coordenadas existentes primeiro
-        if (
+        const alwaysGeocode = (process.env.NEXT_PUBLIC_ALWAYS_GEOCODE === 'true');
+        // Tenta usar as coordenadas existentes primeiro, a menos que esteja forçando geocodificação
+        if (!alwaysGeocode &&
           highlightedInstitution.endereco?.latitude && 
           highlightedInstitution.endereco?.longitude
         ) {

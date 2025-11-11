@@ -83,7 +83,93 @@ export function normalizeInstituicao(inst: any): Instituicao {
   return inst as Instituicao;
 }
 
-// Função para geocodificar endereço usando API externa
+// Funções auxiliares para provedores externos
+const geoCache = new Map<string, { lat: number; lng: number }>();
+let __loadingGoogleMaps__: Promise<void> | null = null;
+async function ensureGoogleMapsLoaded(key: string): Promise<void> {
+  if (typeof window === 'undefined') throw new Error('Google Maps só no cliente');
+  const w = window as any;
+  if (w.google && w.google.maps) return;
+  if (__loadingGoogleMaps__) return __loadingGoogleMaps__;
+  __loadingGoogleMaps__ = new Promise<void>((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&language=pt-BR&region=BR`;
+    s.async = true;
+    s.defer = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Falha ao carregar Google Maps JS'));
+    document.head.appendChild(s);
+  });
+  await __loadingGoogleMaps__;
+}
+
+async function geocodeWithGoogle(
+  addressOnly: string,
+  components: { locality?: string; adminArea?: string; postalCode?: string }
+): Promise<{ lat: number; lng: number } | null> {
+  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  if (!key) {
+    console.warn('Google Maps API key não configurada (NEXT_PUBLIC_GOOGLE_MAPS_KEY)');
+    return null;
+  }
+  if (typeof window === 'undefined') return null;
+  try {
+    await ensureGoogleMapsLoaded(key);
+  } catch {
+    return null;
+  }
+  const w = window as any;
+  if (!w.google || !w.google.maps) return null;
+  return new Promise<{ lat: number; lng: number } | null>((resolve) => {
+    const geocoder = new w.google.maps.Geocoder();
+    const request: any = {
+      address: addressOnly,
+      region: 'BR',
+      componentRestrictions: {
+        country: 'BR',
+        ...(components.locality ? { locality: components.locality } : {}),
+        ...(components.adminArea ? { administrativeArea: components.adminArea } : {}),
+        ...(components.postalCode ? { postalCode: components.postalCode } : {})
+      }
+    };
+    geocoder.geocode(request, (results: any, status: string) => {
+      if (status === 'OK' && results && results.length > 0) {
+        const loc = results[0].geometry?.location;
+        if (!loc) return resolve(null);
+        const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+        const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+        resolve({ lat, lng });
+      } else {
+        resolve(null);
+      }
+    });
+  });
+}
+
+async function geocodeWithMapbox(query: string, proximity?: { lat: number; lng: number }): Promise<{ lat: number; lng: number } | null> {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  if (!token) {
+    console.warn('Mapbox token não configurado (NEXT_PUBLIC_MAPBOX_TOKEN)');
+    return null;
+  }
+  const params = new URLSearchParams();
+  params.set('country', 'br');
+  params.set('limit', '5');
+  params.set('language', 'pt');
+  if (proximity) params.set('proximity', `${proximity.lng},${proximity.lat}`);
+  params.set('access_token', token);
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${params.toString()}`;
+  const resp = await fetch(url);
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  if (!data.features?.length) return null;
+  const f = data.features[0];
+  const [lng, lat] = f.center || [];
+  if (lat === undefined || lng === undefined) return null;
+  return { lat, lng };
+}
+
+// Função para geocodificar endereço usando API externa (provedor selecionável)
 export async function geocodeAddress(instituicao: any): Promise<{ lat: number; lng: number } | null> {
   try {
     const logradouro = (instituicao.endereco?.logradouro || '').toString();
@@ -93,6 +179,13 @@ export async function geocodeAddress(instituicao: any): Promise<{ lat: number; l
     const estado = (instituicao.endereco?.estado || 'SP').toString();
     const cep = (instituicao.endereco?.cep || '').toString();
 
+
+    const headers = {
+      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+      'User-Agent': 'OportunyFam-FrontEnd/1.0 (geocode)'
+    } as Record<string, string>;
+
+    // Construção do query canônico para provedores externos
     const enderecoCompleto = [
       `${logradouro} ${numero}`.trim(),
       bairro,
@@ -101,10 +194,41 @@ export async function geocodeAddress(instituicao: any): Promise<{ lat: number; l
       cep
     ].filter(Boolean).join(', ');
 
-    const headers = {
-      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-      'User-Agent': 'OportunyFam-FrontEnd/1.0 (geocode)'
-    } as Record<string, string>;
+    const provider = (process.env.NEXT_PUBLIC_GEOCODER_PROVIDER || 'nominatim').toLowerCase();
+
+    if (provider === 'google') {
+      const addressOnlyBase = `${logradouro} ${numero}`.trim();
+      const addressOnly = addressOnlyBase || `${logradouro}`.trim();
+      const cacheKey1 = `google|${addressOnly}|${cidade}|${estado}|${cep}`;
+      if (geoCache.has(cacheKey1)) {
+        return geoCache.get(cacheKey1)!;
+      }
+      // 1ª tentativa: rua+número com restrições disponíveis
+      let g = await geocodeWithGoogle(addressOnly, {
+        locality: cidade || undefined,
+        adminArea: estado || undefined,
+        postalCode: cep || undefined,
+      });
+      if (g) {
+        geoCache.set(cacheKey1, g);
+        return g; // sucesso
+      }
+      // 2ª tentativa: endereço completo sem exigir componentes (usa apenas address)
+      const cacheKey2 = `google|full|${enderecoCompleto}`;
+      if (geoCache.has(cacheKey2)) {
+        return geoCache.get(cacheKey2)!;
+      }
+      g = await geocodeWithGoogle(enderecoCompleto, {});
+      if (g) {
+        geoCache.set(cacheKey2, g);
+        return g;
+      }
+    }
+
+    if (provider === 'mapbox') {
+      const m = await geocodeWithMapbox(enderecoCompleto);
+      if (m) return m; // fallback automático para Nominatim abaixo
+    }
 
     // Viewbox aproximado para Carapicuíba (reduz ambiguidades em SP)
     // Formato: left,top,right,bottom (lon,lat)

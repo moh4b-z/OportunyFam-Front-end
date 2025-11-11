@@ -96,6 +96,14 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
 
   const [institutions, setInstitutions] = useState<Instituicao[]>([]);
+  const [allInstitutions, setAllInstitutions] = useState<Instituicao[]>([]);
+  const [hasLoadedAll, setHasLoadedAll] = useState<boolean>(false);
+  const pageSize = 20;
+  const [page, setPage] = useState<number>(1);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<'api' | 'local' | null>(null);
 
   // Card de teste para geocodificação
   const testInstitution: Instituicao = {
@@ -121,9 +129,6 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     },
     tipos_instituicao: []
   };
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dataSource, setDataSource] = useState<'api' | 'local' | null>(null);
 
   // Categorias dos chips - apenas as mais relevantes
   const [categories, setCategories] = useState<Category[]>([
@@ -147,149 +152,98 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   };
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const isDropdownOpen = searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas';
 
+  // Carrega TODAS as instituições uma única vez, somente quando o usuário focar no input
+  const loadAllInstitutionsOnce = async () => {
+    if (hasLoadedAll || loading) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/instituicoes`);
+      if (!response.ok) {
+        throw new Error('Erro ao carregar instituições');
+      }
+      const data = await response.json();
+      if (data.status && data.instituicoes) {
+        const formattedInstitutions = data.instituicoes.map((inst: any) => ({
+          id: inst.instituicao_id,
+          instituicao_id: inst.instituicao_id,
+          nome: inst.nome,
+          email: inst.email,
+          foto_perfil: inst.foto_perfil || null,
+          cnpj: inst.cnpj || '',
+          telefone: inst.telefone || '',
+          descricao: inst.descricao || '',
+          endereco: {
+            id: inst.endereco?.id || 0,
+            cep: inst.endereco?.cep || '',
+            logradouro: inst.endereco?.logradouro || '',
+            numero: inst.endereco?.numero || '',
+            complemento: inst.endereco?.complemento || '',
+            bairro: inst.endereco?.bairro || '',
+            cidade: inst.endereco?.cidade || '',
+            estado: inst.endereco?.estado || '',
+            latitude: inst.endereco?.latitude || 0,
+            longitude: inst.endereco?.longitude || 0
+          },
+          tipos_instituicao: inst.tipos_instituicao || []
+        }));
+        const all = [testInstitution, ...formattedInstitutions];
+        setAllInstitutions(all);
+        setInstitutions(all);
+        setHasLoadedAll(true);
+        setDataSource('api');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar instituições:', err);
+      setError('Não foi possível carregar as instituições. Tente novamente mais tarde.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Fetch all institutions when component mounts
+  // Busca por nome 100% no front, baseada na lista carregada uma vez
   useEffect(() => {
-    const fetchAllInstitutions = async () => {
-      setLoading(true);
-      try {
-        const { institutionService } = await import('../services/institutionService');
-        const response = await fetch(`${API_BASE_URL}/instituicoes`);
-        
-        if (!response.ok) {
-          throw new Error('Erro ao carregar instituições');
-        }
-        
-        const data = await response.json();
-        
-        if (data.status && data.instituicoes) {
-          const formattedInstitutions = data.instituicoes.map((inst: any) => ({
-            id: inst.instituicao_id,
-            instituicao_id: inst.instituicao_id,
-            nome: inst.nome,
-            email: inst.email,
-            foto_perfil: inst.foto_perfil || null,
-            cnpj: inst.cnpj || '',
-            telefone: inst.telefone || '',
-            descricao: inst.descricao || '',
-            endereco: {
-              id: inst.endereco?.id || 0,
-              cep: inst.endereco?.cep || '',
-              logradouro: inst.endereco?.logradouro || '',
-              numero: inst.endereco?.numero || '',
-              complemento: inst.endereco?.complemento || '',
-              bairro: inst.endereco?.bairro || '',
-              cidade: inst.endereco?.cidade || '',
-              estado: inst.endereco?.estado || '',
-              latitude: inst.endereco?.latitude || 0,
-              longitude: inst.endereco?.longitude || 0
-            },
-            tipos_instituicao: inst.tipos_instituicao || []
-          }));
-          
-          setInstitutions([testInstitution, ...formattedInstitutions]);
-          setDataSource('api');
-        }
-      } catch (err) {
-        console.error('Erro ao carregar instituições:', err);
-        setError('Não foi possível carregar as instituições. Tente novamente mais tarde.');
-      } finally {
-        setLoading(false);
+    if (!hasLoadedAll) return;
+    const term = debouncedSearchTerm.trim().toLowerCase();
+    if (!term) {
+      setInstitutions(allInstitutions);
+      setPage(1);
+      return;
+    }
+    const filtered = allInstitutions.filter(inst =>
+      (inst.nome || '').toLowerCase().includes(term)
+    );
+    setInstitutions(filtered);
+    setPage(1);
+  }, [debouncedSearchTerm, hasLoadedAll, allInstitutions]);
+
+  // Reseta para a primeira página quando a fonte de dados mudar (ex.: filtros externos)
+  useEffect(() => {
+    setPage(1);
+  }, [hasLoadedAll]);
+
+  const totalPages = Math.max(1, Math.ceil(institutions.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const pagedInstitutions = institutions.slice(startIndex, endIndex);
+
+  // Atalhos de teclado: ← / → para navegar páginas quando o dropdown estiver aberto
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && currentPage > 1) {
+        e.preventDefault();
+        setPage((p) => Math.max(1, p - 1));
+      } else if (e.key === 'ArrowRight' && currentPage < totalPages) {
+        e.preventDefault();
+        setPage((p) => Math.min(totalPages, p + 1));
       }
     };
-
-    fetchAllInstitutions();
-  }, []);
-
-  // Search functionality
-  useEffect(() => {
-    const searchInstitutions = async () => {
-      if (!debouncedSearchTerm.trim()) {
-        // If search is empty, show all institutions
-        const response = await fetch(`${API_BASE_URL}/instituicoes`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.status && data.instituicoes) {
-            const formattedInstitutions = data.instituicoes.map((inst: any) => ({
-              id: inst.instituicao_id,
-              instituicao_id: inst.instituicao_id,
-              nome: inst.nome,
-              email: inst.email,
-              foto_perfil: inst.foto_perfil || null,
-              cnpj: inst.cnpj || '',
-              telefone: inst.telefone || '',
-              descricao: inst.descricao || '',
-              endereco: {
-                id: inst.endereco?.id || 0,
-                cep: inst.endereco?.cep || '',
-                logradouro: inst.endereco?.logradouro || '',
-                numero: inst.endereco?.numero || '',
-                complemento: inst.endereco?.complemento || '',
-                bairro: inst.endereco?.bairro || '',
-                cidade: inst.endereco?.cidade || '',
-                estado: inst.endereco?.estado || '',
-                latitude: inst.endereco?.latitude || 0,
-                longitude: inst.endereco?.longitude || 0
-              },
-              tipos_instituicao: inst.tipos_instituicao || []
-            }));
-            setInstitutions([testInstitution, ...formattedInstitutions]);
-          }
-        }
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/instituicoes?nome=${encodeURIComponent(debouncedSearchTerm)}`);
-        
-        if (!response.ok) {
-          throw new Error('Erro ao buscar instituições');
-        }
-        
-        const data = await response.json();
-        
-        if (data.status && data.instituicoes) {
-          const formattedInstitutions = data.instituicoes.map((inst: any) => ({
-            id: inst.instituicao_id,
-            instituicao_id: inst.instituicao_id,
-            nome: inst.nome,
-            email: inst.email,
-            foto_perfil: inst.foto_perfil || null,
-            cnpj: inst.cnpj || '',
-            telefone: inst.telefone || '',
-            descricao: inst.descricao || '',
-            endereco: {
-              id: inst.endereco?.id || 0,
-              cep: inst.endereco?.cep || '',
-              logradouro: inst.endereco?.logradouro || '',
-              numero: inst.endereco?.numero || '',
-              complemento: inst.endereco?.complemento || '',
-              bairro: inst.endereco?.bairro || '',
-              cidade: inst.endereco?.cidade || '',
-              estado: inst.endereco?.estado || '',
-              latitude: inst.endereco?.latitude || 0,
-              longitude: inst.endereco?.longitude || 0
-            },
-            tipos_instituicao: inst.tipos_instituicao || []
-          }));
-          
-          setInstitutions(formattedInstitutions);
-          setDataSource('api');
-        }
-      } catch (err) {
-        console.error('Erro na busca:', err);
-        setError('Não foi possível realizar a busca. Tente novamente.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    searchInstitutions();
-  }, [debouncedSearchTerm]);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isDropdownOpen, currentPage, totalPages]);
 
   const handleInstitutionClick = (institution: Instituicao) => {
     const institutionId = institution.instituicao_id || institution.id;
@@ -504,7 +458,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           placeholder="Pesquise aqui"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => setSearchFocused(true)}
+          onFocus={() => { setSearchFocused(true); loadAllInstitutionsOnce(); }}
           onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
         />
         
@@ -544,20 +498,39 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             </div>
           )}
         </div>
-        {(searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas') && (
+        {isDropdownOpen && (
           <div className="search-results-dropdown">
-            {loading && <div className="dropdown-message">Buscando instituições...</div>}
-            {error && <div className="dropdown-message error">{error}</div>}
-            {!loading && !error && institutions.map(inst => (
-              <SearchResultOption
-                key={inst.instituicao_id || inst.id}
-                institution={inst}
-                isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
-                onClick={() => handleInstitutionClick(inst)}
-              />
-            ))}
-            {!loading && !error && searchTerm && institutions.length === 0 && (
-              <div className="dropdown-message">Nenhuma instituição encontrada</div>
+            <div className="search-results-list">
+              {loading && <div className="dropdown-message">Buscando instituições...</div>}
+              {error && <div className="dropdown-message error">{error}</div>}
+              {!loading && !error && pagedInstitutions.map(inst => (
+                <SearchResultOption
+                  key={`${inst.instituicao_id ?? inst.id}-${inst.endereco?.id ?? inst.endereco?.cep ?? ''}-${inst.nome}`}
+                  institution={inst}
+                  isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
+                  onClick={() => handleInstitutionClick(inst)}
+                />
+              ))}
+
+              {!loading && !error && searchTerm && institutions.length === 0 && (
+                <div className="dropdown-message">Nenhuma instituição encontrada</div>
+              )}
+            </div>
+
+            {!loading && !error && institutions.length > 0 && (
+              <div className="pagination-controls">
+                <button
+                  className="page-btn"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                >Anterior</button>
+                <span className="page-info">Página {currentPage} de {totalPages} • {institutions.length} itens</span>
+                <button
+                  className="page-btn"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                >Próxima</button>
+              </div>
             )}
           </div>
         )}

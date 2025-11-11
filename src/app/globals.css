@@ -776,10 +776,75 @@ body.dark .source-badge.local {
   padding: 0 !important; /* sem padding para encostar a barra */
   display: flex;
   flex-direction: column;
+  position: relative; /* base para overlay de carregamento */
+}
+
+/* Garante área visível para o overlay quando estiver carregando */
+.search-results-dropdown.loading {
+  min-height: 260px;
 }
 
 .search-results-list {
   padding: 12px; /* espaço interno apenas para a lista */
+}
+
+/* Estado de carregamento: escurece lista e bloqueia interações */
+.search-results-dropdown.loading .search-results-list {
+  filter: brightness(0.6);
+  pointer-events: none;
+}
+
+.dropdown-loading-overlay {
+  position: absolute;
+  inset: 0 0 56px 0; /* deixa espaço para a barra de paginação (min-height 56px) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* centraliza por padrão */
+  padding-bottom: 24px; /* leve espaço acima da paginação */
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 120; /* garante ficar acima de qualquer conteúdo da lista */
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px; /* mais respiro interno */
+  margin: 0;
+  background: transparent; /* sem fundo */
+  color: #ffffff; /* alto contraste */
+  border: none; /* remove borda */
+  border-radius: 12px;
+  box-shadow: none; /* sem sombra */
+  font-weight: 600;
+  font-size: 15px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  z-index: 2; /* acima do overlay */
+}
+
+.loading-text {
+  display: inline-block;
+  margin-left: 8px;
+}
+
+body.dark .loading-content {
+  background: transparent; /* sem fundo no dark também */
+  color: #fff;
+  border: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .search-results-dropdown .pagination-controls {

@@ -109,7 +109,6 @@ async function geocodeWithGoogle(
 ): Promise<{ lat: number; lng: number } | null> {
   const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
   if (!key) {
-    console.warn('Google Maps API key não configurada (NEXT_PUBLIC_GOOGLE_MAPS_KEY)');
     return null;
   }
   if (typeof window === 'undefined') return null;
@@ -149,7 +148,6 @@ async function geocodeWithGoogle(
 async function geocodeWithMapbox(query: string, proximity?: { lat: number; lng: number }): Promise<{ lat: number; lng: number } | null> {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   if (!token) {
-    console.warn('Mapbox token não configurado (NEXT_PUBLIC_MAPBOX_TOKEN)');
     return null;
   }
   const params = new URLSearchParams();
@@ -354,7 +352,6 @@ export async function geocodeAddress(instituicao: any): Promise<{ lat: number; l
         data = await fetchFree(enderecoSemBairroCep, 5);
       }
       if (!data || data.length === 0) {
-        console.warn('Nenhum resultado encontrado para os endereços:', enderecoCompleto);
         return { lat: -23.5505, lng: -46.6333 };
       }
     }
@@ -420,21 +417,13 @@ export async function geocodeAddress(instituicao: any): Promise<{ lat: number; l
         const byPostcode = await fetchByPostcode(cep);
         if (Array.isArray(byPostcode) && byPostcode.length > 0) {
           best = byPostcode[0];
-          console.warn('Usando fallback por CEP (centróide):', { cep, lat: best.lat, lon: best.lon });
         }
       } catch (e) {
-        console.warn('Falha no fallback por CEP:', e);
+        
       }
     }
 
-    console.log('Resultado da geocodificação:', {
-      consulta: enderecoCompleto,
-      resultado: best.display_name,
-      importancia: best.importance,
-      tipo: best.type,
-      lat: best.lat,
-      lon: best.lon
-    });
+    
 
     return { lat: parseFloat(best.lat), lng: parseFloat(best.lon) };
 

@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Instituicao, TipoInstituicao } from "@/types";
 import { geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
-import { logApiResponse, logInstitutionData, logGeocoding } from "@/services/debug";
-import { searchMockInstitutions } from "@/services/mockData";
 import { API_BASE_URL } from "@/services/config";
 import CategoryChips, { Category } from "./shared/CategoryChips";
 import "../app/styles/SearchCard.css";
@@ -74,6 +72,7 @@ const SearchResultOption = ({ institution, onClick, isSelected }: SearchResultOp
   return (
     <div
       className={`search-result-card ${isSelected ? "selected-card" : ""}`}
+      onMouseDown={(e) => e.preventDefault()} /* evita perder foco do input */
       onClick={onClick}
     >
       <div className="card-logo-block">
@@ -94,6 +93,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [institutions, setInstitutions] = useState<Instituicao[]>([]);
   const [allInstitutions, setAllInstitutions] = useState<Instituicao[]>([]);
@@ -104,31 +104,9 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'api' | 'local' | null>(null);
+  const [selecting, setSelecting] = useState<boolean>(false);
 
-  // Card de teste para geocodificação
-  const testInstitution: Instituicao = {
-    id: 999999,
-    instituicao_id: 999999,
-    nome: "Teste Geocodificação - Rua Paraná 10",
-    email: "teste@exemplo.com",
-    foto_perfil: null,
-    cnpj: "",
-    telefone: "",
-    descricao: "Endereço de teste para Nominatim",
-    endereco: {
-      id: 1,
-      cep: "06325010",
-      logradouro: "Rua Paraná",
-      numero: "10",
-      complemento: "",
-      bairro: "Conjunto Habitacional Presidente Castelo Branco",
-      cidade: "Carapicuíba",
-      estado: "SP",
-      latitude: 0,
-      longitude: 0
-    },
-    tipos_instituicao: []
-  };
+  
 
   // Categorias dos chips - apenas as mais relevantes
   const [categories, setCategories] = useState<Category[]>([
@@ -152,7 +130,25 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   };
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const isDropdownOpen = searchFocused || institutions.length > 0 || categories.some(cat => cat.isActive) || locationFilter !== 'todas';
+  const isDropdownOpen = searchFocused; // dropdown visível apenas com o input focado
+
+  // Re-sincroniza o estado de foco após Alt+Tab/visibilidade voltar
+  useEffect(() => {
+    const syncFocus = () => {
+      try {
+        const el = inputRef.current as (HTMLInputElement | null);
+        if (document.visibilityState === 'visible' && el && document.activeElement === el) {
+          setSearchFocused(true);
+        }
+      } catch {}
+    };
+    window.addEventListener('focus', syncFocus);
+    document.addEventListener('visibilitychange', syncFocus);
+    return () => {
+      window.removeEventListener('focus', syncFocus);
+      document.removeEventListener('visibilitychange', syncFocus);
+    };
+  }, []);
 
   // Carrega TODAS as instituições uma única vez, somente quando o usuário focar no input
   const loadAllInstitutionsOnce = async () => {
@@ -188,9 +184,8 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           },
           tipos_instituicao: inst.tipos_instituicao || []
         }));
-        const all = [testInstitution, ...formattedInstitutions];
-        setAllInstitutions(all);
-        setInstitutions(all);
+        setAllInstitutions(formattedInstitutions);
+        setInstitutions(formattedInstitutions);
         setHasLoadedAll(true);
         setDataSource('api');
       }
@@ -231,7 +226,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
 
   // Atalhos de teclado: ← / → para navegar páginas quando o dropdown estiver aberto
   useEffect(() => {
-    if (!isDropdownOpen) return;
+    if (!isDropdownOpen || selecting) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' && currentPage > 1) {
         e.preventDefault();
@@ -243,9 +238,9 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isDropdownOpen, currentPage, totalPages]);
+  }, [isDropdownOpen, currentPage, totalPages, selecting]);
 
-  const handleInstitutionClick = (institution: Instituicao) => {
+  const handleInstitutionClick = async (institution: Instituicao) => {
     const institutionId = institution.instituicao_id || institution.id;
     if (institutionId !== undefined) {
       setSelectedInstitution(institutionId);
@@ -253,9 +248,25 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       console.error('ID da instituição não encontrado');
       return;
     }
-    setSearchFocused(false);
-    setSearchTerm("");
-    onInstitutionSelect(institution);
+    // Mostra overlay de carregamento e bloqueia interações
+    setSelecting(true);
+    const start = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const minDisplayMs = 600;
+    try {
+      if (onInstitutionSelect) {
+        const result: any = (onInstitutionSelect as any)(institution);
+        await Promise.resolve(result);
+      }
+    } catch (e) {
+      console.error('Erro ao selecionar instituição:', e);
+    } finally {
+      const end = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+      const elapsed = end - start;
+      if (elapsed < minDisplayMs) {
+        await new Promise(res => setTimeout(res, minDisplayMs - elapsed));
+      }
+      setSelecting(false);
+    }
   };
 
   const handleCategoryClick = async (categoryId: string) => {
@@ -454,6 +465,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           <path d="m21 21-4.35-4.35"/>
         </svg>
         <input
+          ref={inputRef}
           className="search-input"
           placeholder="Pesquise aqui"
           value={searchTerm}
@@ -499,16 +511,15 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           )}
         </div>
         {isDropdownOpen && (
-          <div className="search-results-dropdown">
+          <div className={`search-results-dropdown${(selecting || loading) ? ' loading' : ''}`}>
             <div className="search-results-list">
-              {loading && <div className="dropdown-message">Buscando instituições...</div>}
               {error && <div className="dropdown-message error">{error}</div>}
               {!loading && !error && pagedInstitutions.map(inst => (
                 <SearchResultOption
                   key={`${inst.instituicao_id ?? inst.id}-${inst.endereco?.id ?? inst.endereco?.cep ?? ''}-${inst.nome}`}
                   institution={inst}
                   isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
-                  onClick={() => handleInstitutionClick(inst)}
+                  onClick={() => { if (!selecting && !loading) handleInstitutionClick(inst); }}
                 />
               ))}
 
@@ -520,16 +531,27 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             {!loading && !error && institutions.length > 0 && (
               <div className="pagination-controls">
                 <button
+                  onMouseDown={(e) => e.preventDefault()}
                   className="page-btn"
-                  disabled={currentPage <= 1}
+                  disabled={currentPage <= 1 || selecting || loading}
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                 >Anterior</button>
                 <span className="page-info">Página {currentPage} de {totalPages} • {institutions.length} itens</span>
                 <button
+                  onMouseDown={(e) => e.preventDefault()}
                   className="page-btn"
-                  disabled={currentPage >= totalPages}
+                  disabled={currentPage >= totalPages || selecting || loading}
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 >Próxima</button>
+              </div>
+            )}
+
+            {(selecting || loading) && (
+              <div className="dropdown-loading-overlay">
+                <div className="loading-content">
+                  <span className="spinner" aria-hidden="true" />
+                  <span className="loading-text">{selecting ? 'Carregando dados da instituição...' : 'Buscando instituições...'}</span>
+                </div>
               </div>
             )}
           </div>

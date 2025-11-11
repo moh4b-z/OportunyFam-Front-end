@@ -41,17 +41,20 @@ const institutions = [
  * 
 ```
 
+```javascript
+/*************
+ * 
 ### **LOTE 2 - SENAI (5 instituições)**
 ```javascript
 const institutions = [
   {name: 'SENAI Brás', location: 'Brás'},
   {name: 'SENAI Mecânica Ipiranga', location: 'Ipiranga'},
-  {name: 'SENAI Soldagem Santo Amaro', location: 'Santo Amaro'}, Nao foi
-  {name: 'SENAI Automação Vila Leopoldina', location: 'Vila Leopoldina'}, Nao foi
-  {name: 'SENAI Informática Vila Leopoldina', location: 'Vila Leopoldina'} Nao foi 
-
-  (esperar um tempo pra conseguir fazer a requesição e depois apagar isso, lembrar de sempre inserir com o cep real)
+  {name: 'SENAI Soldagem Santo Amaro', location: 'Santo Amaro'}, 
+  {name: 'SENAI Automação Vila Leopoldina', location: 'Vila Leopoldina'}, 
+  {name: 'SENAI Informática Vila Leopoldina', location: 'Vila Leopoldina'}  
 ];
+```*
+ * 
 ```
 
 ### **LOTE 3 - SENAC (5 instituições)**

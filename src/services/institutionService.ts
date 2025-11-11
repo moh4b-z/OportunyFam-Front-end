@@ -128,7 +128,11 @@ export const institutionService = {
   },
 
   async search(query: string) {
-    const url = `${API_BASE_URL}/instituicoes/?nome=${encodeURIComponent(query)}&pagina=1&tamanho=20`
+    // Se query vazia, busca todas
+    const url = query.trim() 
+      ? `${API_BASE_URL}/instituicoes/?nome=${encodeURIComponent(query)}&pagina=1&tamanho=50`
+      : `${API_BASE_URL}/instituicoes`
+    
     console.log('🔍 URL da API:', url)
     
     try {
@@ -141,28 +145,135 @@ export const institutionService = {
       
       if (response.ok) {
         console.log('✅ API funcionou! Dados:', data)
-        return data
-      } else if (response.status === 500 && data.messagem?.includes('erros internos')) {
-        console.log('⚠️ API sem dados ainda (erro 500 esperado)')
-        throw new Error('API sem dados')
+        console.log('🔍 Tipo de data:', typeof data)
+        console.log('🔍 É array?', Array.isArray(data))
+        console.log('🔍 Propriedades:', Object.keys(data))
+        console.log('🔍 data.data:', data.data)
+        console.log('🔍 data.instituicoes:', data.instituicoes)
+        
+        // Tenta diferentes formatos de resposta
+        let institutions = []
+        if (Array.isArray(data)) {
+          institutions = data
+        } else if (data.data && Array.isArray(data.data)) {
+          institutions = data.data
+        } else if (data.instituicoes && Array.isArray(data.instituicoes)) {
+          institutions = data.instituicoes
+        } else if (data.results && Array.isArray(data.results)) {
+          institutions = data.results
+        }
+        
+        // Filtra apenas instituições que contêm o termo buscado
+        let filteredInstitutions = institutions
+        if (query.trim()) {
+          const searchTerm = query.toLowerCase().trim()
+          filteredInstitutions = institutions.filter(inst => 
+            inst.nome && inst.nome.toLowerCase().includes(searchTerm)
+          )
+        }
+        
+        console.log('🎯 Instituições encontradas:', institutions.length)
+        console.log('🎯 Instituições filtradas:', filteredInstitutions.length)
+        console.log('🎯 Primeira instituição:', filteredInstitutions[0])
+        
+        return {
+          status: true,
+          status_code: 200,
+          data: filteredInstitutions
+        }
       } else {
-        console.log('❌ Erro da API:', response.status, data.messagem)
+        console.log('❌ Erro da API:', response.status, data)
         throw new Error(`Erro ${response.status}`)
       }
     } catch (error) {
-      console.log('❌ API não disponível:', error.message)
-      console.log('🔄 Usando dados locais...')
+      console.log('❌ Erro na requisição:', error.message)
+      throw error
+    }
+  },
+
+  async getAll() {
+    const url = `${API_BASE_URL}/instituicoes`
+    console.log('🔍 Buscando todas as instituições:', url)
+    
+    try {
+      const response = await fetch(url)
+      const data = await response.json()
       
-      // Fallback para dados locais
-      const { populateService } = await import('./populateInstitutions')
-      const localResults = populateService.searchLocal(query)
-      
-      return {
-        status: true,
-        status_code: 200,
-        messagem: 'Dados locais (API indisponível)',
-        data: localResults
+      if (response.ok) {
+        console.log('✅ Todas as instituições carregadas:', data)
+        let institutions = []
+        if (Array.isArray(data)) {
+          institutions = data
+        } else if (data.data && Array.isArray(data.data)) {
+          institutions = data.data
+        } else if (data.instituicoes && Array.isArray(data.instituicoes)) {
+          institutions = data.instituicoes
+        } else if (data.results && Array.isArray(data.results)) {
+          institutions = data.results
+        }
+        
+        return {
+          status: true,
+          status_code: 200,
+          data: institutions
+        }
+      } else {
+        throw new Error(`Erro ${response.status}`)
       }
+    } catch (error) {
+      console.log('❌ Erro ao buscar todas:', error.message)
+      throw error
+    }
+  },
+
+  async searchByLocation(location: string) {
+    const url = `${API_BASE_URL}/instituicoes/?bairro=${encodeURIComponent(location)}&pagina=1&tamanho=50`
+    console.log('🔍 Buscando por localização:', url)
+    
+    try {
+      const response = await fetch(url)
+      const data = await response.json()
+      
+      if (response.ok) {
+        console.log(`✅ Instituições em ${location}:`, data)
+        let institutions = []
+        if (Array.isArray(data)) {
+          institutions = data
+        } else if (data.data && Array.isArray(data.data)) {
+          institutions = data.data
+        } else if (data.instituicoes && Array.isArray(data.instituicoes)) {
+          institutions = data.instituicoes
+        } else if (data.results && Array.isArray(data.results)) {
+          institutions = data.results
+        }
+        
+        // Filtra por localização no nome ou bairro (busca mais ampla)
+        const filteredInstitutions = institutions.filter(inst => {
+          const name = (inst.nome || '').toLowerCase()
+          const bairro = (inst.endereco?.bairro || inst.bairro || '').toLowerCase()
+          const descricao = (inst.descricao || '').toLowerCase()
+          const locationLower = location.toLowerCase()
+          
+          return name.includes(locationLower) || 
+                 bairro.includes(locationLower) ||
+                 descricao.includes(locationLower) ||
+                 // Busca parcial por palavras
+                 locationLower.split(' ').some(word => 
+                   name.includes(word) || bairro.includes(word)
+                 )
+        })
+        
+        return {
+          status: true,
+          status_code: 200,
+          data: filteredInstitutions
+        }
+      } else {
+        throw new Error(`Erro ${response.status}`)
+      }
+    } catch (error) {
+      console.log(`❌ Erro ao buscar ${location}:`, error.message)
+      throw error
     }
   },
 

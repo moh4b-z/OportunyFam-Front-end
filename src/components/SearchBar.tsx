@@ -155,7 +155,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       setError(null);
 
       try {
-        // Primeiro tenta a API real
+        // Busca apenas na API
         const { institutionService } = await import('../services/institutionService');
         const data = await institutionService.search(debouncedSearchTerm);
         
@@ -164,20 +164,15 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           setDataSource('api');
           console.log('✅ Dados carregados da API:', data.data.length, 'instituições');
         } else {
-          // Fallback: busca local (inclui busca por endereço/CEP)
-          const { populateService } = await import('../services/populateInstitutions');
-          const localResults = populateService.searchLocal(debouncedSearchTerm);
-          setInstitutions(localResults);
-          setDataSource('local');
-          console.log('📁 Dados carregados localmente:', localResults.length, 'instituições');
+          setInstitutions([]);
+          setDataSource('api');
+          console.log('⚠️ Nenhuma instituição encontrada na API');
         }
       } catch (err: any) {
-        console.warn('❌ API falhou, usando dados locais:', err.message);
-        const { populateService } = await import('../services/populateInstitutions');
-        const localResults = populateService.searchLocal(debouncedSearchTerm);
-        setInstitutions(localResults);
-        setDataSource('local');
-        console.log('📁 Fallback: dados carregados localmente:', localResults.length, 'instituições');
+        console.warn('❌ API falhou:', err.message);
+        setInstitutions([]);
+        setDataSource('api');
+        setError('Erro ao buscar instituições');
       } finally {
         setLoading(false);
       }
@@ -241,11 +236,11 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const getLocationTerms = (location: string): string => {
     const locationMap: Record<string, string> = {
       'todas': '',
-      'zona_norte': 'Santana|Casa Verde|Tucuruvi|Mandaqui|Belém',
-      'zona_sul': 'Santo Amaro|Campo Limpo|Jabaquara|Sapopemba|Heliópolis|Cidade Dutra',
-      'zona_leste': 'Itaquera|Penha|Tatuapé|São Mateus|Guaianases|Cidade Tiradentes',
-      'zona_oeste': 'Vila Leopoldina|Pinheiros|Lapa|Osasco|Butantã|Pirituba|Jaguaré',
-      'centro': 'República|Centro|Liberdade|Santa Ifigênia|Sé|Bela Vista'
+      'zona_norte': 'Santana|Casa Verde|Tucuruvi|Mandaqui|Belém|Norte',
+      'zona_sul': 'Santo Amaro|Campo Limpo|Jabaquara|Sapopemba|Heliópolis|Cidade Dutra|Sul',
+      'zona_leste': 'Itaquera|Penha|Tatuapé|São Mateus|Guaianases|Cidade Tiradentes|Leste|Mooca|Vila Alpina|Brás',
+      'zona_oeste': 'Vila Leopoldina|Pinheiros|Lapa|Osasco|Butantã|Pirituba|Jaguaré|Oeste|Morumbi|Sumaré',
+      'centro': 'República|Centro|Liberdade|Santa Ifigênia|Sé|Bela Vista|Higienópolis|Consolação'
     };
     return locationMap[location] || '';
   };
@@ -255,34 +250,43 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     setError(null);
     
     try {
+      const { institutionService } = await import('../services/institutionService');
+      
       if (location === 'todas') {
-        // Para "todas", usa busca geral na API
-        const { institutionService } = await import('../services/institutionService');
-        const data = await institutionService.search('');
+        // Busca todas as instituições da API
+        const data = await institutionService.getAll();
         
         if (data.status && data.data && data.data.length > 0) {
-          setInstitutions(data.data.slice(0, 100).map(normalizeInstituicao));
+          setInstitutions(data.data.map(normalizeInstituicao));
+          setDataSource('api');
         } else {
-          // Fallback para dados locais
-          const { populateService } = await import('../services/populateInstitutions');
-          const allResults = populateService.searchLocal('');
-          setInstitutions(allResults.slice(0, 100));
+          setInstitutions([]);
+          setDataSource('api');
         }
       } else {
-        // Para regiões específicas, usa dados locais (mais rápido)
-        const { populateService } = await import('../services/populateInstitutions');
+        // Busca por região específica na API
         const locationTerms = getLocationTerms(location);
         const locations = locationTerms.split('|');
         const results: Instituicao[] = [];
         
-        locations.forEach(loc => {
-          const localResults = populateService.searchLocal(loc);
-          results.push(...localResults);
-        });
+        // Busca cada bairro da região na API
+        for (const loc of locations) {
+          try {
+            const data = await institutionService.searchByLocation(loc);
+            if (data.status && data.data && data.data.length > 0) {
+              results.push(...data.data.map(normalizeInstituicao));
+            }
+          } catch (err) {
+            // Ignora erros e continua
+          }
+        }
         
         setInstitutions(results);
+        setDataSource('api');
       }
     } catch (error) {
+      setInstitutions([]);
+      setDataSource('api');
       setError('Erro ao carregar instituições');
     } finally {
       setLoading(false);

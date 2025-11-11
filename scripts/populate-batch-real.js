@@ -3,42 +3,42 @@ const https = require('https');
 
 const API_URL = 'https://oportunyfam-back-end.onrender.com/v1/oportunyfam/instituicoes';
 
-// LOTE 2 - SENAI COM ENDEREÇOS REAIS
+// LOTE 3 - SENAC COM ENDEREÇOS REAIS
 const institutions = [
   {
-    name: 'SENAI Brás',
-    cep: '03016-040',
-    logradouro: 'Rua Piratininga',
-    numero: '73',
-    bairro: 'Brás'
+    name: 'SENAC Lapa Faustolo',
+    cep: '05040-000',
+    logradouro: 'Rua Faustolo',
+    numero: '308',
+    bairro: 'Lapa'
   },
   {
-    name: 'SENAI Mecânica Ipiranga',
-    cep: '04206-000',
-    logradouro: 'Avenida Nazaré',
-    numero: '1501',
-    bairro: 'Ipiranga'
+    name: 'SENAC Águas Rasas',
+    cep: '03164-200',
+    logradouro: 'Avenida Conselheiro Carrão',
+    numero: '2423',
+    bairro: 'Águas Rasas'
   },
   {
-    name: 'SENAI Soldagem Santo Amaro',
-    cep: '04743-030',
-    logradouro: 'Avenida Alda',
-    numero: '680',
-    bairro: 'Santo Amaro'
+    name: 'SENAC Penha',
+    cep: '03636-000',
+    logradouro: 'Rua Dr. João Ribeiro',
+    numero: '683',
+    bairro: 'Penha'
   },
   {
-    name: 'SENAI Automação Vila Leopoldina',
-    cep: '05302-000',
-    logradouro: 'Rua Jaguaré',
-    numero: '678',
-    bairro: 'Vila Leopoldina'
+    name: 'SENAC Itaquera',
+    cep: '08295-005',
+    logradouro: 'Avenida Águia de Haia',
+    numero: '2983',
+    bairro: 'Itaquera'
   },
   {
-    name: 'SENAI Informática Vila Leopoldina',
-    cep: '05302-001',
-    logradouro: 'Rua Jaguaré',
-    numero: '680',
-    bairro: 'Vila Leopoldina'
+    name: 'SENAC Santana',
+    cep: '02013-000',
+    logradouro: 'Avenida Cruzeiro do Sul',
+    numero: '1100',
+    bairro: 'Santana'
   }
 ];
 

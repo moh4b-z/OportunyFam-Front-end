@@ -39,7 +39,7 @@ const institutions = [
   {name: 'SENAI Vila Alpina', location: 'Vila Alpina'}
 ];*
  * 
-```
+
 
 ```javascript
 /*************
@@ -55,8 +55,9 @@ const institutions = [
 ];
 ```*
  * 
-```
 
+/*************
+ * 
 ### **LOTE 3 - SENAC (5 instituições)**
 ```javascript
 const institutions = [
@@ -66,6 +67,9 @@ const institutions = [
   {name: 'SENAC Itaquera', location: 'Itaquera'},
   {name: 'SENAC Santana', location: 'Santana'}
 ];
+```*
+ * 
+
 ```
 
 ### **LOTE 4 - SENAC (5 instituições)**

@@ -155,18 +155,38 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       setError(null);
 
       try {
-        // Busca apenas na API
         const { institutionService } = await import('../services/institutionService');
-        const data = await institutionService.search(debouncedSearchTerm);
         
-        if (data.status && data.data && data.data.length > 0) {
-          setInstitutions(data.data.map(normalizeInstituicao));
-          setDataSource('api');
-          console.log('✅ Dados carregados da API:', data.data.length, 'instituições');
+        // Verifica se é busca por ID (apenas números)
+        const isIdSearch = /^\d+$/.test(debouncedSearchTerm.trim());
+        
+        if (isIdSearch) {
+          // Busca por ID específico
+          const id = parseInt(debouncedSearchTerm.trim());
+          const data = await institutionService.getById(id);
+          
+          if (data && data.instituicao) {
+            setInstitutions([normalizeInstituicao(data.instituicao)]);
+            setDataSource('api');
+            console.log('✅ Instituição encontrada por ID:', data.instituicao);
+          } else {
+            setInstitutions([]);
+            setDataSource('api');
+            console.log('⚠️ Nenhuma instituição encontrada com ID:', id);
+          }
         } else {
-          setInstitutions([]);
-          setDataSource('api');
-          console.log('⚠️ Nenhuma instituição encontrada na API');
+          // Busca normal por nome
+          const data = await institutionService.search(debouncedSearchTerm);
+          
+          if (data.status && data.data && data.data.length > 0) {
+            setInstitutions(data.data.map(normalizeInstituicao));
+            setDataSource('api');
+            console.log('✅ Dados carregados da API:', data.data.length, 'instituições');
+          } else {
+            setInstitutions([]);
+            setDataSource('api');
+            console.log('⚠️ Nenhuma instituição encontrada na API');
+          }
         }
       } catch (err: any) {
         console.warn('❌ API falhou:', err.message);
@@ -358,7 +378,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         </svg>
         <input
           className="search-input"
-          placeholder="Pesquise aqui"
+          placeholder="Pesquise aqui..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setSearchFocused(true)}

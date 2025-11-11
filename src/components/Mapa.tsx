@@ -83,10 +83,10 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
         } else {
           // Se não tiver coordenadas, faz a geocodificação
           const coords = await geocodeAddress(highlightedInstitution);
-          if (coords) {
-            addMarkerToMap(highlightedInstitution, coords.lat, coords.lng);
-            map.setView([coords.lat, coords.lng], 15);
-          }
+          const lat = coords?.lat ?? -23.5505;
+          const lng = coords?.lng ?? -46.6333;
+          addMarkerToMap(highlightedInstitution, lat, lng);
+          map.setView([lat, lng], 15);
         }
       } catch (error) {
         console.error('Erro ao atualizar o mapa com a instituição:', error);

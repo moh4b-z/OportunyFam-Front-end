@@ -21,50 +21,30 @@ interface SearchResultOptionProps {
 }
 
 const SearchResultOption = ({ institution, onClick, isSelected }: SearchResultOptionProps) => {
+  const [imgError, setImgError] = useState(false);
   // Retorna o caminho da imagem de perfil ou o ícone padrão
   const getProfileImage = () => {
-    // Se houver uma foto de perfil, retorna a imagem
-    if (institution.foto_perfil) {
+    // Se houver uma foto e ela não tiver falhado, mostra a imagem
+    if (institution.foto_perfil && !imgError) {
       return (
-        <>
-          <img 
-            src={institution.foto_perfil} 
-            alt={institution.nome}
-            className="card-logo-img"
-            onError={(e) => {
-              // Se houver erro ao carregar a imagem, mostra o ícone padrão
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const icon = target.nextSibling as HTMLElement;
-              if (icon) icon.style.display = 'flex';
-            }}
-          />
-          <div className="default-institution-icon">
-            <svg 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="1.5" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            </svg>
-          </div>
-        </>
+        <img
+          src={institution.foto_perfil}
+          alt={institution.nome}
+          className="card-logo-img"
+          onError={() => setImgError(true)}
+        />
       );
     }
-    
-    // Ícone padrão (mais minimalista)
+
+    // Caso não tenha foto ou tenha falhado, mostra o ícone padrão
     return (
       <div className="default-institution-icon">
-        <svg 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="1.5" 
-          strokeLinecap="round" 
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
           strokeLinejoin="round"
         >
           <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
@@ -116,6 +96,31 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
 
   const [institutions, setInstitutions] = useState<Instituicao[]>([]);
+
+  // Card de teste para geocodificação
+  const testInstitution: Instituicao = {
+    id: 999999,
+    instituicao_id: 999999,
+    nome: "Teste Geocodificação - Rua Paraná 10",
+    email: "teste@exemplo.com",
+    foto_perfil: null,
+    cnpj: "",
+    telefone: "",
+    descricao: "Endereço de teste para Nominatim",
+    endereco: {
+      id: 1,
+      cep: "06325010",
+      logradouro: "Rua Paraná",
+      numero: "10",
+      complemento: "",
+      bairro: "Conjunto Habitacional Presidente Castelo Branco",
+      cidade: "Carapicuíba",
+      estado: "SP",
+      latitude: 0,
+      longitude: 0
+    },
+    tipos_instituicao: []
+  };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'api' | 'local' | null>(null);
@@ -183,7 +188,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             tipos_instituicao: inst.tipos_instituicao || []
           }));
           
-          setInstitutions(formattedInstitutions);
+          setInstitutions([testInstitution, ...formattedInstitutions]);
           setDataSource('api');
         }
       } catch (err) {
@@ -229,7 +234,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
               },
               tipos_instituicao: inst.tipos_instituicao || []
             }));
-            setInstitutions(formattedInstitutions);
+            setInstitutions([testInstitution, ...formattedInstitutions]);
           }
         }
         return;

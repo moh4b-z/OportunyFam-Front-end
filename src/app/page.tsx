@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import BarraLateral from "@/components/BarraLateral";
 import SearchBar from "@/components/SearchBar";
-import Switch from "@/components/Switch";
 const Mapa = dynamic(() => import("../components/Mapa"), { ssr: false });
 import { Instituicao } from "@/types";
 import NotificationsModal from "@/components/modals/NotificationsModal";
@@ -181,13 +180,6 @@ export default function HomePage() {
         {/* Mapa ocupa toda a área */}
         <div className={mapaStyles.mapWrapper}>
           <Mapa highlightedInstitution={selectedInstitution} />
-        </div>
-        
-        {/* Switch de categorias - lado direito da barra lateral */}
-        <div className="switch-container-sidebar">
-          <Switch onCategoryChange={(category) => {
-            // Categoria selecionada: ${category}
-          }} />
         </div>
 
         {/* Painel de busca */}

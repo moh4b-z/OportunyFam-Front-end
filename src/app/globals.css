@@ -37,6 +37,8 @@
   --input-bg-dark: #3c3c3c;
   --hover-bg-dark: #404040;
   --shadow-dark: rgba(0, 0, 0, 0.3);
+  --search-max-width: 760px; /* largura unificada de search e dropdown */
+  --dropdown-viewport-offset: 82px;
 }
 
 /* Base e estrutura da página */
@@ -214,6 +216,13 @@ body.dark {
   pointer-events: auto; /* Reativa cliques nos elementos filhos */
 }
 
+/* Faz o wrapper da busca ocupar todo o espaço disponível do header */
+.floating-header .search-wrapper {
+  flex: 0 0 28%;
+  max-width: 50%;
+  display: flex;
+}
+
 /* Controles do mapa (Leaflet zoom controls) */
 .leaflet-control-zoom {
   z-index: 100 !important; /* Fica atrás dos modais */
@@ -235,6 +244,7 @@ body.dark {
   align-items: center;
   gap: 20px;
   width: 100%;
+  max-width: none; /* deixa expandir dentro do header */
 }
 
 /* Estilos para o tema escuro */
@@ -260,7 +270,10 @@ body.dark .search-input {
   /* Transições suaves restauradas */
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
   will-change: border-color, box-shadow, transform;
-  width: 420px; /* mantém a barra do mesmo tamanho visual */
+  width: 100%; /* acompanha a largura do wrapper flex */
+  max-width: none; /* não limitar por variável */
+  box-sizing: border-box;
+  align-self: flex-start; /* alinha bordas com o dropdown */
   flex-shrink: 0; /* impede que a barra encolha quando os chips aparecem */
 }
 
@@ -272,7 +285,6 @@ body.dark .search-box {
 
 .search-box.search-box-active {
   border-color: var(--orange);
-  transform: translateY(-3px); /* elevação sutil apenas do input */
   box-shadow: 0 6px 16px rgba(244, 162, 97, 0.15); /* sombra suave opcional */
 }
 
@@ -574,40 +586,8 @@ body.dark .modal-text {
   color: #fff;
 }
 
-/*
- * ===============================================
- * Container do Switch - Lado direito da barra lateral
- * ===============================================
- */
-.switch-container-sidebar {
-  position: fixed;
-  top: 20px;
-  left: calc(var(--sidebar-width) + 20px); /* Posiciona após a barra lateral */
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 30px;
-  padding: 8px 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Tema escuro */
-body.dark .switch-container-sidebar {
-  background: rgba(45, 45, 45, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Responsividade para o switch sidebar */
+/* Responsividade para a busca */
 @media (max-width: 768px) {
-  .switch-container-sidebar {
-    position: relative;
-    top: auto;
-    left: auto;
-    margin: 10px 20px;
-    width: calc(100% - 40px);
-  }
-  
   .search-and-chips {
     flex-direction: column;
     gap: 15px;
@@ -620,12 +600,6 @@ body.dark .switch-container-sidebar {
 }
 
 @media (max-width: 480px) {
-  .switch-container-sidebar {
-    margin: 10px 15px;
-    width: calc(100% - 30px);
-    padding: 6px 10px;
-  }
-  
   .search-and-chips {
     gap: 12px;
   }
@@ -771,16 +745,35 @@ body.dark .source-badge.local {
    Paginação do dropdown de busca
    ============================= */
 .search-results-dropdown {
-  max-height: 420px;
-  overflow: auto;
-  padding: 0 !important; /* sem padding para encostar a barra */
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  align-self: flex-start;
+  /* ocupa até o final da tela, com folga definida pela variável */
+  max-height: calc(100dvh - var(--dropdown-viewport-offset));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 !important;
   display: flex;
   flex-direction: column;
-  position: relative; /* base para overlay de carregamento */
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  z-index: 600;
+}
+
+body.dark .search-results-dropdown {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
 }
 
 /* Garante área visível para o overlay quando estiver carregando */
 .search-results-dropdown.loading {
+  /* mantém uma área mínima para mostrar o overlay, mas respeita o teto por viewport */
   min-height: 260px;
 }
 
@@ -832,6 +825,11 @@ body.dark .loading-content {
   background: transparent; /* sem fundo no dark também */
   color: #fff;
   border: none;
+}
+
+/* Oculta temporariamente o container de chips de categorias */
+.CategoryChips_chipsContainer__uO4Kl {
+  display: none !important;
 }
 
 .spinner {

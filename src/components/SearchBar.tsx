@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Instituicao, TipoInstituicao } from "@/types";
 import { geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
 import { API_BASE_URL } from "@/services/config";
-import CategoryChips, { Category } from "./shared/CategoryChips";
+import StreetViewModal from "./StreetViewModal";
 import "../app/styles/SearchCard.css";
 import "../app/styles/SearchModal.css";
 
@@ -15,10 +15,11 @@ interface SearchBarProps {
 interface SearchResultOptionProps {
   institution: Instituicao;
   onClick: () => void;
+  onStreetViewClick: (e: React.MouseEvent) => void;
   isSelected: boolean;
 }
 
-const SearchResultOption = ({ institution, onClick, isSelected }: SearchResultOptionProps) => {
+const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelected }: SearchResultOptionProps) => {
   const [imgError, setImgError] = useState(false);
   // Retorna o caminho da imagem de perfil ou o ícone padrão
   const getProfileImage = () => {
@@ -83,7 +84,27 @@ const SearchResultOption = ({ institution, onClick, isSelected }: SearchResultOp
           <span className="card-name-full">{institution.nome}</span>
           <span className="card-category">{getCategories()}</span>
         </div>
-        <span className="card-location">📍 {institution.endereco?.bairro}, São Paulo</span>
+        <div className="card-location-row">
+          <span className="card-location">📍 {institution.endereco?.bairro}, São Paulo</span>
+          <button
+            className="street-view-btn"
+            onClick={onStreetViewClick}
+            onMouseDown={(e) => e.preventDefault()}
+            title="Ver no Street View"
+            aria-label="Abrir Street View"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="4"/>
+              <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/>
+              <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/>
+              <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/>
+              <line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/>
+              <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/>
+            </svg>
+            Street View
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -106,15 +127,9 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [dataSource, setDataSource] = useState<'api' | 'local' | null>(null);
   const [selecting, setSelecting] = useState<boolean>(false);
 
-  
-
-  // Categorias dos chips - apenas as mais relevantes
-  const [categories, setCategories] = useState<Category[]>([
-    { id: "informatica", name: "Informática", isActive: false },
-    { id: "ingles", name: "Inglês", isActive: false },
-    { id: "saude", name: "Saúde", isActive: false },
-    { id: "culinaria", name: "Culinária", isActive: false }
-  ]);
+  // Estados para Street View
+  const [streetViewOpen, setStreetViewOpen] = useState(false);
+  const [streetViewCoords, setStreetViewCoords] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
   // Estado do filtro de localização
   const [locationFilter, setLocationFilter] = useState<string>('todas');
@@ -228,16 +243,20 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   useEffect(() => {
     if (!isDropdownOpen || selecting) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft' && currentPage > 1) {
-        e.preventDefault();
-        setPage((p) => Math.max(1, p - 1));
-      } else if (e.key === 'ArrowRight' && currentPage < totalPages) {
-        e.preventDefault();
-        setPage((p) => Math.min(totalPages, p + 1));
+      // Captura as setas esquerda/direita mesmo se o input estiver focado
+      if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && 
+          (e.target === inputRef.current || e.target === document.body)) {
+        if (e.key === 'ArrowLeft' && currentPage > 1) {
+          e.preventDefault();
+          setPage((p) => Math.max(1, p - 1));
+        } else if (e.key === 'ArrowRight' && currentPage < totalPages) {
+          e.preventDefault();
+          setPage((p) => Math.min(totalPages, p + 1));
+        }
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true); // capture phase
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [isDropdownOpen, currentPage, totalPages, selecting]);
 
   const handleInstitutionClick = async (institution: Instituicao) => {
@@ -269,29 +288,31 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     }
   };
 
-  const handleCategoryClick = async (categoryId: string) => {
-    setCategories(prevCategories => {
-      const updatedCategories = prevCategories.map(category => {
-        if (category.id === categoryId) {
-          return { ...category, isActive: !category.isActive };
-        } else {
-          return { ...category, isActive: false };
-        }
-      });
-      
-      const activeCategory = updatedCategories.find(cat => cat.isActive);
-      
-      if (activeCategory) {
-        // Busca instituições da categoria selecionada
-        fetchInstitutionsByCategory(activeCategory.id);
-      } else {
-        // Limpa os resultados se desativar o chip
-        setInstitutions([]);
+  const handleStreetViewClick = async (institution: Instituicao, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita acionar o onClick do card
+    
+    // Tenta obter as coordenadas da instituição
+    let lat = institution.endereco?.latitude;
+    let lng = institution.endereco?.longitude;
+    
+    // Se não tiver coordenadas, tenta geocodificar
+    if (!lat || !lng) {
+      const coords = await geocodeAddress(institution);
+      if (coords) {
+        lat = coords.lat;
+        lng = coords.lng;
       }
-      
-      return updatedCategories;
-    });
+    }
+    
+    if (lat && lng) {
+      setStreetViewCoords({ lat, lng, name: institution.nome });
+      setStreetViewOpen(true);
+    } else {
+      console.error('Não foi possível obter coordenadas para o Street View');
+    }
   };
+
+  // Removido CategoryChips
 
   const locationOptions = [
     { value: 'todas', label: 'Todas as regiões', icon: 'globe' },
@@ -406,45 +427,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     };
   };
 
-  const fetchInstitutionsByCategory = async (categoryId: string) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const categoryMap: Record<string, string> = {
-        'informatica': 'informatica',
-        'ingles': 'ingles',
-        'saude': 'saude',
-        'culinaria': 'culinaria'
-      };
-      
-      const searchTerm = categoryMap[categoryId] || categoryId;
-      const { institutionService } = await import('../services/institutionService');
-      
-      // Tenta buscar da API primeiro
-      try {
-        const data = await institutionService.search(searchTerm);
-        
-        if (data?.data?.length > 0) {
-          setInstitutions(data.data.map(normalizeInstituicao));
-          return;
-        }
-      } catch (apiError) {
-        console.warn('Erro ao buscar da API, usando dados locais:', apiError);
-      }
-      
-      // Fallback para dados locais
-      const { populateService } = await import('../services/populateInstitutions');
-      const localResults = populateService.searchLocal(searchTerm);
-      setInstitutions(localResults);
-      
-    } catch (error) {
-      console.error('Erro ao buscar instituições por categoria:', error);
-      setError('Não foi possível carregar as instituições desta categoria. Tente novamente mais tarde.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Removido fetchInstitutionsByCategory
 
   return (
     <div className={`search-and-chips ${searchFocused ? "search-and-chips-active" : ""}`}>
@@ -520,6 +503,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                   institution={inst}
                   isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
                   onClick={() => { if (!selecting && !loading) handleInstitutionClick(inst); }}
+                  onStreetViewClick={(e) => handleStreetViewClick(inst, e)}
                 />
               ))}
 
@@ -557,12 +541,17 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           </div>
         )}
       </div>
-      
-      {/* Chips de categoria ao lado direito */}
-      <CategoryChips 
-        categories={categories}
-        onCategoryClick={handleCategoryClick}
-      />
+
+      {/* Street View Modal */}
+      {streetViewOpen && streetViewCoords && (
+        <StreetViewModal
+          isOpen={streetViewOpen}
+          onClose={() => setStreetViewOpen(false)}
+          latitude={streetViewCoords.lat}
+          longitude={streetViewCoords.lng}
+          institutionName={streetViewCoords.name}
+        />
+      )}
     </div>
   );
 }

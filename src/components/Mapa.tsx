@@ -16,8 +16,8 @@ const customIcon = L.divIcon({
       <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="pinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#FF5252;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#D32F2F;stop-opacity:1" />
+            <stop offset="0%" style="stop-color:#f4a261;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e76f51;stop-opacity:1" />
           </linearGradient>
           <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>

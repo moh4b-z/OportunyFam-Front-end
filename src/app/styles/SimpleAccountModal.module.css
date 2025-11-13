@@ -146,7 +146,7 @@
   left: 0;
   right: 0;
   height: 6px;
-  background: linear-gradient(90deg, #6c5ce7, #a55eea);
+  background: linear-gradient(90deg, var(--orange), var(--red-orange));
 }
 
 .avatar {
@@ -154,14 +154,14 @@
   height: 100px;
   border-radius: 50%;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, #6c5ce7, #a55eea);
+  background: linear-gradient(135deg, var(--orange), var(--red-orange));
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 40px;
   font-weight: 600;
-  box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3);
+  box-shadow: 0 10px 25px rgba(244, 162, 97, 0.3);
   border: 4px solid #fff;
   position: relative;
   overflow: hidden;
@@ -170,7 +170,7 @@
 
 .avatar:hover {
   transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(108, 92, 231, 0.4);
+  box-shadow: 0 15px 30px rgba(244, 162, 97, 0.4);
 }
 
 .avatar::after {
@@ -244,7 +244,7 @@
   left: 0;
   width: 4px;
   height: 100%;
-  background: #6c5ce7;
+  background: var(--orange);
   transform: scaleY(0);
   transform-origin: top;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -264,7 +264,7 @@
 
 .menuItem i {
   font-size: 22px;
-  color: #6c5ce7;
+  color: var(--orange);
   width: 24px;
   text-align: center;
   transition: all 0.3s ease;
@@ -272,7 +272,7 @@
 
 .menuItem:hover i {
   transform: scale(1.1);
-  color: #5a4bc7;
+  color: var(--red-orange);
 }
 
 .menuItem span {
@@ -285,68 +285,95 @@
 }
 
 .menuItem:hover span {
-  color: #6c5ce7;
+  color: var(--orange);
   transform: translateX(4px);
 }
 
-/* Dark Theme */
+/* Dark Theme - Professional Design */
 :global(.dark) .modal {
-  background: #1a1e2e;
-  border-left: 1px solid #2a2f42;
+  background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-left: 1px solid #333333;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.8);
 }
 
 :global(.dark) .header {
-  background: #1a1e2e;
-  border-bottom: 1px solid #2a2f42;
+  background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
+  border-bottom: 1px solid #404040;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 :global(.dark) .header h2 {
-  color: #f8f9fa;
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 :global(.dark) .closeButton {
-  background: #2a2f42;
-  color: #a4b0be;
+  background: linear-gradient(145deg, #3a3a3a 0%, #2e2e2e 100%) !important;
+  color: #b8b8b8 !important;
+  border: 1px solid #4a4a4a !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 :global(.dark) .closeButton:hover {
-  background: #e74c3c;
-  color: white;
+  background: linear-gradient(145deg, var(--red-orange) 0%, #c0392b 100%) !important;
+  color: white !important;
+  border-color: var(--red-orange) !important;
+  box-shadow: 0 4px 12px rgba(231, 111, 81, 0.4) !important;
 }
 
 :global(.dark) .content {
-  background: #1a1e2e;
+  background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
 }
 
 :global(.dark) .userSection {
-  background: #202636;
-  border-color: #2a2f42;
+  background: linear-gradient(145deg, #2e2e2e 0%, #232323 100%);
+  border: 1px solid #404040;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+:global(.dark) .userSection::before {
+  background: linear-gradient(90deg, var(--orange), var(--red-orange));
 }
 
 :global(.dark) .userInfo h3 {
-  color: #f8f9fa;
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 :global(.dark) .userInfo p {
-  color: #a4b0be;
+  color: #b8b8b8;
 }
 
 :global(.dark) .menuItem {
-  background: #202636;
-  border-color: #2a2f42;
+  background: linear-gradient(145deg, #2e2e2e 0%, #232323 100%);
+  border: 1px solid #404040;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 :global(.dark) .menuItem:hover {
-  background: #2a2f42;
-  border-color: #3a3f52;
+  background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
+  border-color: var(--orange);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--orange);
+  transform: translateX(12px);
 }
 
 :global(.dark) .menuItem span {
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 :global(.dark) .menuItem:hover span {
-  color: #8c7ae6;
+  color: var(--orange);
+}
+
+:global(.dark) .menuItem i {
+  color: var(--orange);
+}
+
+:global(.dark) .menuItem:hover i {
+  color: var(--red-orange);
+  transform: scale(1.15);
 }
 
 /* Responsive */
@@ -400,15 +427,16 @@
 }
 
 :global(.dark) .modal::-webkit-scrollbar-track {
-  background: #1a1e2e;
+  background: #1a1a1a;
 }
 
 :global(.dark) .modal::-webkit-scrollbar-thumb {
-  background: #3a3f52;
+  background: linear-gradient(145deg, #404040 0%, #333333 100%);
+  border-radius: 10px;
 }
 
 :global(.dark) .modal::-webkit-scrollbar-thumb:hover {
-  background: #8c7ae6;
+  background: linear-gradient(145deg, var(--orange) 0%, var(--red-orange) 100%);
 }
 
 /* ===== New modern Account view (fields + children) ===== */
@@ -1089,6 +1117,43 @@
 
 /* Dark support */
 :global(.dark) .profileAvatar { background: #2a2f42; color: #a4b0be; }
-:global(.dark) .fieldRow { border-bottom-color: #2a2f42; }
-:global(.dark) .label, :global(.dark) .value, :global(.dark) .sectionHeader { color: #f8f9fa; }
-:global(.dark) .childCard { background: #202636; box-shadow: 0 3px 10px rgba(0,0,0,.25); }
+:global(.dark) .fieldRow {
+  background: linear-gradient(145deg, #2e2e2e 0%, #232323 100%);
+  border: 1px solid #404040;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:global(.dark) .fieldRow:hover {
+  background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
+  border-color: var(--orange);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--orange);
+}
+
+:global(.dark) .label, :global(.dark) .value, :global(.dark) .sectionHeader {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+:global(.dark) .childCard {
+  background: linear-gradient(145deg, #2e2e2e 0%, #232323 100%);
+  border: 1px solid #404040;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+:global(.dark) .childCard:hover {
+  background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
+  border-color: var(--orange);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--orange);
+}
+
+:global(.dark) .childName {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+:global(.dark) .institutionName {
+  background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
+  color: #ffffff;
+  border: 1px solid #4a4a4a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

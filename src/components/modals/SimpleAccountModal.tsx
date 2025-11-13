@@ -140,7 +140,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2>Olá {user.nome.split(' ')[0]}</h2>
+          <h2 style={{color: 'var(--text-dark)'}}>Olá {user.nome.split(' ')[0]}</h2>
           <button className={styles.closeButton} onClick={onClose} aria-label="Fechar">×</button>
         </div>
 

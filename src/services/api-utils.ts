@@ -33,7 +33,13 @@ export async function apiRequest<T = any>(
     clearTimeout(timeoutId);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Erro da API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`HTTP error! status: ${response.status} - ${response.statusText} - ${errorText}`);
     }
     
     const data = await response.json();

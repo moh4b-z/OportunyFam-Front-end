@@ -154,6 +154,7 @@ export default function HomePage() {
       <ConversationsModal
         isOpen={isConversationsModalOpen}
         onClose={closeConversationsModal}
+        usuarioId={authUser?.usuario_id || 1}
       />
       
       {/* Componente para mostrar informações da sessão (apenas para demonstração) */}

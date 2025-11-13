@@ -1,80 +1,137 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import "../../app/styles/ConversationsModal.css";
 import ChatModal from './ChatModal';
+import { buscarConversas, deletarConversa, type Conversa } from '../../services/messageService';
 
 interface ConversationsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  usuarioId: number;
 }
 
 interface Conversation {
-  id: string;
+  id: number;
   name: string;
   lastMessage: string;
   tag: string;
   unreadCount?: number;
   avatarInitial: string;
+  online?: boolean;
 }
 
-const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose }) => {
+const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose, usuarioId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Conversation | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [allConversations, setAllConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Dados das conversas (baseados na imagem)
-  const conversations: Conversation[] = [
-    {
-      id: '1',
-      name: 'Laura de Andrade',
-      lastMessage: 'Olá, fico feliz que tenha entrado...',
-      tag: 'ONG',
-      unreadCount: 1,
-      avatarInitial: 'L'
-    },
-    {
-      id: '2',
-      name: 'Institudo Aprender',
-      lastMessage: 'Temos vagas disponíveis para de...',
-      tag: 'ONG',
-      unreadCount: 2,
-      avatarInitial: 'I'
-    },
-    {
-      id: '3',
-      name: 'Escola Esperança',
-      lastMessage: 'As incricoes para o reforço escolar...',
-      tag: 'Escola',
-      avatarInitial: 'E'
-    },
-    {
-      id: '4',
-      name: 'Isabela Lira',
-      lastMessage: 'Olá, fico feliz que tenha entrado...',
-      tag: 'ONG',
-      unreadCount: 1,
-      avatarInitial: 'I'
-    },
-    {
-      id: '5',
-      name: 'Nicolly Freitas',
-      lastMessage: 'Temos vagas disponíveis para de...',
-      tag: 'ONG',
-      unreadCount: 2,
-      avatarInitial: 'N'
+  // Carregar conversas quando o modal abrir
+  useEffect(() => {
+    if (isOpen) {
+      carregarConversas();
     }
-  ];
+  }, [isOpen, usuarioId]);
+
+  const carregarConversas = async () => {
+    try {
+      setLoading(true);
+      const conversasApi = await buscarConversas(usuarioId);
+      
+      const conversasFormatadas: Conversation[] = conversasApi.map((conversa: Conversa) => ({
+        id: conversa.id,
+        name: conversa.nome_contato || 'Contato',
+        lastMessage: conversa.ultima_mensagem || 'Sem mensagens',
+        tag: conversa.tag_contato || 'Contato',
+        unreadCount: conversa.mensagens_nao_lidas || 0,
+        avatarInitial: (conversa.nome_contato || 'C')[0].toUpperCase()
+      }));
+      
+      setConversations(conversasFormatadas);
+      setAllConversations(conversasFormatadas);
+    } catch (error) {
+      console.error('Erro ao carregar conversas:', error);
+      // Dados de teste para desenvolvimento
+      const testData = [
+        {
+          id: 1,
+          name: 'Laura de Andrade',
+          lastMessage: 'Olá, fico feliz que tenha entrado em contato!',
+          tag: 'ONG',
+          unreadCount: 1,
+          avatarInitial: 'L'
+        },
+        {
+          id: 2,
+          name: 'Instituto Aprender',
+          lastMessage: 'Temos vagas disponíveis para crianças...',
+          tag: 'ONG',
+          unreadCount: 2,
+          avatarInitial: 'I'
+        }
+      ];
+      setConversations(testData);
+      setAllConversations(testData);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filtrar conversas baseado no termo de pesquisa
-  const filteredConversations = conversations.filter(conversation =>
-    conversation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conversation.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredConversations = searchTerm
+    ? allConversations.filter(conversation =>
+        conversation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        conversation.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : allConversations;
 
   const handleConversationClick = (conversation: Conversation) => {
-    setSelectedContact(conversation);
+    // Remove o contador de mensagens não lidas ao abrir a conversa
+    const conversasAtualizadas = allConversations.map(conv => 
+      conv.id === conversation.id 
+        ? { ...conv, unreadCount: 0 }
+        : conv
+    );
+    setConversations(conversasAtualizadas);
+    setAllConversations(conversasAtualizadas);
+    
+    setSelectedContact({ ...conversation, unreadCount: 0 });
     setIsChatModalOpen(true);
+  };
+
+  const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Tem certeza que deseja excluir esta conversa?')) {
+      try {
+        // Tenta deletar da API, mas remove da lista local independente do resultado
+        try {
+          await deletarConversa(conversationId);
+        } catch (deleteError) {
+          // Continua mesmo se der erro na API
+        }
+        
+        // Remove da lista local
+        const novasConversas = allConversations.filter(conv => conv.id !== conversationId);
+        setConversations(novasConversas);
+        setAllConversations(novasConversas);
+
+      } catch (error) {
+        console.error('Erro detalhado:', error);
+        
+        // Se for 404, remove da lista local mesmo assim
+        if (error instanceof Error && error.message.includes('404')) {
+          console.log('Conversa não encontrada na API, removendo da lista local');
+          const novasConversas = allConversations.filter(conv => conv.id !== conversationId);
+          setConversations(novasConversas);
+          setAllConversations(novasConversas);
+        } else {
+          alert(`Erro ao excluir: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+      }
+    }
   };
 
   const handleCloseChatModal = () => {
@@ -128,7 +185,19 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
 
         {/* Lista de conversas */}
         <div className="conversations-list">
-          {filteredConversations.map((conversation) => (
+          {loading && (
+            <div className="conversations-loading">
+              Carregando conversas...
+            </div>
+          )}
+          
+          {!loading && filteredConversations.length === 0 && searchTerm && (
+            <div className="conversations-no-results">
+              Nenhuma conversa encontrada para "{searchTerm}"
+            </div>
+          )}
+          
+          {!loading && filteredConversations.map((conversation) => (
             <div
               key={conversation.id}
               className="conversation-item"
@@ -153,10 +222,24 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
                     {conversation.unreadCount}
                   </span>
                 )}
+                <button 
+                  className="conversation-delete-btn"
+                  onClick={(e) => handleDeleteConversation(conversation.id, e)}
+                  title="Excluir conversa"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3,6 5,6 21,6"/>
+                    <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                </button>
               </div>
             </div>
           ))}
         </div>
+
+
       </div>
 
       {/* Modal de Chat */}
@@ -166,6 +249,8 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
           onClose={handleCloseChatModal}
           contactName={selectedContact.name}
           contactTag={selectedContact.tag}
+          conversaId={selectedContact.id}
+          usuarioId={usuarioId}
         />
       )}
     </div>

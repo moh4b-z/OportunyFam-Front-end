@@ -29,6 +29,7 @@ const Perfil: React.FC<PerfilProps> = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userState, setUserState] = useState(user);
 
   // Carregar tema do localStorage na inicialização
   useEffect(() => {
@@ -45,6 +46,18 @@ const Perfil: React.FC<PerfilProps> = ({
       document.body.classList.remove('dark');
     }
   }, []);
+
+  // Sincronizar userState com user prop
+  useEffect(() => {
+    if (user) {
+      setUserState({
+        nome: user.nome || "Usuário",
+        email: user.email || "usuario@exemplo.com",
+        telefone: user.telefone || null,
+        foto_perfil: user.foto_perfil || null
+      });
+    }
+  }, [user]);
 
   // Função para alternar tema
   const toggleTheme = () => {
@@ -249,16 +262,12 @@ const Perfil: React.FC<PerfilProps> = ({
       />
 
       {/* RENDERIZAÇÃO DA MODAL DE CONTA */}
-      {user && (
+      {userState && (
         <SimpleAccountModal
           isOpen={showAccountModal}
           onClose={() => setShowAccountModal(false)}
-          user={{
-            nome: user.nome || "Usuário",
-            email: user.email || "usuario@exemplo.com",
-            telefone: user.telefone || null,
-            foto_perfil: user.foto_perfil || null
-          }}
+          user={userState}
+          onUserUpdate={(updatedUser) => setUserState(updatedUser)}
         />
       )}
     </>

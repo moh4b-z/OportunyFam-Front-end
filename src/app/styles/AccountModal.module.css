@@ -279,6 +279,9 @@
   position: relative;
   margin-right: 20px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .profileImage {
@@ -332,6 +335,84 @@
 
 :global(body.dark) .statusIndicator {
   border-color: #1f2937;
+}
+
+/* Botões de foto */
+.photoButtons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.photoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 0;
+  flex: 1;
+  max-width: 120px;
+}
+
+.photoButton:hover {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--red-orange) 100%);
+  color: white;
+  border-color: var(--orange);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3);
+}
+
+.photoButton svg {
+  flex-shrink: 0;
+}
+
+.removeButton {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.removeButton:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+:global(body.dark) .photoButton {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+:global(body.dark) .photoButton:hover {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border-color: #ff9800;
+}
+
+:global(body.dark) .removeButton {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  color: #f87171;
+  border-color: #6b7280;
+}
+
+:global(body.dark) .removeButton:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border-color: #dc2626;
 }
 
 .profileInfo {
@@ -725,6 +806,18 @@
   .profileImageContainer {
     margin-right: 0;
     margin-bottom: 16px;
+  }
+  
+  .photoButtons {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  
+  .photoButton {
+    max-width: none;
+    font-size: 11px;
+    padding: 6px 10px;
   }
   
   .profileImage {

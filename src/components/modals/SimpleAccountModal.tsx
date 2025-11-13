@@ -11,8 +11,10 @@ interface SimpleAccountModalProps {
     email: string;
     telefone?: string | null;
     foto_perfil?: string | null;
+    id?: number;
   };
   childrenNames?: string[];
+  onUserUpdate?: (updatedUser: any) => void;
 }
 
 const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
@@ -20,6 +22,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   onClose,
   user,
   childrenNames,
+  onUserUpdate,
 }) => {
   if (!isOpen) return null;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -29,7 +32,14 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
     [user.nome]
   );
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    email: user.email || '',
+    telefone: user.telefone || '',
+    senha: ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const onPickAvatar = () => fileInputRef.current?.click();
   const onAvatarSelected: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
@@ -44,11 +54,67 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   };
 
   useEffect(() => {
+    if (isOpen) {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) setAvatarUrl(saved);
+      } catch {}
+      
+      setEditData({
+        email: user.email || '',
+        telefone: user.telefone || '',
+        senha: ''
+      });
+    }
+  }, [isOpen, storageKey, user.email, user.telefone]);
+
+  const handleAlterarDados = () => {
+    setIsEditing(true);
+  };
+
+  const handleSalvarDados = async () => {
+    setIsSaving(true);
     try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) setAvatarUrl(saved);
-    } catch {}
-  }, [storageKey, isOpen]);
+      const updateData: any = {
+        nome: user.nome,
+        email: editData.email,
+        telefone: editData.telefone
+      };
+      
+      if (editData.senha) {
+        updateData.senha = editData.senha;
+      }
+      
+      const response = await fetch(`https://oportunyfam-back-end.onrender.com/v1/oportunyfam/usuarios/${user.id || 1}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+      });
+      
+      if (response.ok) {
+        const updatedUser = {
+          ...user,
+          email: editData.email,
+          telefone: editData.telefone
+        };
+        onUserUpdate?.(updatedUser);
+        setIsEditing(false);
+        setEditData({...editData, senha: ''});
+        alert('Dados salvos com sucesso!');
+      } else {
+        const errorData = await response.text();
+        console.error('Erro da API:', errorData);
+        alert('Erro ao salvar dados: ' + response.status);
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+      alert('Erro ao conectar com o servidor');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -80,6 +146,28 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                 style={{ display: "none" }}
               />
             </div>
+            
+            <div className={styles.photoButtons}>
+              <button className={styles.photoButton} onClick={onPickAvatar}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                  <circle cx="12" cy="13" r="3"></circle>
+                </svg>
+                Adicionar Foto
+              </button>
+              
+              {avatarUrl && (
+                <button className={`${styles.photoButton} ${styles.removeButton}`} onClick={() => { setAvatarUrl(null); localStorage.removeItem(storageKey); }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  Excluir Foto
+                </button>
+              )}
+            </div>
           </div>
 
           <div className={styles.fields}>
@@ -90,16 +178,23 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                   <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>
                 </svg>
               </div>
-              <div className={styles.fieldContent}>
-                <span className={styles.label}>Email:</span>
-                <span className={styles.value}>{maskEmail(user.email || "usuario@dominio.com")}</span>
-              </div>
-              <button className={styles.editBtn} aria-label="Editar email">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9"/>
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
-                </svg>
-              </button>
+              {isEditing ? (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Email:</span>
+                  <input 
+                    type="email" 
+                    value={editData.email}
+                    onChange={(e) => setEditData({...editData, email: e.target.value})}
+                    className={styles.editInput}
+                  />
+                </div>
+              ) : (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Email:</span>
+                  <span className={styles.value}>{maskEmail(user.email)}</span>
+                </div>
+              )}
+
             </div>
 
             <div className={styles.fieldRow}>
@@ -108,16 +203,23 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.08 4.18 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72 12.05 12.05 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.26-1.26a2 2 0 0 1 2.11-.45 12.05 12.05 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                 </svg>
               </div>
-              <div className={styles.fieldContent}>
-                <span className={styles.label}>Numero:</span>
-                <span className={styles.value}>{maskPhone(user.telefone || "11000000000")}</span>
-              </div>
-              <button className={styles.editBtn} aria-label="Editar número">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9"/>
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
-                </svg>
-              </button>
+              {isEditing ? (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Numero:</span>
+                  <input 
+                    type="tel" 
+                    value={editData.telefone}
+                    onChange={(e) => setEditData({...editData, telefone: e.target.value})}
+                    className={styles.editInput}
+                  />
+                </div>
+              ) : (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Numero:</span>
+                  <span className={styles.value}>{user.telefone || "Não informado"}</span>
+                </div>
+              )}
+
             </div>
 
             <div className={styles.fieldRow}>
@@ -127,17 +229,83 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                   <circle cx="16.5" cy="7.5" r=".5" fill="#f4a261"/>
                 </svg>
               </div>
-              <div className={styles.fieldContent}>
-                <span className={styles.label}>Senha:</span>
-                <span className={styles.value}>****************</span>
-              </div>
-              <button className={styles.editBtn} aria-label="Editar senha">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {isEditing ? (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Senha:</span>
+                  <div className={styles.passwordContainer}>
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      value={editData.senha}
+                      onChange={(e) => setEditData({...editData, senha: e.target.value})}
+                      placeholder="Nova senha (opcional)"
+                      className={styles.editInput}
+                    />
+                    <button 
+                      type="button"
+                      className={styles.eyeButton}
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Senha:</span>
+                  <span className={styles.value}>****************</span>
+                </div>
+              )}
+
+            </div>
+          </div>
+
+          <div className={styles.actionButtons}>
+            {!isEditing ? (
+              <button className={styles.actionButton} onClick={handleAlterarDados}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 20h9"/>
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                 </svg>
+                Alterar Dados
               </button>
-            </div>
+            ) : (
+              <>
+                <button 
+                  className={styles.actionButton} 
+                  onClick={() => setIsEditing(false)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  Cancelar
+                </button>
+                
+                <button 
+                  className={`${styles.actionButton} ${styles.saveButton}`} 
+                  onClick={handleSalvarDados}
+                  disabled={isSaving}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17,21 17,13 7,13 7,21"/>
+                    <polyline points="7,3 7,8 15,8"/>
+                  </svg>
+                  {isSaving ? 'Salvando...' : 'Salvar Dados'}
+                </button>
+              </>
+            )}
           </div>
 
           <div className={styles.sectionHeader}>
@@ -204,16 +372,12 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
 export default SimpleAccountModal;
 
 function maskEmail(e: string) {
+  if (!e) return "u****************@dominio.com";
   const [user, domain] = e.split("@");
   if (!user || !domain) return e;
-  const maskedUser = user.length <= 2 ? "**" : user[0] + "*".repeat(Math.max(2, user.length - 2));
-  const parts = domain.split(".");
-  const maskedDomain = parts[0][0] + "*".repeat(Math.max(2, parts[0].length - 2)) + "." + parts.slice(1).join(".");
-  return `${maskedUser}@${maskedDomain}`;
+  return `${user[0]}****************@${domain}`;
 }
 
 function maskPhone(p: string) {
-  const digits = p.replace(/\D/g, "");
-  const d = digits.padEnd(11, "0");
-  return `11 ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+  return p || "";
 }

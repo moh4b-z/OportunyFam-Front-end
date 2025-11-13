@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import styles from "../../app/styles/AccountModal.module.css";
 
 interface AccountModalProps {
@@ -12,14 +12,37 @@ interface AccountModalProps {
     email?: string;
     role?: string;
   };
+  onPhotoUpdate?: (photoUrl: string | null) => void;
 }
 
-const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user }) => {
+const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onPhotoUpdate }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   if (!isOpen) return null;
 
   const handleMenuClick = (action: string) => {
     console.log(`Ação selecionada: ${action}`);
     // Aqui você pode implementar a navegação ou ações específicas
+  };
+
+  const handleAddPhoto = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const photoUrl = e.target?.result as string;
+        onPhotoUpdate?.(photoUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    onPhotoUpdate?.(null);
   };
 
   const getInitials = (name: string) => {
@@ -64,6 +87,45 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user }) =>
                 )}
               </div>
               <div className={styles.statusIndicator}></div>
+              
+              {/* Botões de foto */}
+              <div className={styles.photoButtons}>
+                <button 
+                  className={styles.photoButton}
+                  onClick={handleAddPhoto}
+                  title="Adicionar Foto"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                    <circle cx="12" cy="13" r="3"></circle>
+                  </svg>
+                  Adicionar Foto
+                </button>
+                
+                {user.foto_perfil && (
+                  <button 
+                    className={`${styles.photoButton} ${styles.removeButton}`}
+                    onClick={handleRemovePhoto}
+                    title="Excluir Foto"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="3,6 5,6 21,6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    Excluir Foto
+                  </button>
+                )}
+              </div>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
             </div>
             <div className={styles.profileInfo}>
               <h3 className={styles.userName}>{user.nome}</h3>

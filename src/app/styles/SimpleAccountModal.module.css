@@ -414,7 +414,8 @@
 /* ===== New modern Account view (fields + children) ===== */
 .profileBlock {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding: 26px 0 10px;
 }
 
@@ -518,6 +519,110 @@
   opacity: 0.1;
 }
 
+/* Botões de foto */
+.photoButtons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.photoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  backdrop-filter: blur(20px);
+}
+
+.photoButton:hover {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--red-orange) 100%);
+  color: white;
+  border-color: var(--orange);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(244, 162, 97, 0.25),
+    0 4px 12px rgba(244, 162, 97, 0.15);
+}
+
+.photoButton svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.photoButton:hover svg {
+  transform: scale(1.1);
+}
+
+.removeButton {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.removeButton:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border-color: #dc2626;
+  box-shadow: 
+    0 8px 25px rgba(220, 38, 38, 0.25),
+    0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+/* Dark theme */
+:global(.dark) .photoButton {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+:global(.dark) .photoButton:hover {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border-color: #ff9800;
+}
+
+:global(.dark) .removeButton {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  color: #f87171;
+  border-color: #6b7280;
+}
+
+:global(.dark) .removeButton:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border-color: #dc2626;
+}
+
+/* Responsivo para photo buttons */
+@media (max-width: 600px) {
+  .photoButtons {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .photoButton {
+    min-width: auto;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
 .fields {
   display: grid;
   gap: 18px;
@@ -526,7 +631,7 @@
 
 .fieldRow {
   display: grid;
-  grid-template-columns: 40px 1fr 36px;
+  grid-template-columns: 40px 1fr;
   align-items: center;
   gap: 16px;
   padding: 18px 20px;
@@ -595,6 +700,91 @@
 .label { color: #111827; font-weight: 600; }
 .value { color: #111827; letter-spacing: .3px; }
 
+.editInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  outline: none;
+  pointer-events: auto;
+  z-index: 10;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.editInput:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.1);
+}
+
+.editInput::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+:global(.dark) .editInput {
+  background: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+:global(.dark) .editInput:focus {
+  border-color: #ff9800;
+  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+}
+
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.passwordContainer .editInput {
+  padding-right: 45px;
+}
+
+.eyeButton {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.eyeButton:hover {
+  background: rgba(244, 162, 97, 0.1);
+  color: var(--orange);
+  transform: scale(1.05);
+}
+
+.eyeButton:active {
+  transform: scale(0.95);
+}
+
+:global(.dark) .eyeButton {
+  color: #9ca3af;
+}
+
+:global(.dark) .eyeButton:hover {
+  background: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
 .editBtn {
   background: transparent;
   border: none;
@@ -603,6 +793,124 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Botões de ação */
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0;
+  justify-content: center;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 140px;
+  backdrop-filter: blur(20px);
+}
+
+.actionButton:hover {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--red-orange) 100%);
+  color: white;
+  border-color: var(--orange);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(244, 162, 97, 0.25),
+    0 4px 12px rgba(244, 162, 97, 0.15);
+}
+
+.actionButton svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.actionButton:hover svg {
+  transform: scale(1.1);
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.actionButton:disabled:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #374151;
+  border-color: rgba(148, 163, 184, 0.2);
+  transform: none;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.saveButton {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.saveButton:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+  color: white;
+  border-color: #0369a1;
+  box-shadow: 
+    0 8px 25px rgba(3, 105, 161, 0.25),
+    0 4px 12px rgba(3, 105, 161, 0.15);
+}
+
+/* Dark theme */
+:global(.dark) .actionButton {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+:global(.dark) .actionButton:hover {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border-color: #ff9800;
+}
+
+:global(.dark) .saveButton {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: #93c5fd;
+  border-color: #3b82f6;
+}
+
+:global(.dark) .saveButton:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  color: white;
+  border-color: #1d4ed8;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+  .actionButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .actionButton {
+    min-width: auto;
+    font-size: 13px;
+    padding: 10px 16px;
+  }
 }
 
 .sectionHeader {

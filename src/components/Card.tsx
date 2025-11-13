@@ -444,19 +444,16 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 			}
 
 			// Usa a função register do AuthContext para salvar os dados
-			const success = await register({
+			await register({
 				nome: responsableName,
 				email: responsableRegisterEmail,
 				telefone: responsablePhone,
-				password: responsableRegisterPassword
+				password: responsableRegisterPassword,
+				cep: responsableAddress,
+				cpf: responsableCpf,
+				data_nascimento: responsableDateOfBirth
 			})
-
-			if (success) {
-				// O AuthContext já redireciona automaticamente após o registro
-				return
-			} else {
-				setRegisterErrorMessage('Erro ao cadastrar usuário')
-			}
+			// Se chegou até aqui, o registro foi bem-sucedido
 
 		} catch (error) {
 			console.error('Erro ao cadastrar responsável:', error)

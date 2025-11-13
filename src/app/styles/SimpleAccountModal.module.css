@@ -519,6 +519,52 @@
   opacity: 0.1;
 }
 
+.showDataBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgba(5, 150, 105, 0.3);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #059669;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 12px rgba(5, 150, 105, 0.1),
+    0 1px 3px rgba(5, 150, 105, 0.2);
+  min-width: 100px;
+  backdrop-filter: blur(20px);
+}
+
+.showDataBadge::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #10b981, #059669);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.showDataBadge:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(5, 150, 105, 0.25),
+    0 4px 12px rgba(5, 150, 105, 0.15);
+}
+
+.showDataBadge:hover::before {
+  opacity: 0.1;
+}
+
 /* Botões de foto */
 .photoButtons {
   display: flex;
@@ -605,6 +651,18 @@
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
   border-color: #dc2626;
+}
+
+:global(.dark) .showDataBadge {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  color: #6ee7b7;
+  border-color: #065f46;
+}
+
+:global(.dark) .showDataBadge:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-color: #10b981;
 }
 
 /* Responsivo para photo buttons */

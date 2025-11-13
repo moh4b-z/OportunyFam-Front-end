@@ -11,6 +11,10 @@ interface PerfilProps {
     email?: string;
     telefone?: string | null;
     foto_perfil?: string;
+    cep?: string | null;
+    cpf?: string | null;
+    data_nascimento?: string | null;
+    id?: number;
   } | null;
   hasNotifications?: boolean;
   onProfileClick?: () => void;
@@ -54,7 +58,11 @@ const Perfil: React.FC<PerfilProps> = ({
         nome: user.nome || "Usuário",
         email: user.email || "usuario@exemplo.com",
         telefone: user.telefone || null,
-        foto_perfil: user.foto_perfil || null
+        foto_perfil: user.foto_perfil || null,
+        cep: user.cep || null,
+        cpf: user.cpf || null,
+        data_nascimento: user.data_nascimento || null,
+        id: user.id
       });
     }
   }, [user]);
@@ -262,14 +270,12 @@ const Perfil: React.FC<PerfilProps> = ({
       />
 
       {/* RENDERIZAÇÃO DA MODAL DE CONTA */}
-      {userState && (
-        <SimpleAccountModal
-          isOpen={showAccountModal}
-          onClose={() => setShowAccountModal(false)}
-          user={userState}
-          onUserUpdate={(updatedUser) => setUserState(updatedUser)}
-        />
-      )}
+      <SimpleAccountModal
+        isOpen={showAccountModal && !!userState}
+        onClose={() => setShowAccountModal(false)}
+        user={userState || { nome: '', email: '' }}
+        onUserUpdate={(updatedUser) => setUserState(updatedUser)}
+      />
     </>
   );
 };

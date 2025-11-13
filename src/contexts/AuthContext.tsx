@@ -9,7 +9,7 @@ type User = Usuario | Instituicao | Crianca
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>
-  register: (userData: { nome: string; email: string; telefone?: string; password: string }) => Promise<boolean>
+  register: (userData: { nome: string; email: string; telefone?: string; password: string; cep?: string; cpf?: string; data_nascimento?: string }) => Promise<boolean>
   logout: () => void
   isLoading: boolean
 }
@@ -53,19 +53,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Simula busca dos dados do usuário baseado no email
       const userData = localStorage.getItem(`user_${email}`)
-      let mockUser: Usuario
+      let user: Usuario
       
       if (userData) {
         // Se existe dados salvos do registro, usa eles
-        mockUser = JSON.parse(userData)
+        user = JSON.parse(userData)
       } else {
         // Caso contrário, cria um usuário padrão
-        mockUser = {
+        user = {
           usuario_id: 1,
           nome: 'Usuário Teste',
           email: email,
           telefone: null,
-          foto_perfil: null
+          foto_perfil: null,
+          cep: null,
+          cpf: null,
+          data_nascimento: null
         }
       }
 
@@ -79,12 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       document.cookie = `auth-token=mock-token-${Date.now()}; path=/; max-age=${maxAge}`
 
       // Salva os dados do usuário no localStorage
-      localStorage.setItem('user-data', JSON.stringify(mockUser))
+      localStorage.setItem('user-data', JSON.stringify(user))
       
       // Salva a preferência "lembrar-se de mim"
       localStorage.setItem('remember-me', rememberMe.toString())
       
-      setUser(mockUser)
+      setUser(user)
       
       // Redireciona para a home
       router.push('/')
@@ -98,21 +101,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const register = async (userData: { nome: string; email: string; telefone?: string; password: string }): Promise<boolean> => {
+  const register = async (userData: { nome: string; email: string; telefone?: string; password: string; cep?: string; cpf?: string; data_nascimento?: string }): Promise<boolean> => {
     try {
       setIsLoading(true)
       
-      // Cria o objeto do usuário
+      // Prepara os dados para a API
+      const apiData = {
+        nome: userData.nome,
+        foto_perfil: "",
+        email: userData.email,
+        senha: userData.password,
+        data_nascimento: userData.data_nascimento || "1990-01-01",
+        telefone: userData.telefone || "",
+        cpf: userData.cpf || "",
+        id_sexo: 1,
+        id_tipo_nivel: 1,
+        cep: userData.cep || "",
+        logradouro: "",
+        numero: "",
+        complemento: "",
+        bairro: "",
+        cidade: "",
+        estado: ""
+      }
+      
+      // Log dos dados enviados
+      console.log('📤 Dados enviados para API:', apiData)
+      
+      // Chama a API real
+      const response = await fetch('https://oportunyfam-back-end.onrender.com/v1/oportunyfam/usuarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData)
+      })
+      
+      console.log('📥 Status da resposta:', response.status)
+      
+      if (!response.ok) {
+        const errorData = await response.text()
+        console.log('❌ Erro da API:', errorData)
+        try {
+          const errorJson = JSON.parse(errorData)
+          throw new Error(errorJson.messagem || `Erro ${response.status}: ${errorData}`)
+        } catch (parseError) {
+          throw new Error(`Erro ${response.status}: ${errorData}`)
+        }
+      }
+      
+      const result = await response.json()
+      console.log('✅ Resposta da API:', result)
+      
+      // Cria o objeto do usuário com os dados retornados
       const newUser: Usuario = {
-        usuario_id: Date.now(), // ID único baseado no timestamp
+        usuario_id: result.usuario?.id || result.id || Date.now(),
         nome: userData.nome,
         email: userData.email,
         telefone: userData.telefone || null,
-        foto_perfil: null
+        foto_perfil: null,
+        cep: userData.cep || null,
+        cpf: userData.cpf || null,
+        data_nascimento: userData.data_nascimento || null
       }
-      
-      // Simula uma chamada de API
-      await new Promise(resolve => setTimeout(resolve, 1000))
       
       // Salva os dados do usuário para uso futuro no login
       localStorage.setItem(`user_${userData.email}`, JSON.stringify(newUser))
@@ -131,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true
     } catch (error) {
       console.error('Erro no registro:', error)
-      return false
+      throw error // Propaga o erro para ser tratado no componente
     } finally {
       setIsLoading(false)
     }

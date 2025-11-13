@@ -12,6 +12,9 @@ interface SimpleAccountModalProps {
     telefone?: string | null;
     foto_perfil?: string | null;
     id?: number;
+    cep?: string | null;
+    cpf?: string | null;
+    data_nascimento?: string | null;
   };
   childrenNames?: string[];
   onUserUpdate?: (updatedUser: any) => void;
@@ -36,10 +39,14 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   const [editData, setEditData] = useState({
     email: user.email || '',
     telefone: user.telefone || '',
-    senha: ''
+    senha: '',
+    cep: user.cep || '',
+    cpf: user.cpf || '',
+    data_nascimento: user.data_nascimento || ''
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showAllData, setShowAllData] = useState(false);
   const onPickAvatar = () => fileInputRef.current?.click();
   const onAvatarSelected: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
@@ -63,10 +70,13 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
       setEditData({
         email: user.email || '',
         telefone: user.telefone || '',
-        senha: ''
+        senha: '',
+        cep: user.cep || '',
+        cpf: user.cpf || '',
+        data_nascimento: user.data_nascimento || ''
       });
     }
-  }, [isOpen, storageKey, user.email, user.telefone]);
+  }, [isOpen, storageKey, user.email, user.telefone, user.cep, user.cpf, user.data_nascimento]);
 
   const handleAlterarDados = () => {
     setIsEditing(true);
@@ -78,7 +88,10 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
       const updateData: any = {
         nome: user.nome,
         email: editData.email,
-        telefone: editData.telefone
+        telefone: editData.telefone,
+        cep: editData.cep,
+        cpf: editData.cpf,
+        data_nascimento: editData.data_nascimento
       };
       
       if (editData.senha) {
@@ -97,7 +110,10 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
         const updatedUser = {
           ...user,
           email: editData.email,
-          telefone: editData.telefone
+          telefone: editData.telefone,
+          cep: editData.cep,
+          cpf: editData.cpf,
+          data_nascimento: editData.data_nascimento
         };
         onUserUpdate?.(updatedUser);
         setIsEditing(false);
@@ -105,8 +121,12 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
         alert('Dados salvos com sucesso!');
       } else {
         const errorData = await response.text();
-        console.error('Erro da API:', errorData);
-        alert('Erro ao salvar dados: ' + response.status);
+        try {
+          const errorJson = JSON.parse(errorData);
+          alert(errorJson.messagem || 'Erro ao salvar dados');
+        } catch {
+          alert('Erro ao salvar dados: ' + response.status);
+        }
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -138,6 +158,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                 </svg>
               </button>
+
               <input
                 type="file"
                 accept="image/*"
@@ -167,6 +188,21 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                   Excluir Foto
                 </button>
               )}
+              
+              <button 
+                className={styles.showDataBadge} 
+                aria-label="Mostrar dados" 
+                onClick={() => {
+                  setShowAllData(true);
+                  setTimeout(() => setShowAllData(false), 500);
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                Mostrar Dados
+              </button>
             </div>
           </div>
 
@@ -191,7 +227,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
               ) : (
                 <div className={styles.fieldContent}>
                   <span className={styles.label}>Email:</span>
-                  <span className={styles.value}>{maskEmail(user.email)}</span>
+                  <span className={styles.value}>{showAllData ? user.email : maskEmail(user.email)}</span>
                 </div>
               )}
 
@@ -267,6 +303,87 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                 </div>
               )}
 
+            </div>
+
+            <div className={styles.fieldRow}>
+              <div className={styles.leftIcon}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              {isEditing ? (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>CEP:</span>
+                  <input 
+                    type="text" 
+                    value={editData.cep}
+                    onChange={(e) => setEditData({...editData, cep: e.target.value})}
+                    className={styles.editInput}
+                    placeholder="00000-000"
+                  />
+                </div>
+              ) : (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>CEP:</span>
+                  <span className={styles.value}>{user.cep || "Não informado"}</span>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.fieldRow}>
+              <div className={styles.leftIcon}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              {isEditing ? (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>CPF:</span>
+                  <input 
+                    type="text" 
+                    value={editData.cpf}
+                    onChange={(e) => setEditData({...editData, cpf: e.target.value})}
+                    className={styles.editInput}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+              ) : (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>CPF:</span>
+                  <span className={styles.value}>{showAllData ? (user.cpf || "Não informado") : maskCPF(user.cpf)}</span>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.fieldRow}>
+              <div className={styles.leftIcon}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </div>
+              {isEditing ? (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Nascimento:</span>
+                  <input 
+                    type="date" 
+                    value={editData.data_nascimento}
+                    onChange={(e) => setEditData({...editData, data_nascimento: e.target.value})}
+                    className={styles.editInput}
+                  />
+                </div>
+              ) : (
+                <div className={styles.fieldContent}>
+                  <span className={styles.label}>Nascimento:</span>
+                  <span className={styles.value}>{formatDate(user.data_nascimento)}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -380,4 +497,15 @@ function maskEmail(e: string) {
 
 function maskPhone(p: string) {
   return p || "";
+}
+
+function maskCPF(cpf: string | null | undefined) {
+  if (!cpf) return "Não informado";
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "***.***.***-**");
+}
+
+function formatDate(date: string | null | undefined) {
+  if (!date) return "Não informado";
+  const d = new Date(date);
+  return d.toLocaleDateString('pt-BR');
 }

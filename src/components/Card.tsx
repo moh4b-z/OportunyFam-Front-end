@@ -8,6 +8,8 @@ import SwitchLogin from './SwitchLogin'
 import { authService, institutionService, userService, utilsService } from '@/services'
 import { useAuth } from '@/contexts/AuthContext'
 import SuccessModal from './modals/SuccessModal'
+import ForgotPasswordModal from './modals/ForgotPasswordModal'
+import '../app/styles/ForgotPasswordModal.css'
 
 interface CardSystemProps {
 	onTabChange?: (tab: 'login' | 'register') => void
@@ -68,6 +70,7 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 	const [rememberMe, setRememberMe] = useState<boolean>(false)
 	const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false)
 	const [successMessage, setSuccessMessage] = useState<{title: string, message: string}>({title: '', message: ''})
+	const [showForgotPasswordModal, setShowForgotPasswordModal] = useState<boolean>(false)
 
 	// Notifica o estado inicial do tab
 	useEffect(() => {
@@ -548,9 +551,14 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 						</label>
 					</div>
 					<div>
-						<Link href={'/'} className="forgot_password" title="Esqueceu sua senha?">
+						<button 
+							type="button"
+							className="forgot_password" 
+							title="Esqueceu sua senha?"
+							onClick={() => setShowForgotPasswordModal(true)}
+						>
 							Esqueceu sua senha?
-						</Link>
+						</button>
 					</div>
 				</div>
 
@@ -1019,6 +1027,12 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				message={successMessage.message}
 				onClose={handleSuccessModalClose}
 				autoCloseDelay={4000}
+			/>
+
+			{/* Modal de recuperação de senha */}
+			<ForgotPasswordModal
+				isOpen={showForgotPasswordModal}
+				onClose={() => setShowForgotPasswordModal(false)}
 			/>
 		</div>
 	)

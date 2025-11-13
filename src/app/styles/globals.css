@@ -395,13 +395,24 @@ body.dark {
 }
 
 .forgot_password {
-	color: #000;
+	color: var(--yellow);
 	font-size: 1.1rem;
 	text-decoration: none;
-	color: var(--yellow);
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-family: inherit;
+	transition: all 0.2s ease;
 
 	&:hover {
 		text-decoration: underline;
+		color: #df941c;
+	}
+
+	&:focus {
+		outline: 2px solid var(--yellow);
+		outline-offset: 2px;
+		border-radius: 4px;
 	}
 }
 

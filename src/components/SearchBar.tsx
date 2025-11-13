@@ -507,28 +507,37 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                 />
               ))}
 
-              {!loading && !error && searchTerm && institutions.length === 0 && (
-                <div className="dropdown-message">Nenhuma instituição encontrada</div>
+              {/* Pagination */}
+              {!loading && !error && institutions.length > 0 && (
+                <div className="pagination-controls">
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="page-btn"
+                    disabled={currentPage <= 1 || selecting || loading}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    aria-label="Página anterior"
+                    title="Página anterior"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <span className="page-info">Página {currentPage} de {totalPages} • {institutions.length} itens</span>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="page-btn"
+                    disabled={currentPage >= totalPages || selecting || loading}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    aria-label="Próxima página"
+                    title="Próxima página"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                </div>
               )}
             </div>
-
-            {!loading && !error && institutions.length > 0 && (
-              <div className="pagination-controls">
-                <button
-                  onMouseDown={(e) => e.preventDefault()}
-                  className="page-btn"
-                  disabled={currentPage <= 1 || selecting || loading}
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                >Anterior</button>
-                <span className="page-info">Página {currentPage} de {totalPages} • {institutions.length} itens</span>
-                <button
-                  onMouseDown={(e) => e.preventDefault()}
-                  className="page-btn"
-                  disabled={currentPage >= totalPages || selecting || loading}
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                >Próxima</button>
-              </div>
-            )}
 
             {(selecting || loading) && (
               <div className="dropdown-loading-overlay">

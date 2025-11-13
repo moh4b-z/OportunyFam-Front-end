@@ -862,24 +862,55 @@ body.dark .loading-content {
 
 .search-results-dropdown .page-btn {
   padding: 8px 14px;
-  border-radius: 16px;
-  border: none;
-  background: var(--orange);
-  color: #fff;
+  border-radius: 20px;
+  border: 1px solid transparent; /* mantém largura sem mostrar a borda */
+  background: transparent;
+  color: var(--orange);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .search-results-dropdown .page-btn:hover:not(:disabled) {
+  background: rgba(244, 162, 97, 0.12);
+  color: var(--orange);
+  border-color: rgba(244, 162, 97, 0.45);
   transform: translateY(-1px);
-  filter: brightness(0.95);
+  box-shadow: 0 2px 8px rgba(244, 162, 97, 0.15);
 }
 
 .search-results-dropdown .page-btn:active:not(:disabled) {
+  background: rgba(244, 162, 97, 0.18);
+  color: var(--orange);
+  border-color: rgba(244, 162, 97, 0.55);
   transform: translateY(0);
-  filter: brightness(0.9);
+}
+
+/* Dark theme variants to match street-view button */
+body.dark .search-results-dropdown .page-btn {
+  border-color: transparent;
+  background: transparent;
+}
+
+body.dark .search-results-dropdown .page-btn:hover:not(:disabled),
+body.dark .search-results-dropdown .page-btn:active:not(:disabled) {
+  background: rgba(244, 162, 97, 0.2);
+  color: var(--orange);
+  border-color: rgba(244, 162, 97, 0.55);
+}
+
+/* Acessibilidade: aplica o mesmo estado visual ao foco por teclado */
+.search-results-dropdown .page-btn:focus-visible {
+  outline: none;
+  background: rgba(244, 162, 97, 0.12);
+  border-color: rgba(244, 162, 97, 0.5);
+  box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.15);
+}
+body.dark .search-results-dropdown .page-btn:focus-visible {
+  background: rgba(244, 162, 97, 0.2);
+  border-color: rgba(244, 162, 97, 0.6);
+  box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.18);
 }
 
 .search-results-dropdown .page-btn:disabled {

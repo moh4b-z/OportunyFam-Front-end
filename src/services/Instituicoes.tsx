@@ -86,7 +86,7 @@ export function normalizeInstituicao(inst: any): Instituicao {
 // Funções auxiliares para provedores externos
 const geoCache = new Map<string, { lat: number; lng: number }>();
 let __loadingGoogleMaps__: Promise<void> | null = null;
-async function ensureGoogleMapsLoaded(key: string): Promise<void> {
+export async function ensureGoogleMapsLoaded(key: string): Promise<void> {
   if (typeof window === 'undefined') throw new Error('Google Maps só no cliente');
   const w = window as any;
   if (w.google && w.google.maps) return;

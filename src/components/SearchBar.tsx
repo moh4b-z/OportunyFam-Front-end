@@ -53,6 +53,8 @@ const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelecte
     );
   };
 
+  
+
   // Obtém as categorias da instituição a partir de tipos_instituicao
   const getCategories = () => {
     if (!institution.tipos_instituicao || institution.tipos_instituicao.length === 0) {
@@ -126,6 +128,15 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'api' | 'local' | null>(null);
   const [selecting, setSelecting] = useState<boolean>(false);
+  const [detailInstitution, setDetailInstitution] = useState<Instituicao | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'profile'>('list');
+  const [profileImgError, setProfileImgError] = useState<boolean>(false);
+  
+
+  useEffect(() => {
+    // Reset image error when switching institution
+    setProfileImgError(false);
+  }, [detailInstitution?.foto_perfil, detailInstitution?.instituicao_id, detailInstitution?.id]);
 
   // Estados para Street View
   const [streetViewOpen, setStreetViewOpen] = useState(false);
@@ -145,7 +156,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   };
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const isDropdownOpen = searchFocused; // dropdown visível apenas com o input focado
+  const isDropdownOpen = searchFocused || viewMode === 'profile'; // mantém aberto quando em perfil
 
   // Re-sincroniza o estado de foco após Alt+Tab/visibilidade voltar
   useEffect(() => {
@@ -263,6 +274,12 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     const institutionId = institution.instituicao_id || institution.id;
     if (institutionId !== undefined) {
       setSelectedInstitution(institutionId);
+      setDetailInstitution(institution);
+      setViewMode('profile');
+      try {
+        inputRef.current?.blur();
+      } catch {}
+      setSearchFocused(false);
     } else {
       console.error('ID da instituição não encontrado');
       return;
@@ -453,8 +470,9 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           placeholder="Pesquise aqui"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => { setSearchFocused(true); loadAllInstitutionsOnce(); }}
+          onFocus={() => { if (viewMode !== 'profile') { setSearchFocused(true); loadAllInstitutionsOnce(); } }}
           onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+          disabled={viewMode === 'profile'}
         />
         
         {/* Filtro de Localização */}
@@ -495,50 +513,160 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         </div>
         {isDropdownOpen && (
           <div className={`search-results-dropdown${(selecting || loading) ? ' loading' : ''}`}>
-            <div className="search-results-list">
-              {error && <div className="dropdown-message error">{error}</div>}
-              {!loading && !error && pagedInstitutions.map(inst => (
-                <SearchResultOption
-                  key={`${inst.instituicao_id ?? inst.id}-${inst.endereco?.id ?? inst.endereco?.cep ?? ''}-${inst.nome}`}
-                  institution={inst}
-                  isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
-                  onClick={() => { if (!selecting && !loading) handleInstitutionClick(inst); }}
-                  onStreetViewClick={(e) => handleStreetViewClick(inst, e)}
-                />
-              ))}
-
-              {/* Pagination */}
-              {!loading && !error && institutions.length > 0 && (
-                <div className="pagination-controls">
-                  <button
-                    onMouseDown={(e) => e.preventDefault()}
-                    className="page-btn"
-                    disabled={currentPage <= 1 || selecting || loading}
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    aria-label="Página anterior"
-                    title="Página anterior"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                  </button>
-                  <span className="page-info">Página {currentPage} de {totalPages} • {institutions.length} itens</span>
-                  <button
-                    onMouseDown={(e) => e.preventDefault()}
-                    className="page-btn"
-                    disabled={currentPage >= totalPages || selecting || loading}
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    aria-label="Próxima página"
-                    title="Próxima página"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </button>
+            <div className={`dropdown-slider ${viewMode === 'profile' ? 'to-profile' : 'to-list'}`}>
+              <div className="dropdown-track">
+                <div className="dropdown-panel list-panel">
+                  <div className="search-results-list">
+                    {error && <div className="dropdown-message error">{error}</div>}
+                    {!loading && !error && pagedInstitutions.map(inst => (
+                      <SearchResultOption
+                        key={`${inst.instituicao_id ?? inst.id}-${inst.endereco?.id ?? inst.endereco?.cep ?? ''}-${inst.nome}`}
+                        institution={inst}
+                        isSelected={selectedInstitution === (inst.instituicao_id || inst.id)}
+                        onClick={() => { if (!selecting && !loading) handleInstitutionClick(inst); }}
+                        onStreetViewClick={(e) => handleStreetViewClick(inst, e)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
 
+                <div className="dropdown-panel profile-panel">
+                  <div className="profile-header">
+                    <button
+                      className="profile-back-btn"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { 
+                        setViewMode('list'); 
+                        setSearchFocused(true);
+                        try { 
+                          // focus após o repaint para garantir que o input esteja ativo
+                          setTimeout(() => inputRef.current?.focus(), 0);
+                        } catch {}
+                      }}
+                      aria-label="Voltar para a lista"
+                      title="Voltar"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <span className="profile-title">{detailInstitution?.nome || 'Instituição'}</span>
+                    <div
+                      className="streetview-floating icon-only streetview-inline"
+                      role="button"
+                      tabIndex={0}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => handleStreetViewClick(detailInstitution!, e)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          // @ts-ignore
+                          handleStreetViewClick(detailInstitution!, e);
+                        }
+                      }}
+                      aria-label="Abrir Street View"
+                      title="Ver no Street View"
+                    >
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="12" cy="6" r="3"></circle>
+                        <path d="M12 10c-2.761 0-5 1.343-5 3v3a2 2 0 002 2h6a2 2 0 002-2v-3c0-1.657-2.239-3-5-3z"></path>
+                        <ellipse cx="12" cy="20" rx="6.5" ry="2.5" opacity="0.3"></ellipse>
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="profile-content">
+                    {detailInstitution && (
+                      <div className="profile-card">
+                        <div className="profile-center">
+                          <div className="profile-logo-block-large card-logo-block">
+                            {detailInstitution.foto_perfil && !profileImgError ? (
+                              <img 
+                                src={detailInstitution.foto_perfil} 
+                                alt={detailInstitution.nome} 
+                                className="card-logo-img" 
+                                onError={() => setProfileImgError(true)}
+                              />
+                            ) : (
+                              <div className="default-institution-icon">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          <div className="profile-name profile-name-center">{detailInstitution.nome}</div>
+                          <div className="profile-email">{detailInstitution.email}</div>
+                          {(() => {
+                            const logradouro = detailInstitution.endereco?.logradouro || '';
+                            const numero = detailInstitution.endereco?.numero;
+                            const addr = logradouro ? `${logradouro}${numero ? ", " + numero : ''}` : '';
+                            return addr ? (
+                              <div className="profile-address" title={addr}>
+                                <svg className="address-pin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/>
+                                  <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                <span className="address-text">{addr}</span>
+                              </div>
+                            ) : null;
+                          })()}
+                          {(() => {
+                            const bairro = detailInstitution.endereco?.bairro || '';
+                            const cidade = detailInstitution.endereco?.cidade || '';
+                            const estado = detailInstitution.endereco?.estado || '';
+                            const parts = [] as string[];
+                            if (bairro) parts.push(bairro);
+                            const cityState = [cidade, estado].filter(Boolean).join(', ');
+                            const line = parts.length ? `${parts.join(' ')} - ${cityState}` : cityState;
+                            return line ? (
+                              <div className="profile-cityline">{line}</div>
+                            ) : null;
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Fixed bottom pagination controls */}
+            {!loading && !error && institutions.length > 0 && viewMode === 'list' && (
+              <div className="pagination-controls">
+                <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="page-btn"
+                  disabled={currentPage <= 1 || selecting || loading}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  aria-label="Página anterior"
+                  title="Página anterior"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <span className="page-info">Página {currentPage} de {totalPages} • {institutions.length} itens</span>
+                <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="page-btn"
+                  disabled={currentPage >= totalPages || selecting || loading}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  aria-label="Próxima página"
+                  title="Próxima página"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              </div>
+            )}
             {(selecting || loading) && (
               <div className="dropdown-loading-overlay">
                 <div className="loading-content">
@@ -550,6 +678,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           </div>
         )}
       </div>
+      
 
       {/* Street View Modal */}
       {streetViewOpen && streetViewCoords && (

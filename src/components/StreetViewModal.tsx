@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ensureGoogleMapsLoaded } from "../services/Instituicoes";
 import "../app/styles/StreetViewModal.css";
 
 // Declaração de tipos para a API do Google Maps
@@ -45,28 +46,6 @@ export default function StreetViewModal({
   useEffect(() => {
     if (!isOpen || !panoramaRef.current) return;
 
-    // Carrega a API do Google Maps se ainda não estiver carregada
-    const loadGoogleMaps = () => {
-      const w = window as any;
-      if (typeof w.google !== 'undefined' && w.google.maps) {
-        initializeStreetView();
-        return;
-      }
-
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-      if (!apiKey) {
-        console.error('Google Maps API key not found');
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => initializeStreetView();
-      document.head.appendChild(script);
-    };
-
     const initializeStreetView = () => {
       if (!panoramaRef.current) return;
       const w = window as any;
@@ -106,7 +85,23 @@ export default function StreetViewModal({
       );
     };
 
-    loadGoogleMaps();
+    (async () => {
+      const w = window as any;
+      if (!(w.google && w.google.maps)) {
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+        if (!apiKey) {
+          console.error('Google Maps API key not found');
+          return;
+        }
+        try {
+          await ensureGoogleMapsLoaded(apiKey);
+        } catch (e) {
+          console.error('Falha ao carregar Google Maps:', e);
+          return;
+        }
+      }
+      initializeStreetView();
+    })();
 
     return () => {
       streetViewRef.current = null;

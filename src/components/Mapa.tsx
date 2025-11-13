@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { Instituicao } from "@/types";
-import { geocodeAddress } from "@/services/Instituicoes";
+import { geocodeAddress, ensureGoogleMapsLoaded } from "@/services/Instituicoes";
+
 import styles from "../app/styles/Mapa.module.css"
 
 // Declaração de tipos para Google Maps
@@ -25,27 +26,6 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
 
   // Carrega a API do Google Maps
   useEffect(() => {
-    const loadGoogleMaps = () => {
-      const w = window as any;
-      if (w.google && w.google.maps) {
-        initializeMap();
-        return;
-      }
-
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-      if (!apiKey) {
-        console.error('Google Maps API key not found');
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => initializeMap();
-      document.head.appendChild(script);
-    };
-
     const initializeMap = () => {
       if (!mapRef.current) return;
       const w = window as any;
@@ -73,7 +53,23 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
       infoWindowRef.current = new w.google.maps.InfoWindow();
     };
 
-    loadGoogleMaps();
+    (async () => {
+      const w = window as any;
+      if (!(w.google && w.google.maps)) {
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+        if (!apiKey) {
+          console.error('Google Maps API key not found');
+          return;
+        }
+        try {
+          await ensureGoogleMapsLoaded(apiKey);
+        } catch (e) {
+          console.error('Falha ao carregar Google Maps:', e);
+          return;
+        }
+      }
+      initializeMap();
+    })();
   }, []);
 
   // Atualiza marcador quando instituição muda

@@ -1,1 +1,0 @@
-// Script removido - usar Postman

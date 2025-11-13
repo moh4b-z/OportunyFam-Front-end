@@ -55,10 +55,11 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
       googleMapRef.current = new w.google.maps.Map(mapRef.current, {
         center: { lat: -23.55052, lng: -46.633308 },
         zoom: 12,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
         zoomControl: true,
+        clickableIcons: false,
         styles: [
           {
             featureType: "poi",

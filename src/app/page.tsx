@@ -15,7 +15,7 @@ import ConversationsModal from "@/components/modals/ConversationsModal";
 import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
-import SessionInfo from "@/components/SessionInfo";
+
 
 export default function HomePage() {
   const { user: authUser, logout, isLoading } = useAuth();
@@ -157,8 +157,7 @@ export default function HomePage() {
         usuarioId={authUser?.usuario_id || 1}
       />
       
-      {/* Componente para mostrar informações da sessão (apenas para demonstração) */}
-      <SessionInfo />
+
     </div>
   );
 }

@@ -399,14 +399,49 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 
 			// Validações básicas
 			const missingFields = []
-			if (!responsableName) missingFields.push('Nome')
-			if (!responsableRegisterEmail) missingFields.push('Email')
-			if (!responsablePhone) missingFields.push('Telefone')
-			if (!responsableCpf) missingFields.push('CPF')
-			if (!responsableRegisterPassword) missingFields.push('Senha')
-			if (!confirmResponsablePassword) missingFields.push('Confirmação de senha')
-			if (!responsableDateOfBirth) missingFields.push('Data de nascimento')
-			if (!responsableAddress) missingFields.push('CEP')
+			if (!responsableName || responsableName.trim().length === 0) missingFields.push('Nome')
+			if (!responsableRegisterEmail || responsableRegisterEmail.trim().length === 0) missingFields.push('Email')
+			if (!responsablePhone || responsablePhone.trim().length === 0) missingFields.push('Telefone')
+			if (!responsableCpf || responsableCpf.trim().length === 0) missingFields.push('CPF')
+			if (!responsableRegisterPassword || responsableRegisterPassword.length === 0) missingFields.push('Senha')
+			if (!confirmResponsablePassword || confirmResponsablePassword.length === 0) missingFields.push('Confirmação de senha')
+			if (!responsableDateOfBirth || responsableDateOfBirth.trim().length === 0) missingFields.push('Data de nascimento')
+			if (!responsableAddress || responsableAddress.trim().length === 0) missingFields.push('CEP')
+			
+			// Validações de tamanho
+			if (responsableName && responsableName.length > 100) {
+				setRegisterErrorMessage('Nome não pode ter mais de 100 caracteres')
+				setIsLoading(false)
+				return
+			}
+			if (responsableRegisterEmail && responsableRegisterEmail.length > 100) {
+				setRegisterErrorMessage('Email não pode ter mais de 100 caracteres')
+				setIsLoading(false)
+				return
+			}
+			
+			// Validação de formato de email
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+			if (responsableRegisterEmail && !emailRegex.test(responsableRegisterEmail.trim())) {
+				setRegisterErrorMessage('Formato de email inválido')
+				setIsLoading(false)
+				return
+			}
+			if (responsablePhone && responsablePhone.replace(/\D/g, '').length < 10) {
+				setRegisterErrorMessage('Telefone deve ter pelo menos 10 dígitos')
+				setIsLoading(false)
+				return
+			}
+			if (responsableCpf && responsableCpf.replace(/\D/g, '').length !== 11) {
+				setRegisterErrorMessage('CPF deve ter 11 dígitos')
+				setIsLoading(false)
+				return
+			}
+			if (responsableRegisterPassword && responsableRegisterPassword.length < 6) {
+				setRegisterErrorMessage('Senha deve ter pelo menos 6 caracteres')
+				setIsLoading(false)
+				return
+			}
 			
 			if (missingFields.length > 0) {
 				setRegisterErrorMessage(`Por favor, preencha os seguintes campos: ${missingFields.join(', ')}`)
@@ -420,8 +455,16 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 				return
 			}
 
-			if (!responsableGender) {
+			if (!responsableGender || responsableGender.trim().length === 0) {
 				setRegisterErrorMessage('Por favor, selecione o gênero')
+				setIsLoading(false)
+				return
+			}
+			
+			// Valida se o gênero é um número válido
+			const genderId = parseInt(responsableGender)
+			if (isNaN(genderId) || genderId < 1) {
+				setRegisterErrorMessage('Gênero selecionado é inválido')
 				setIsLoading(false)
 				return
 			}
@@ -448,13 +491,14 @@ export default function CardSystem({ onTabChange }: CardSystemProps) {
 
 			// Usa a função register do AuthContext para salvar os dados
 			await register({
-				nome: responsableName,
-				email: responsableRegisterEmail,
-				telefone: responsablePhone,
+				nome: responsableName.trim(),
+				email: responsableRegisterEmail.trim().toLowerCase(),
+				telefone: responsablePhone.replace(/\D/g, ''),
 				password: responsableRegisterPassword,
-				cep: responsableAddress,
-				cpf: responsableCpf,
-				data_nascimento: responsableDateOfBirth
+				cep: responsableAddress.replace(/\D/g, ''),
+				cpf: responsableCpf.replace(/\D/g, ''),
+				data_nascimento: responsableDateOfBirth,
+				id_sexo: parseInt(responsableGender)
 			})
 			// Se chegou até aqui, o registro foi bem-sucedido
 

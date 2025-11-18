@@ -9,7 +9,7 @@ type User = Usuario | Instituicao | Crianca
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>
-  register: (userData: { nome: string; email: string; telefone?: string; password: string; cep?: string; cpf?: string; data_nascimento?: string }) => Promise<boolean>
+  register: (userData: { nome: string; email: string; telefone?: string; password: string; cep?: string; cpf?: string; data_nascimento?: string; id_sexo?: number }) => Promise<boolean>
   logout: () => void
   isLoading: boolean
 }
@@ -101,20 +101,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const register = async (userData: { nome: string; email: string; telefone?: string; password: string; cep?: string; cpf?: string; data_nascimento?: string }): Promise<boolean> => {
+  const register = async (userData: { nome: string; email: string; telefone?: string; password: string; cep?: string; cpf?: string; data_nascimento?: string; id_sexo?: number }): Promise<boolean> => {
     try {
       setIsLoading(true)
       
+      // Validação básica dos campos obrigatórios
+      if (!userData.nome || userData.nome.trim().length === 0) {
+        throw new Error('Nome é obrigatório')
+      }
+      if (!userData.email || userData.email.trim().length === 0) {
+        throw new Error('Email é obrigatório')
+      }
+      
+      // Validação de formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(userData.email.trim())) {
+        throw new Error('Formato de email inválido')
+      }
+      if (!userData.password || userData.password.length < 6) {
+        throw new Error('Senha deve ter pelo menos 6 caracteres')
+      }
+      
+      // Validação de tamanho dos campos
+      if (userData.nome.length > 100) {
+        throw new Error('Nome não pode ter mais de 100 caracteres')
+      }
+      if (userData.email.length > 100) {
+        throw new Error('Email não pode ter mais de 100 caracteres')
+      }
+      if (userData.telefone && userData.telefone.length > 20) {
+        throw new Error('Telefone não pode ter mais de 20 caracteres')
+      }
+      if (userData.cpf && userData.cpf.length > 14) {
+        throw new Error('CPF não pode ter mais de 14 caracteres')
+      }
+      
       // Prepara os dados para a API
       const apiData = {
-        nome: userData.nome,
+        nome: userData.nome.trim(),
         foto_perfil: "",
-        email: userData.email,
+        email: userData.email.trim().toLowerCase(),
         senha: userData.password,
         data_nascimento: userData.data_nascimento || "1990-01-01",
         telefone: userData.telefone || "",
         cpf: userData.cpf || "",
-        id_sexo: 1,
+        id_sexo: userData.id_sexo || 1,
         id_tipo_nivel: 1,
         cep: userData.cep || "",
         logradouro: "",
@@ -127,6 +158,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Log dos dados enviados
       console.log('📤 Dados enviados para API:', apiData)
+      
+      // Log de validação dos campos obrigatórios
+      console.log('📋 Validação dos campos:')
+      console.log('- Nome:', apiData.nome, '(tamanho:', apiData.nome.length, ')')
+      console.log('- Email:', apiData.email, '(tamanho:', apiData.email.length, ')')
+      console.log('- Senha:', apiData.senha ? '[DEFINIDA]' : '[VAZIA]', '(tamanho:', apiData.senha.length, ')')
+      console.log('- Telefone:', apiData.telefone, '(tamanho:', apiData.telefone.length, ')')
+      console.log('- CPF:', apiData.cpf, '(tamanho:', apiData.cpf.length, ')')
+      console.log('- Data nascimento:', apiData.data_nascimento)
+      console.log('- CEP:', apiData.cep, '(tamanho:', apiData.cep.length, ')')
+      console.log('- ID Sexo:', apiData.id_sexo)
+      console.log('- ID Tipo Nível:', apiData.id_tipo_nivel)
       
       // Chama a API real
       const response = await fetch('https://oportunyfam-back-end.onrender.com/v1/oportunyfam/usuarios', {
@@ -141,7 +184,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (!response.ok) {
         const errorData = await response.text()
-        console.log('❌ Erro da API:', errorData)
+        console.log('❌ Erro da API (Status:', response.status, '):', errorData)
+        console.log('📤 Dados que causaram o erro:', JSON.stringify(apiData, null, 2))
         try {
           const errorJson = JSON.parse(errorData)
           throw new Error(errorJson.messagem || `Erro ${response.status}: ${errorData}`)

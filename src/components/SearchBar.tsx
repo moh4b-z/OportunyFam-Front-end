@@ -118,6 +118,8 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const descriptionRef = useRef<HTMLDivElement | null>(null);
+
   const [institutions, setInstitutions] = useState<Instituicao[]>([]);
   const [allInstitutions, setAllInstitutions] = useState<Instituicao[]>([]);
   const [hasLoadedAll, setHasLoadedAll] = useState<boolean>(false);
@@ -131,12 +133,33 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [detailInstitution, setDetailInstitution] = useState<Instituicao | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'profile'>('list');
   const [profileImgError, setProfileImgError] = useState<boolean>(false);
-  
+  const [showDescription, setShowDescription] = useState<boolean>(false);
 
   useEffect(() => {
-    // Reset image error when switching institution
+    // Reset image error quando trocar de instituição
     setProfileImgError(false);
   }, [detailInstitution?.foto_perfil, detailInstitution?.instituicao_id, detailInstitution?.id]);
+
+  useEffect(() => {
+    // Fecha o popover de descrição ao trocar de instituição
+    setShowDescription(false);
+  }, [detailInstitution?.instituicao_id, detailInstitution?.id]);
+
+  useEffect(() => {
+    if (!showDescription) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (descriptionRef.current && !descriptionRef.current.contains(event.target as Node)) {
+        setShowDescription(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDescription]);
 
   // Estados para Street View
   const [streetViewOpen, setStreetViewOpen] = useState(false);
@@ -551,87 +574,139 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                       </svg>
                     </button>
                     <span className="profile-title">{detailInstitution?.nome || 'Instituição'}</span>
-                    <div
-                      className="streetview-floating icon-only streetview-inline"
-                      role="button"
-                      tabIndex={0}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={(e) => handleStreetViewClick(detailInstitution!, e)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          // @ts-ignore
-                          handleStreetViewClick(detailInstitution!, e);
-                        }
-                      }}
-                      aria-label="Abrir Street View"
-                      title="Ver no Street View"
-                    >
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <circle cx="12" cy="6" r="3"></circle>
-                        <path d="M12 10c-2.761 0-5 1.343-5 3v3a2 2 0 002 2h6a2 2 0 002-2v-3c0-1.657-2.239-3-5-3z"></path>
-                        <ellipse cx="12" cy="20" rx="6.5" ry="2.5" opacity="0.3"></ellipse>
-                      </svg>
-                    </div>
+                    {detailInstitution && (
+                      <div
+                        className="streetview-floating icon-only streetview-inline"
+                        role="button"
+                        tabIndex={0}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={(e) => handleStreetViewClick(detailInstitution, e)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            // @ts-ignore: reutiliza o mesmo handler também para eventos de teclado
+                            handleStreetViewClick(detailInstitution, e);
+                          }
+                        }}
+                        aria-label="Abrir Street View"
+                        title="Ver no Street View"
+                      >
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          <circle cx="12" cy="6" r="3"></circle>
+                          <path d="M12 10c-2.761 0-5 1.343-5 3v3a2 2 0 002 2h6a2 2 0 002-2v-3c0-1.657-2.239-3-5-3z"></path>
+                          <ellipse cx="12" cy="20" rx="6.5" ry="2.5" opacity="0.3"></ellipse>
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   <div className="profile-content">
                     {detailInstitution && (
-                      <div className="profile-card">
-                        <div className="profile-center">
-                          <div className="profile-logo-block-large card-logo-block">
-                            {detailInstitution.foto_perfil && !profileImgError ? (
-                              <img 
-                                src={detailInstitution.foto_perfil} 
-                                alt={detailInstitution.nome} 
-                                className="card-logo-img" 
-                                onError={() => setProfileImgError(true)}
+                      <>
+                        <div ref={descriptionRef} className={`profile-description-container ${showDescription ? 'description-open' : ''}`}>
+                          <button
+                            type="button"
+                            className="profile-description-trigger"
+                            onClick={() => setShowDescription((prev) => !prev)}
+                          >
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M7 3h8l4 4v14H7z"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                               />
-                            ) : (
-                              <div className="default-institution-icon">
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
-                                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                </svg>
-                              </div>
-                            )}
+                              <path
+                                d="M15 3v4h4"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M10 13h5M10 16h3"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <span className="profile-description-label">Sobre a instituição</span>
+                          </button>
+                          <div className={`profile-description-popover ${showDescription ? 'open' : ''}`}>
+                            <div className="profile-description-box">
+                              {(() => {
+                                const descricao = detailInstitution.descricao || '';
+                                return descricao.trim() ? descricao : 'Sem descrição para esta instituição.';
+                              })()}
+                            </div>
                           </div>
-                          <div className="profile-name profile-name-center">{detailInstitution.nome}</div>
-                          <div className="profile-email">{detailInstitution.email}</div>
-                          {(() => {
-                            const logradouro = detailInstitution.endereco?.logradouro || '';
-                            const numero = detailInstitution.endereco?.numero;
-                            const addr = logradouro ? `${logradouro}${numero ? ", " + numero : ''}` : '';
-                            return addr ? (
-                              <div className="profile-address" title={addr}>
-                                <svg className="address-pin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/>
-                                  <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                <span className="address-text">{addr}</span>
-                              </div>
-                            ) : null;
-                          })()}
-                          {(() => {
-                            const bairro = detailInstitution.endereco?.bairro || '';
-                            const cidade = detailInstitution.endereco?.cidade || '';
-                            const estado = detailInstitution.endereco?.estado || '';
-                            const parts = [] as string[];
-                            if (bairro) parts.push(bairro);
-                            const cityState = [cidade, estado].filter(Boolean).join(', ');
-                            const line = parts.length ? `${parts.join(' ')} - ${cityState}` : cityState;
-                            return line ? (
-                              <div className="profile-cityline">{line}</div>
-                            ) : null;
-                          })()}
                         </div>
-                      </div>
+                        <div className="profile-card">
+                          <div className="profile-center">
+                            <div className="profile-logo-block-large card-logo-block">
+                              {detailInstitution.foto_perfil && !profileImgError ? (
+                                <img 
+                                  src={detailInstitution.foto_perfil}
+                                  alt={detailInstitution.nome}
+                                  className="card-logo-img" 
+                                  onError={() => setProfileImgError(true)}
+                                />
+                              ) : (
+                                <div className="default-institution-icon">
+                                  <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            <div className="profile-name profile-name-center">{detailInstitution.nome}</div>
+                            <div className="profile-email">{detailInstitution.email}</div>
+                            {(() => {
+                              const end = detailInstitution.endereco;
+                              const logradouro = end?.logradouro || '';
+                              const numero = end?.numero;
+                              const addr = logradouro ? `${logradouro}${numero ? ", " + numero : ''}` : '';
+                              return addr ? (
+                                <div className="profile-address" title={addr}>
+                                  <svg className="address-pin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0Z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                  </svg>
+                                  <span className="address-text">{addr}</span>
+                                </div>
+                              ) : null;
+                            })()}
+                            {(() => {
+                              const end = detailInstitution.endereco;
+                              const bairro = end?.bairro || '';
+                              const cidade = end?.cidade || '';
+                              const estado = end?.estado || '';
+                              const parts: string[] = [];
+                              if (bairro) parts.push(bairro);
+                              const cityState = [cidade, estado].filter(Boolean).join(', ');
+                              const line = parts.length ? `${parts.join(' ')} - ${cityState}` : cityState;
+                              return line ? (
+                                <div className="profile-cityline">{line}</div>
+                              ) : null;
+                            })()}
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Instituicao, TipoInstituicao } from "@/types";
-import { geocodeAddress, normalizeInstituicao } from "@/services/Instituicoes";
+import { geocodeAddress } from "@/services/Instituicoes";
 import { API_BASE_URL } from "@/services/config";
 import StreetViewModal from "./StreetViewModal";
 import "../app/styles/SearchCard.css";
@@ -53,8 +53,6 @@ const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelecte
     );
   };
 
-  
-
   // Obtém as categorias da instituição a partir de tipos_instituicao
   const getCategories = () => {
     if (!institution.tipos_instituicao || institution.tipos_instituicao.length === 0) {
@@ -87,7 +85,7 @@ const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelecte
           <span className="card-category">{getCategories()}</span>
         </div>
         <div className="card-location-row">
-          <span className="card-location">📍 {institution.endereco?.bairro}, São Paulo</span>
+          <span className="card-location"> {institution.endereco?.bairro}, São Paulo</span>
           <button
             className="street-view-btn"
             onClick={onStreetViewClick}
@@ -134,6 +132,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [viewMode, setViewMode] = useState<'list' | 'profile'>('list');
   const [profileImgError, setProfileImgError] = useState<boolean>(false);
   const [showDescription, setShowDescription] = useState<boolean>(false);
+  const [selectedPublication, setSelectedPublication] = useState<any | null>(null);
 
   useEffect(() => {
     // Reset image error quando trocar de instituição
@@ -231,7 +230,10 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             latitude: inst.endereco?.latitude || 0,
             longitude: inst.endereco?.longitude || 0
           },
-          tipos_instituicao: inst.tipos_instituicao || []
+          tipos_instituicao: inst.tipos_instituicao || [],
+          publicacoes: inst.publicacoes || [],
+          conversas: inst.conversas || [],
+          atividades: inst.atividades || []
         }));
         setAllInstitutions(formattedInstitutions);
         setInstitutions(formattedInstitutions);
@@ -352,6 +354,14 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     }
   };
 
+  const handleOpenPublication = (pub: any) => {
+    setSelectedPublication(pub);
+  };
+
+  const handleClosePublication = () => {
+    setSelectedPublication(null);
+  };
+
   // Removido CategoryChips
 
   const locationOptions = [
@@ -388,49 +398,32 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   };
 
   const fetchInstitutionsByLocation = async (location: string) => {
-    setLoading(true);
     setError(null);
-    
+
     try {
-      const { institutionService } = await import('../services/institutionService');
-      const searchTerm = location === 'todas' ? '' : location;
-      
-      // Tenta buscar da API primeiro
-      try {
-        const data = await institutionService.search(searchTerm);
-        
-        if (data?.data?.length > 0) {
-          // Se encontrou resultados na API, usa eles
-          setInstitutions(data.data.map(normalizeInstituicao));
-          return;
-        }
-      } catch (apiError) {
-        console.warn('Erro ao buscar da API, usando dados locais:', apiError);
+      // Garante que já temos a lista completa carregada da API
+      if (!hasLoadedAll) {
+        await loadAllInstitutionsOnce();
       }
-      
-      // Se chegou aqui, ou a API não retornou resultados ou deu erro
-      const { populateService } = await import('../services/populateInstitutions');
-      
+
       if (location === 'todas') {
-        const allResults = populateService.searchLocal('');
-        setInstitutions(allResults.slice(0, 100));
-      } else {
-        const locationTerms = getLocationTerms(location);
-        const locations = locationTerms.split('|');
-        const results: Instituicao[] = [];
-        
-        locations.forEach(loc => {
-          const localResults = populateService.searchLocal(loc);
-          results.push(...localResults);
-        });
-        
-        setInstitutions(results);
+        setInstitutions(allInstitutions);
+        return;
       }
+
+      const locationTerms = getLocationTerms(location);
+      const locations = locationTerms.split('|').map(loc => loc.trim()).filter(Boolean);
+
+      const baseList = allInstitutions.length > 0 ? allInstitutions : institutions;
+      const results = baseList.filter(inst => {
+        const bairro = (inst.endereco?.bairro || '').toLowerCase();
+        return locations.some(loc => bairro.includes(loc.toLowerCase()));
+      });
+
+      setInstitutions(results);
     } catch (error) {
       console.error('Erro ao buscar instituições:', error);
       setError('Não foi possível carregar as instituições. Tente novamente mais tarde.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -463,7 +456,10 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         latitude: instituicao.endereco?.latitude || 0,
         longitude: instituicao.endereco?.longitude || 0
       },
-      tipos_instituicao: instituicao.tipos_instituicao || []
+      tipos_instituicao: instituicao.tipos_instituicao || [],
+      publicacoes: instituicao.publicacoes || [],
+      conversas: instituicao.conversas || [],
+      atividades: instituicao.atividades || []
     };
   };
 
@@ -704,6 +700,35 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                                 <div className="profile-cityline">{line}</div>
                               ) : null;
                             })()}
+                            {Array.isArray(detailInstitution.publicacoes) && detailInstitution.publicacoes.length > 0 && (
+                              <div className="profile-publicacoes-section">
+                                <hr className="profile-publicacoes-divider" />
+                                <h3 className="profile-publicacoes-title">Publicações</h3>
+                                <div className="profile-publicacoes-carousel">
+                                  {(detailInstitution.publicacoes as any[]).map((pub, index) => (
+                                    <button
+                                      key={pub.id ?? index}
+                                      type="button"
+                                      className="profile-publicacao-item"
+                                      onClick={() => handleOpenPublication(pub)}
+                                    >
+                                      {pub.imagem && (
+                                        <>
+                                          <img
+                                            src={pub.imagem}
+                                            alt={pub.descricao || `Publicação ${index + 1}`}
+                                            className="profile-publicacao-image"
+                                          />
+                                          <div className="profile-publicacao-hover-overlay">
+                                            <span>Ver publicação</span>
+                                          </div>
+                                        </>
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </>
@@ -764,6 +789,36 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           longitude={streetViewCoords.lng}
           institutionName={streetViewCoords.name}
         />
+      )}
+
+      {selectedPublication && (
+        <div className="profile-publicacao-modal-overlay" onClick={handleClosePublication}>
+          <div
+            className="profile-publicacao-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="profile-publicacao-modal-close"
+              onClick={handleClosePublication}
+              aria-label="Fechar publicação"
+            >
+              ×
+            </button>
+            {selectedPublication.imagem && (
+              <img
+                src={selectedPublication.imagem}
+                alt={selectedPublication.descricao || 'Publicação'}
+                className="profile-publicacao-modal-image"
+              />
+            )}
+            {selectedPublication.descricao && (
+              <div className="profile-publicacao-modal-description">
+                {selectedPublication.descricao}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

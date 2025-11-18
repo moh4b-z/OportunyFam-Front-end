@@ -546,13 +546,39 @@ body.dark .profile-publicacoes-divider {
 }
 
 .profile-publicacoes-empty {
-  margin-top: 4px;
-  font-size: 13px;
+  margin-top: 6px;
+  padding: 18px 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.profile-publicacoes-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-gray);
 }
 
-body.dark .profile-publicacoes-empty {
+.profile-publicacoes-empty-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+body.dark .profile-publicacoes-empty-icon {
+  border-color: var(--border-dark);
   color: var(--text-secondary-dark);
+}
+
+body.dark .profile-publicacoes-empty-text {
+  color: var(--text-dark-theme);
 }
 
 .profile-publicacoes-carousel {

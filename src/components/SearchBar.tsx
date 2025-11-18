@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
+
 import { Instituicao, TipoInstituicao } from "@/types";
 import { geocodeAddress } from "@/services/Instituicoes";
 import { API_BASE_URL } from "@/services/config";
@@ -15,7 +17,7 @@ interface SearchBarProps {
 interface SearchResultOptionProps {
   institution: Instituicao;
   onClick: () => void;
-  onStreetViewClick: (e: React.MouseEvent) => void;
+  onStreetViewClick: (e: ReactMouseEvent) => void;
   isSelected: boolean;
 }
 
@@ -330,7 +332,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     }
   };
 
-  const handleStreetViewClick = async (institution: Instituicao, e: React.MouseEvent) => {
+  const handleStreetViewClick = async (institution: Instituicao, e: ReactMouseEvent) => {
     e.stopPropagation(); // Evita acionar o onClick do card
     
     // Tenta obter as coordenadas da instituição
@@ -550,54 +552,52 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                 </div>
 
                 <div className="dropdown-panel profile-panel">
-                  <div className="profile-header">
-                    <button
-                      className="profile-back-btn"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => { 
-                        setViewMode('list'); 
-                        setSearchFocused(true);
-                        try { 
-                          // focus após o repaint para garantir que o input esteja ativo
-                          setTimeout(() => inputRef.current?.focus(), 0);
-                        } catch {}
-                      }}
-                      aria-label="Voltar para a lista"
-                      title="Voltar"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <polyline points="15 18 9 12 15 6" />
-                      </svg>
-                    </button>
-                    <span className="profile-title">{detailInstitution?.nome || 'Instituição'}</span>
-                    {detailInstitution && (
-                      <div
-                        className="streetview-floating icon-only streetview-inline"
-                        role="button"
-                        tabIndex={0}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={(e) => handleStreetViewClick(detailInstitution, e)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            // @ts-ignore: reutiliza o mesmo handler também para eventos de teclado
-                            handleStreetViewClick(detailInstitution, e);
-                          }
-                        }}
-                        aria-label="Abrir Street View"
-                        title="Ver no Street View"
-                      >
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                          <circle cx="12" cy="6" r="3"></circle>
-                          <path d="M12 10c-2.761 0-5 1.343-5 3v3a2 2 0 002 2h6a2 2 0 002-2v-3c0-1.657-2.239-3-5-3z"></path>
-                          <ellipse cx="12" cy="20" rx="6.5" ry="2.5" opacity="0.3"></ellipse>
-                        </svg>
+                  {detailInstitution && (
+                    <>
+                      <div className="profile-header">
+                        <button
+                          className="profile-back-btn"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => { 
+                            setViewMode('list'); 
+                            setSearchFocused(true);
+                            try { 
+                              // focus após o repaint para garantir que o input esteja ativo
+                              setTimeout(() => inputRef.current?.focus(), 0);
+                            } catch {}
+                          }}
+                          aria-label="Voltar para a lista"
+                          title="Voltar"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <polyline points="15 18 9 12 15 6" />
+                          </svg>
+                        </button>
+                        <span className="profile-title">{detailInstitution.nome}</span>
+                        <div
+                          className="streetview-floating icon-only streetview-inline"
+                          role="button"
+                          tabIndex={0}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={(e) => handleStreetViewClick(detailInstitution, e)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              // @ts-ignore: reutiliza o mesmo handler também para eventos de teclado
+                              handleStreetViewClick(detailInstitution, e);
+                            }
+                          }}
+                          aria-label="Abrir Street View"
+                          title="Ver no Street View"
+                        >
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="12" cy="6" r="3"></circle>
+                            <path d="M12 10c-2.761 0-5 1.343-5 3v3a2 2 0 002 2h6a2 2 0 002-2v-3c0-1.657-2.239-3-5-3z"></path>
+                            <ellipse cx="12" cy="20" rx="6.5" ry="2.5" opacity="0.3"></ellipse>
+                          </svg>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className="profile-content">
-                    {detailInstitution && (
-                      <>
+                      <div className="profile-content">
                         <div ref={descriptionRef} className={`profile-description-container ${showDescription ? 'description-open' : ''}`}>
                           <button
                             type="button"
@@ -700,10 +700,23 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                                 <div className="profile-cityline">{line}</div>
                               ) : null;
                             })()}
-                            {Array.isArray(detailInstitution.publicacoes) && detailInstitution.publicacoes.length > 0 && (
-                              <div className="profile-publicacoes-section">
-                                <hr className="profile-publicacoes-divider" />
-                                <h3 className="profile-publicacoes-title">Publicações</h3>
+                            {(() => {
+                              const end = detailInstitution.endereco;
+                              const bairro = end?.bairro || '';
+                              const cidade = end?.cidade || '';
+                              const estado = end?.estado || '';
+                              const parts: string[] = [];
+                              if (bairro) parts.push(bairro);
+                              const cityState = [cidade, estado].filter(Boolean).join(', ');
+                              const line = parts.length ? `${parts.join(' ')} - ${cityState}` : cityState;
+                              return line ? (
+                                <div className="profile-cityline">{line}</div>
+                              ) : null;
+                            })()}
+                            <div className="profile-publicacoes-section">
+                              <hr className="profile-publicacoes-divider" />
+                              <h3 className="profile-publicacoes-title">Publicações</h3>
+                              {Array.isArray(detailInstitution.publicacoes) && detailInstitution.publicacoes.length > 0 ? (
                                 <div className="profile-publicacoes-carousel">
                                   {(detailInstitution.publicacoes as any[]).map((pub, index) => (
                                     <button
@@ -727,13 +740,37 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                                     </button>
                                   ))}
                                 </div>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="profile-publicacoes-empty">
+                                  <div className="profile-publicacoes-empty-icon">
+                                    <svg
+                                      width="26"
+                                      height="26"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="1.6"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      aria-hidden="true"
+                                    >
+                                      <rect x="3" y="5" width="18" height="14" rx="3" ry="3" />
+                                      <circle cx="12" cy="12" r="3.2" />
+                                      <path d="M8 5l1.5-2h5L16 5" />
+                                    </svg>
+                                  </div>
+                                  <div className="profile-publicacoes-empty-text">
+                                    Ainda não há nenhum post
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
+
                         </div>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

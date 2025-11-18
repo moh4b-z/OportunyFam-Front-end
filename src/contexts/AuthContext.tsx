@@ -200,8 +200,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Cria o objeto do usuário com os dados retornados
       const newUser: Usuario = {
         usuario_id: result.usuario?.id || result.id || Date.now(),
-        nome: userData.nome,
-        email: userData.email,
+        nome: userData.nome.trim(),
+        email: userData.email.trim().toLowerCase(),
         telefone: userData.telefone || null,
         foto_perfil: null,
         cep: userData.cep || null,

@@ -33,6 +33,7 @@ export interface Usuario {
     telefone?: string | null
     sexo?: string | null
     tipo_nivel?: string | null
+    cep?: string | null
     // Campos compostos retornados pela view
     criancas_dependentes?: any[] // estrutura JSON dentro da view
     conversas?: any[]

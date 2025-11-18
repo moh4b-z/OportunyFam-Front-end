@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "axios": "^1.13.2",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

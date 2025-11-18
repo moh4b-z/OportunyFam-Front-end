@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../../app/styles/SimpleAccountModal.module.css";
+import AddChildModal from "./AddChildModal";
 
 interface SimpleAccountModalProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showAllData, setShowAllData] = useState(false);
+  const [isAddChildModalOpen, setIsAddChildModalOpen] = useState(false);
   const onPickAvatar = () => fileInputRef.current?.click();
   const onAvatarSelected: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
@@ -427,7 +429,11 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
 
           <div className={styles.sectionHeader}>
             <span>Filhos:</span>
-            <button className={styles.addBtn} aria-label="Adicionar filho">
+            <button 
+              className={styles.addBtn} 
+              aria-label="Adicionar filho"
+              onClick={() => setIsAddChildModalOpen(true)}
+            >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
@@ -482,6 +488,16 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
           </div>
         </div>
       </div>
+      
+      <AddChildModal
+        isOpen={isAddChildModalOpen}
+        onClose={() => setIsAddChildModalOpen(false)}
+        userId={user.id || 1}
+        onChildAdded={() => {
+          // Aqui você pode atualizar a lista de filhos se necessário
+          console.log('Filho adicionado com sucesso!');
+        }}
+      />
     </div>
   );
 };

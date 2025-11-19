@@ -1,4 +1,5 @@
 "use client";
+ 
 
 import { useState, useEffect, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
@@ -166,8 +167,8 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [streetViewOpen, setStreetViewOpen] = useState(false);
   const [streetViewCoords, setStreetViewCoords] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
-  // Estado do filtro de localização
-  const [locationFilter, setLocationFilter] = useState<string>('todas');
+  // Estado do tipo de filtro da busca (nome ou endereço)
+  const [locationFilter, setLocationFilter] = useState<string>('nome');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
   const useDebounce = (value: string, delay: number) => {
@@ -181,24 +182,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const isDropdownOpen = searchFocused || viewMode === 'profile'; // mantém aberto quando em perfil
-
-  // Re-sincroniza o estado de foco após Alt+Tab/visibilidade voltar
-  useEffect(() => {
-    const syncFocus = () => {
-      try {
-        const el = inputRef.current as (HTMLInputElement | null);
-        if (document.visibilityState === 'visible' && el && document.activeElement === el) {
-          setSearchFocused(true);
-        }
-      } catch {}
-    };
-    window.addEventListener('focus', syncFocus);
-    document.addEventListener('visibilitychange', syncFocus);
-    return () => {
-      window.removeEventListener('focus', syncFocus);
-      document.removeEventListener('visibilitychange', syncFocus);
-    };
-  }, []);
+  const isFullDropdownOpen = isDropdownOpen && hasLoadedAll;
 
   // Carrega TODAS as instituições uma única vez, somente quando o usuário focar no input
   const loadAllInstitutionsOnce = async () => {
@@ -250,7 +234,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     }
   };
 
-  // Busca por nome 100% no front, baseada na lista carregada uma vez
+  // Busca no front baseada na lista carregada uma vez, usando nome ou endereço conforme o filtro
   useEffect(() => {
     if (!hasLoadedAll) return;
     const term = debouncedSearchTerm.trim().toLowerCase();
@@ -259,12 +243,22 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       setPage(1);
       return;
     }
-    const filtered = allInstitutions.filter(inst =>
-      (inst.nome || '').toLowerCase().includes(term)
-    );
+    const filtered = allInstitutions.filter(inst => {
+      const nome = (inst.nome || '').toLowerCase();
+      const bairro = (inst.endereco?.bairro || '').toLowerCase();
+      const cidade = (inst.endereco?.cidade || '').toLowerCase();
+      const estado = (inst.endereco?.estado || '').toLowerCase();
+      const enderecoTexto = `${bairro} ${cidade} ${estado}`.trim();
+
+      if (locationFilter === 'endereco') {
+        return enderecoTexto.includes(term);
+      }
+      // padrão: filtra por nome
+      return nome.includes(term);
+    });
     setInstitutions(filtered);
     setPage(1);
-  }, [debouncedSearchTerm, hasLoadedAll, allInstitutions]);
+  }, [debouncedSearchTerm, hasLoadedAll, allInstitutions, locationFilter]);
 
   // Reseta para a primeira página quando a fonte de dados mudar (ex.: filtros externos)
   useEffect(() => {
@@ -367,72 +361,31 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   // Removido CategoryChips
 
   const locationOptions = [
-    { value: 'todas', label: 'Todas as regiões', icon: 'globe' },
-    { value: 'zona_norte', label: 'Zona Norte', icon: 'north' },
-    { value: 'zona_sul', label: 'Zona Sul', icon: 'south' },
-    { value: 'zona_leste', label: 'Zona Leste', icon: 'east' },
-    { value: 'zona_oeste', label: 'Zona Oeste', icon: 'west' },
-    { value: 'centro', label: 'Centro', icon: 'building' }
+    { value: 'nome', label: 'Nome', icon: 'user' },
+    { value: 'endereco', label: 'Endereço', icon: 'pin' }
   ];
 
   const getLocationIcon = (iconType: string) => {
     const icons = {
-      globe: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m5 5 14 14"/></svg>,
-      north: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M5 9l7-7 7 7"/></svg>,
-      south: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M19 15l-7 7-7-7"/></svg>,
-      east: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M15 5l7 7-7 7"/></svg>,
-      west: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M9 19l-7-7 7-7"/></svg>,
-      building: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12h12"/><path d="M6 16h12"/></svg>
+      user: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-3.3137 3.134-6 7-6h2c3.866 0 7 2.6863 7 6" />
+        </svg>
+      ),
+      pin: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      )
     };
-    return icons[iconType as keyof typeof icons] || icons.globe;
-  };
-
-  const getLocationTerms = (location: string): string => {
-    const locationMap: Record<string, string> = {
-      'todas': '',
-      'zona_norte': 'Santana|Casa Verde|Tucuruvi|Mandaqui|Belém',
-      'zona_sul': 'Santo Amaro|Campo Limpo|Jabaquara|Sapopemba|Heliópolis|Cidade Dutra',
-      'zona_leste': 'Itaquera|Penha|Tatuapé|São Mateus|Guaianases|Cidade Tiradentes',
-      'zona_oeste': 'Vila Leopoldina|Pinheiros|Lapa|Osasco|Butantã|Pirituba|Jaguaré',
-      'centro': 'República|Centro|Liberdade|Santa Ifigênia|Sé|Bela Vista'
-    };
-    return locationMap[location] || '';
-  };
-
-  const fetchInstitutionsByLocation = async (location: string) => {
-    setError(null);
-
-    try {
-      // Garante que já temos a lista completa carregada da API
-      if (!hasLoadedAll) {
-        await loadAllInstitutionsOnce();
-      }
-
-      if (location === 'todas') {
-        setInstitutions(allInstitutions);
-        return;
-      }
-
-      const locationTerms = getLocationTerms(location);
-      const locations = locationTerms.split('|').map(loc => loc.trim()).filter(Boolean);
-
-      const baseList = allInstitutions.length > 0 ? allInstitutions : institutions;
-      const results = baseList.filter(inst => {
-        const bairro = (inst.endereco?.bairro || '').toLowerCase();
-        return locations.some(loc => bairro.includes(loc.toLowerCase()));
-      });
-
-      setInstitutions(results);
-    } catch (error) {
-      console.error('Erro ao buscar instituições:', error);
-      setError('Não foi possível carregar as instituições. Tente novamente mais tarde.');
-    }
+    return icons[iconType as keyof typeof icons] || icons.user;
   };
 
   const handleLocationChange = (location: string) => {
     setLocationFilter(location);
     setShowLocationDropdown(false);
-    fetchInstitutionsByLocation(location);
   };
 
   // Função para normalizar os dados da API para o formato esperado pelo componente
@@ -492,7 +445,12 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => { if (viewMode !== 'profile') { setSearchFocused(true); loadAllInstitutionsOnce(); } }}
-          onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+          onBlur={(e) => {
+            const next = e.relatedTarget as HTMLElement | null;
+            // Se o foco for para o botão de filtro ou para o dropdown de opções, mantém aberto
+            if (next && next.closest('.location-filter')) return;
+            setTimeout(() => setSearchFocused(false), 200);
+          }}
           disabled={viewMode === 'profile'}
         />
         
@@ -502,10 +460,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             className="location-filter-btn"
             onClick={() => setShowLocationDropdown(!showLocationDropdown)}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
+            {getLocationIcon(locationFilter === 'endereco' ? 'pin' : 'user')}
             <span>{locationOptions.find(opt => opt.value === locationFilter)?.label}</span>
             <svg className={`dropdown-arrow ${showLocationDropdown ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="6,9 12,15 18,9"/>
@@ -532,8 +487,24 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
             </div>
           )}
         </div>
-        {isDropdownOpen && (
-          <div className={`search-results-dropdown${(selecting || loading) ? ' loading' : ''}`}>
+
+        {/* Pré-carregamento: caixinha menor com mensagem enquanto carrega todas as instituições */}
+        {isDropdownOpen && !hasLoadedAll && loading && (
+          <div className="search-results-dropdown preload">
+            <div className="search-results-loading">
+              <div className="search-results-loading-dots" aria-hidden="true">
+                <span className="loading-dot" />
+                <span className="loading-dot" />
+                <span className="loading-dot" />
+              </div>
+              <span className="search-results-loading-text">Carregando instituições...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Dropdown completo com animação */}
+        {hasLoadedAll && (
+          <div className={`search-results-dropdown ${isFullDropdownOpen ? 'open' : 'closing'}${(selecting || loading) ? ' loading' : ''}`}>
             <div className={`dropdown-slider ${viewMode === 'profile' ? 'to-profile' : 'to-list'}`}>
               <div className="dropdown-track">
                 <div className="dropdown-panel list-panel">
@@ -700,19 +671,6 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                                 <div className="profile-cityline">{line}</div>
                               ) : null;
                             })()}
-                            {(() => {
-                              const end = detailInstitution.endereco;
-                              const bairro = end?.bairro || '';
-                              const cidade = end?.cidade || '';
-                              const estado = end?.estado || '';
-                              const parts: string[] = [];
-                              if (bairro) parts.push(bairro);
-                              const cityState = [cidade, estado].filter(Boolean).join(', ');
-                              const line = parts.length ? `${parts.join(' ')} - ${cityState}` : cityState;
-                              return line ? (
-                                <div className="profile-cityline">{line}</div>
-                              ) : null;
-                            })()}
                             <div className="profile-publicacoes-section">
                               <hr className="profile-publicacoes-divider" />
                               <h3 className="profile-publicacoes-title">Publicações</h3>
@@ -760,7 +718,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                                     </svg>
                                   </div>
                                   <div className="profile-publicacoes-empty-text">
-                                    Ainda não há nenhum post
+                                    Ainda não há nenhuma publicacao
                                   </div>
                                 </div>
                               )}

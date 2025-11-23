@@ -664,20 +664,63 @@ body.dark .profile-publicacao-item {
   animation: profile-publicacao-zoom-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.profile-publicacao-modal.origin-left {
+  transform-origin: left center;
+}
+
+.profile-publicacao-modal.origin-center {
+  transform-origin: center center;
+}
+
+.profile-publicacao-modal.origin-right {
+  transform-origin: right center;
+}
+
+.profile-publicacao-modal.origin-left {
+  transform-origin: left center;
+}
+
+.profile-publicacao-modal.origin-center {
+  transform-origin: center center;
+}
+
+.profile-publicacao-modal.origin-right {
+  transform-origin: right center;
+}
+
 body.dark .profile-publicacao-modal {
   background: var(--bg-card-dark);
 }
 
 .profile-publicacao-modal-close {
   position: absolute;
-  top: 8px;
-  right: 10px;
+  top: 10px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
   border: none;
-  background: transparent;
-  color: var(--light-text);
-  font-size: 22px;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--orange);
+  font-size: 26px;
   cursor: pointer;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.profile-publicacao-modal-close:hover {
+  background: rgba(244, 162, 97, 0.18);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.25);
+  transform: translateY(-1px);
+}
+
+.profile-publicacao-modal-close:active {
+  transform: translateY(0);
+  background: rgba(244, 162, 97, 0.25);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.4);
 }
 
 .profile-publicacao-modal-image {
@@ -1358,6 +1401,147 @@ body.dark .modal-text {
 
 .custom-marker-icon {
   animation: markerDrop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Popup do marcador do mapa (Google Maps InfoWindow) */
+/*
+ * Agora usamos apenas UMA caixinha customizada (.map-infowindow).
+ * Toda estrutura padrão do Google (caixa branca + seta) fica transparente.
+ */
+/* Zera qualquer wrapper de InfoWindow que comece com gm-style-iw */
+[class^="gm-style-iw"],
+[class*=" gm-style-iw"] {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: visible !important;   /* deixa nossa caixinha sair sem criar scroll */
+  max-height: none !important;    /* remove limite de altura que gera barra */
+}
+
+/* Também zera o container da seta padrão */
+.gm-style-iw-t {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Oculta quaisquer pseudo-elementos de seta branca desses wrappers */
+[class^="gm-style-iw"]::before,
+[class^="gm-style-iw"]::after,
+.gm-style-iw-t::before,
+.gm-style-iw-t::after {
+  display: none !important;
+}
+
+.map-infowindow {
+  max-width: 320px;
+  padding: 18px 18px 14px 18px; /* mais espaço no topo para afastar do X */
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-dark);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  position: relative;
+  transform-origin: center bottom;
+  animation: mapInfoEnter 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Setinha da caixinha do mapa, similar à descrição do perfil */
+.map-infowindow::before {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0 8px;
+  border-style: solid;
+  border-color: var(--bg-card) transparent transparent transparent;
+}
+
+.map-infowindow-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 8px 32px 4px 0; /* desce mais o texto e afasta do X */
+}
+
+.map-infowindow-address {
+  font-size: 12px;
+  color: var(--text-gray);
+}
+
+.map-infowindow-close {
+  position: absolute;
+  top: 4px; /* sobe um pouco o X para longe do texto */
+  right: 4px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--orange);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.16s ease, transform 0.16s ease;
+}
+
+.map-infowindow-close:hover {
+  background: rgba(244, 162, 97, 0.15);
+  transform: translateY(-1px);
+}
+
+.map-infowindow-close:active {
+  transform: translateY(0);
+}
+
+body.dark .map-infowindow {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+  box-shadow: 0 4px 18px var(--shadow-dark);
+}
+
+body.dark .map-infowindow-address {
+  color: var(--text-secondary-dark);
+}
+
+body.dark .map-infowindow::before {
+  border-color: var(--bg-card-dark) transparent transparent transparent;
+}
+
+/* Animações de entrada/saída da caixinha do mapa */
+@keyframes mapInfoEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mapInfoExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+}
+
+.map-infowindow-closing {
+  animation: mapInfoExit 0.18s ease-out forwards;
+}
+
+/* Remove o X padrão do Google Maps dentro do InfoWindow */
+.gm-style-iw button.gm-ui-hover-effect {
+  display: none !important;
 }
 
 /* Indicadores de fonte de dados */

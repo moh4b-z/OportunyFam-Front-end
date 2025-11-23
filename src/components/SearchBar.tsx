@@ -136,6 +136,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
   const [profileImgError, setProfileImgError] = useState<boolean>(false);
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [selectedPublication, setSelectedPublication] = useState<any | null>(null);
+  const [publicationOrigin, setPublicationOrigin] = useState<{ x: string; y: string }>({ x: '50%', y: '50%' });
 
   useEffect(() => {
     // Reset image error quando trocar de instituição
@@ -350,8 +351,24 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
     }
   };
 
-  const handleOpenPublication = (pub: any) => {
+  const handleOpenPublication = (pub: any, target: HTMLElement) => {
     setSelectedPublication(pub);
+
+    try {
+      const rect = target.getBoundingClientRect();
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
+
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const xPercent = Math.min(100, Math.max(0, (centerX / viewportWidth) * 100));
+      const yPercent = Math.min(100, Math.max(0, (centerY / viewportHeight) * 100));
+
+      setPublicationOrigin({ x: `${xPercent}%`, y: `${yPercent}%` });
+    } catch {
+      setPublicationOrigin({ x: '50%', y: '50%' });
+    }
   };
 
   const handleClosePublication = () => {
@@ -681,7 +698,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                                       key={pub.id ?? index}
                                       type="button"
                                       className="profile-publicacao-item"
-                                      onClick={() => handleOpenPublication(pub)}
+                                      onClick={(e) => handleOpenPublication(pub, e.currentTarget)}
                                     >
                                       {pub.imagem && (
                                         <>
@@ -790,6 +807,7 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
         <div className="profile-publicacao-modal-overlay" onClick={handleClosePublication}>
           <div
             className="profile-publicacao-modal"
+            style={{ transformOrigin: `${publicationOrigin.x} ${publicationOrigin.y}` }}
             onClick={(e) => e.stopPropagation()}
           >
             <button

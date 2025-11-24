@@ -7,7 +7,6 @@ import SearchBar from "@/components/SearchBar";
 const Mapa = dynamic(() => import("../components/Mapa"), { ssr: false });
 import { Instituicao } from "@/types";
 import NotificationsModal from "@/components/modals/NotificationsModal";
-import PushNotifications from "@/components/PushNotifications";
 import Perfil from "@/components/shared/Perfil";
 import LogoutModal from "@/components/modals/LogoutModal";
 import ConversationsModal from "@/components/modals/ConversationsModal";
@@ -17,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import SessionInfo from "@/components/SessionInfo";
 import SuccessModal from "@/components/modals/SuccessModal";
+import { childService } from "@/services/childService";
 
 export default function HomePage() {
   const { 
@@ -27,6 +27,7 @@ export default function HomePage() {
     setShowChildRegistration 
   } = useAuth();
   const [selectedInstitution, setSelectedInstitution] = useState<Instituicao | null>(null);
+  const [conversationInstitution, setConversationInstitution] = useState<Instituicao | null>(null);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
@@ -35,6 +36,8 @@ export default function HomePage() {
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
   const [isLocationPanelOpen, setIsLocationPanelOpen] = useState<boolean>(false);
   const [isCommunityPanelOpen, setIsCommunityPanelOpen] = useState<boolean>(false);
+  const [userConversations, setUserConversations] = useState<any[]>([]);
+  const [userPessoaId, setUserPessoaId] = useState<number | null>(null);
 
   // refs para fechar ao clicar fora
   const searchRef = useRef<HTMLDivElement>(null);
@@ -61,6 +64,63 @@ export default function HomePage() {
     document.addEventListener('mousedown', onDocMouseDown, true);
     return () => document.removeEventListener('mousedown', onDocMouseDown, true);
   }, [isSearchPanelOpen, isLocationPanelOpen, isCommunityPanelOpen]);
+
+  // Carrega as conversas do usuário (usando id do contexto ou do localStorage)
+  const loadUserConversations = async () => {
+    try {
+      let userIdNumber: number | null = null;
+
+      if (authUser?.id) {
+        const parsed = Number(authUser.id);
+        if (!Number.isNaN(parsed)) {
+          userIdNumber = parsed;
+        }
+      }
+
+      if (!userIdNumber && typeof window !== "undefined") {
+        try {
+          const storedUser = localStorage.getItem("user-data");
+          if (storedUser) {
+            const parsedStored = JSON.parse(storedUser);
+            const rawId = parsedStored?.id ?? parsedStored?.usuario_id ?? parsedStored?.usuario?.id;
+            if (rawId != null) {
+              const parsedId = Number(rawId);
+              if (!Number.isNaN(parsedId)) {
+                userIdNumber = parsedId;
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Erro ao ler user-data do localStorage:", err);
+        }
+      }
+
+      if (!userIdNumber) {
+        return;
+      }
+
+      const fullUser = await childService.getUserById(userIdNumber);
+
+      // Guarda o pessoa_id do usuário logado para uso no envio de mensagens do chat
+      const pessoaIdRaw = (fullUser as any)?.pessoa_id ?? (fullUser as any)?.id_pessoa;
+      const pessoaId = Number(pessoaIdRaw);
+      if (!Number.isNaN(pessoaId)) {
+        setUserPessoaId(pessoaId);
+      }
+
+      const conversas = Array.isArray((fullUser as any)?.conversas)
+        ? (fullUser as any).conversas
+        : [];
+      setUserConversations(conversas);
+    } catch (error) {
+      console.error("Erro ao carregar conversas do usuário:", error);
+    }
+  };
+
+  // Busca conversas na carga inicial (e quando o id do usuário mudar)
+  useEffect(() => {
+    loadUserConversations();
+  }, [authUser?.id]);
 
   const handleInstitutionSelect = (institution: Instituicao) => {
     setSelectedInstitution(institution);
@@ -90,6 +150,7 @@ export default function HomePage() {
 
   const closeConversationsModal = () => {
     setIsConversationsModalOpen(false);
+    setConversationInstitution(null);
   };
 
   const handleLogoutConfirm = (): void => {
@@ -144,24 +205,6 @@ export default function HomePage() {
     nome: "Usuário",
     foto_perfil: undefined
   };
-
-  // Dados de exemplo para as notificações push
-  const pushNotifications = [
-    {
-      id: 1,
-      name: "Instituto Água Viva",
-      message: "Nova vaga disponível para voluntário",
-      time: "Agora",
-      isLate: false
-    },
-    {
-      id: 2,
-      name: "Casa da Esperança",
-      message: "Evento beneficente neste sábado",
-      time: "2 min",
-      isLate: false
-    }
-  ];
 
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
@@ -224,7 +267,14 @@ export default function HomePage() {
         {/* Header flutuante sobre o mapa */}
         <div className="floating-header">
           <div className="search-wrapper">
-            <SearchBar onInstitutionSelect={handleInstitutionSelect} />
+            <SearchBar 
+              onInstitutionSelect={handleInstitutionSelect}
+              onStartConversation={(institution) => {
+                setConversationInstitution(institution);
+                setIsConversationsModalOpen(true);
+              }}
+              onRefreshConversations={loadUserConversations}
+            />
           </div>
           <Perfil 
             user={user}
@@ -233,13 +283,6 @@ export default function HomePage() {
           />
         </div>
       </div>
-      
-      {/* Componente de notificações push que aparecem automaticamente */}
-      <PushNotifications 
-        notifications={pushNotifications}
-        autoShow={true}
-        showDelay={3000}
-      />
       
       {/* Modal de notificações */}
       <NotificationsModal
@@ -259,6 +302,9 @@ export default function HomePage() {
       <ConversationsModal
         isOpen={isConversationsModalOpen}
         onClose={closeConversationsModal}
+        autoOpenInstitution={conversationInstitution}
+        conversationsFromApi={userConversations}
+        currentUserPessoaId={userPessoaId}
       />
 
       {/* Modal de cadastro de criança */}

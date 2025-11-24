@@ -32,6 +32,14 @@
   overflow: hidden;
 }
 
+.chat-modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: chatViewFade 0.28s ease-out;
+  will-change: opacity, transform;
+}
+
 /* Estilos para o tema escuro */
 body.dark .chat-modal-card {
   background: var(--bg-card-dark);
@@ -63,16 +71,17 @@ body.dark .chat-modal-header {
 }
 
 .chat-back-btn {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   cursor: pointer;
-  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #333;
-  transition: transform 0.2s ease;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  color: var(--orange);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
 }
 
 body.dark .chat-back-btn {
@@ -80,12 +89,13 @@ body.dark .chat-back-btn {
 }
 
 .chat-back-btn:hover {
-  background: #f5f5f5;
-  transform: translateX(-2px);
+  background: rgba(244, 162, 97, 0.12);
+  border-color: rgba(244, 162, 97, 0.45);
+  transform: translateY(-1px);
 }
 
 body.dark .chat-back-btn:hover {
-  background: var(--bg-dark);
+  background: rgba(244, 162, 97, 0.2);
 }
 
 .chat-contact-info {
@@ -149,7 +159,7 @@ body.dark .chat-menu-btn:hover {
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0; /* mensagens ficam praticamente coladas; o horário em hover abre o espaço extra */
 }
 
 /* Separador de Data */
@@ -198,7 +208,7 @@ body.dark .chat-date-text {
 .chat-message {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   max-width: 70%;
 }
 
@@ -242,10 +252,21 @@ body.dark .chat-message.received .chat-message-bubble {
   font-size: 12px;
   color: #999;
   margin-top: 4px;
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease, max-height 0.18s ease;
 }
 
 body.dark .chat-message-time {
   color: var(--text-muted-dark);
+}
+
+/* Mostra o horário apenas ao passar o mouse sobre a mensagem */
+.chat-message:hover .chat-message-time {
+  opacity: 1;
+  max-height: 20px;
+  transform: translateY(0);
 }
 
 /* Campo de Entrada */
@@ -253,8 +274,6 @@ body.dark .chat-message-time {
   padding: 20px 24px;
   background: white;
   border-top: 1px solid #e0e0e0;
-  position: sticky;
-  bottom: 0;
 }
 
 body.dark .chat-input-container {
@@ -267,7 +286,7 @@ body.dark .chat-input-container {
   align-items: center;
   background: #f8f8f8;
   border-radius: 25px;
-  padding: 12px 16px;
+  padding: 8px 12px; /* altura menor */
   border: 1px solid #e0e0e0;
   transition: all 0.3s ease;
 }
@@ -278,8 +297,8 @@ body.dark .chat-input-box {
 }
 
 .chat-input-box:focus-within {
-  border-color: var(--orange);
-  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.1);
+  border-color: var(--orange); /* contorno simples laranja, sem glow */
+  box-shadow: none;
 }
 
 .chat-input-field {
@@ -287,7 +306,7 @@ body.dark .chat-input-box {
   border: none;
   outline: none;
   background: transparent;
-  font-size: 14px;
+  font-size: 13px;
   color: #333;
   padding: 0;
 }
@@ -304,22 +323,49 @@ body.dark .chat-input-field::placeholder {
   color: var(--text-muted-dark);
 }
 
-.chat-microphone-btn {
+.chat-send-btn {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--orange);
-  transition: background 0.2s ease;
-  border-radius: 50%;
-  margin-left: 8px;
+  transition: background 0.2s ease, transform 0.1s ease;
+  border-radius: 999px;
+  margin-left: 6px;
 }
 
-.chat-microphone-btn:hover {
-  background: rgba(244, 162, 97, 0.1);
+.chat-send-btn:hover {
+  background: rgba(244, 162, 97, 0.12);
+  transform: translateY(-1px);
+}
+
+.chat-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #999;
+  text-align: center;
+}
+
+.chat-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.02);
+  color: var(--orange);
+}
+
+.chat-empty-text {
+  font-size: 14px;
 }
 
 /* Responsividade */
@@ -366,4 +412,16 @@ body.dark .chat-input-field::placeholder {
 
 .chat-modal-card {
   animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Animação suave para entrada da tela de mensagens */
+@keyframes chatViewFade {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

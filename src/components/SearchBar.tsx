@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
-import { Instituicao, TipoInstituicao } from "@/types";
+import { Instituicao, TipoInstituicao, ConversaRequest } from "@/types";
 import { geocodeAddress } from "@/services/Instituicoes";
 import { API_BASE_URL } from "@/services/config";
 import StreetViewModal from "./StreetViewModal";
@@ -13,6 +13,8 @@ import "../app/styles/SearchModal.css";
 
 interface SearchBarProps {
   onInstitutionSelect: (institution: Instituicao) => void;
+  onStartConversation?: (institution: Instituicao) => void;
+  onRefreshConversations?: () => Promise<void> | void;
 }
 
 interface SearchResultOptionProps {
@@ -113,7 +115,7 @@ const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelecte
   );
 };
 
-export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
+export default function SearchBar({ onInstitutionSelect, onStartConversation, onRefreshConversations }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
@@ -348,6 +350,120 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
       setStreetViewOpen(true);
     } else {
       console.error('Não foi possível obter coordenadas para o Street View');
+    }
+  };
+
+  const handleStartConversation = async () => {
+    try {
+      if (!detailInstitution) {
+        console.error('Nenhuma instituição selecionada para iniciar conversa');
+        return;
+      }
+
+      const instituicaoId = detailInstitution.instituicao_id || detailInstitution.id;
+      if (!instituicaoId) {
+        console.error('Instituição sem id para buscar pessoa_id');
+        return;
+      }
+
+      // Busca pessoa_id da instituição
+      const instResponse = await fetch(`${API_BASE_URL}/instituicoes/${instituicaoId}`);
+      if (!instResponse.ok) {
+        console.error('Falha ao buscar instituição para conversa:', instResponse.status, instResponse.statusText);
+        return;
+      }
+      const instData: any = await instResponse.json();
+      const instPessoaIdRaw = instData?.instituicao?.pessoa_id ?? instData?.pessoa_id;
+
+      // Busca pessoa_id do usuário logado a partir do id salvo no localStorage
+      let userIdFromStorage: string | null = null;
+      try {
+        const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user-data') : null;
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          if (parsed && typeof parsed.id !== 'undefined') {
+            userIdFromStorage = String(parsed.id);
+          } else if (parsed && typeof parsed.usuario_id !== 'undefined') {
+            userIdFromStorage = String(parsed.usuario_id);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao ler user-data do localStorage:', err);
+      }
+
+      if (!userIdFromStorage) {
+        console.error('Não foi possível obter o id do usuário logado a partir do localStorage');
+        return;
+      }
+
+      const userResponse = await fetch(`${API_BASE_URL}/usuarios/${userIdFromStorage}`);
+      if (!userResponse.ok) {
+        console.error('Falha ao buscar usuário para conversa:', userResponse.status, userResponse.statusText);
+        return;
+      }
+      const userData: any = await userResponse.json();
+      const userPessoaIdRaw = userData?.pessoa_id ?? userData?.usuario?.pessoa_id;
+
+      const instPessoaId = Number(instPessoaIdRaw);
+      const userPessoaId = Number(userPessoaIdRaw);
+
+      if (Number.isNaN(instPessoaId) || Number.isNaN(userPessoaId)) {
+        console.error('pessoa_id inválido para instituição ou usuário', {
+          instPessoaIdRaw,
+          userPessoaIdRaw
+        });
+        return;
+      }
+
+      const payload: ConversaRequest = {
+        participantes: [userPessoaId, instPessoaId]
+      };
+
+      // Envia criação da conversa para o backend
+      const response = await fetch(`${API_BASE_URL}/conversas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      let responseBody: any = null;
+      try {
+        responseBody = await response.json();
+      } catch {
+        responseBody = null;
+      }
+
+      console.log('Resposta do POST /conversas:', {
+        httpStatus: response.status,
+        ok: response.ok,
+        body: responseBody,
+      });
+
+      if (!response.ok) {
+        console.error('Falha ao criar conversa:', response.status, response.statusText);
+        return;
+      }
+
+      // Neste ponto, a API já decidiu se criou uma nova conversa (201)
+      // ou se reutilizou uma existente (200). Usamos isso apenas para
+      // logging e abrimos a UI normalmente com a lista atualizada.
+
+      // Se a criação/reutilização funcionou, atualiza a lista de conversas do usuário e abre a UI de conversas
+      if (onRefreshConversations) {
+        try {
+          await onRefreshConversations();
+        } catch (err) {
+          console.error('Erro ao atualizar conversas do usuário após criar conversa:', err);
+        }
+      }
+
+      if (onStartConversation && detailInstitution) {
+        onStartConversation(detailInstitution);
+      }
+    } catch (error) {
+      console.error('Erro ao preparar criação de conversa:', error);
     }
   };
 
@@ -586,50 +702,79 @@ export default function SearchBar({ onInstitutionSelect }: SearchBarProps) {
                         </div>
                       </div>
                       <div className="profile-content">
-                        <div ref={descriptionRef} className={`profile-description-container ${showDescription ? 'description-open' : ''}`}>
-                          <button
-                            type="button"
-                            className="profile-description-trigger"
-                            onClick={() => setShowDescription((prev) => !prev)}
-                          >
-                            <svg
-                              width="20"
-                              height="20"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                              aria-hidden="true"
+                        <div className="profile-actions-row">
+                          <div ref={descriptionRef} className={`profile-description-container ${showDescription ? 'description-open' : ''}`}>
+                            <button
+                              type="button"
+                              className="profile-description-trigger"
+                              onClick={() => setShowDescription((prev) => !prev)}
                             >
-                              <path
-                                d="M7 3h8l4 4v14H7z"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M15 3v4h4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M10 13h5M10 16h3"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                            <span className="profile-description-label">Sobre a instituição</span>
-                          </button>
-                          <div className={`profile-description-popover ${showDescription ? 'open' : ''}`}>
-                            <div className="profile-description-box">
-                              {(() => {
-                                const descricao = detailInstitution.descricao || '';
-                                return descricao.trim() ? descricao : 'Sem descrição para esta instituição.';
-                              })()}
+                              <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M7 3h8l4 4v14H7z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.8"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M15 3v4h4"
+                                  stroke="currentColor"
+                                  strokeWidth="1.8"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M10 13h5M10 16h3"
+                                  stroke="currentColor"
+                                  strokeWidth="1.8"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                              <span className="profile-description-label">Sobre a instituição</span>
+                            </button>
+                            <div className={`profile-description-popover ${showDescription ? 'open' : ''}`}>
+                              <div className="profile-description-box">
+                                {(() => {
+                                  const descricao = detailInstitution.descricao || '';
+                                  return descricao.trim() ? descricao : 'Sem descrição para esta instituição.';
+                                })()}
+                              </div>
                             </div>
+                          </div>
+
+                          <div className="profile-description-container profile-contact-container">
+                            <button
+                              type="button"
+                              className="profile-description-trigger profile-contact-trigger"
+                              onClick={handleStartConversation}
+                              onMouseDown={(e) => e.preventDefault()}
+                            >
+                              <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M5 12h14M12 5v14"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <span className="profile-description-label">Entrar em contato</span>
+                            </button>
                           </div>
                         </div>
                         <div className="profile-card">

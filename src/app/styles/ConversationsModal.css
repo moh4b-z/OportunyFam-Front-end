@@ -6,12 +6,12 @@
 
 .conversations-modal-overlay {
   position: fixed;
-  top: 0;
-  left: var(--sidebar-width); /* Começa após a barra lateral */
-  width: calc(100% - var(--sidebar-width));
-  height: 100%;
+  top: 6px;
+  left: calc(var(--sidebar-width) + 6px); /* Alinha à direita da sidebar, respeitando o recuo dela */
+  width: calc(100% - var(--sidebar-width) - 12px); /* Mantém recuo de 6px também do lado direito */
+  height: calc(100vh - 12px); /* Mesmo recuo vertical (topo/rodapé) da sidebar */
   background-color: rgba(0, 0, 0, 0.1);
-  z-index: 8000;
+  z-index: 900; /* Abaixo da sidebar (1000) para o card "sair" de trás dela */
   display: flex;
   justify-content: flex-start;
   align-items: stretch;
@@ -20,16 +20,19 @@
 
 .conversations-modal-card {
   position: relative;
-  height: 100vh;
+  height: 100%;
   width: 600px; /* Aumentado para ficar mais largo */
   max-width: 90vw;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: white;
   color: #333;
   padding: 0;
   box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
   transition: background 0.3s ease;
-  border-radius: 0;
+  border-radius: 12px; /* Acompanha cantos arredondados da sidebar */
+  margin-left: 6px; /* Pequeno afastamento da sidebar para não ficar colado */
   pointer-events: auto; /* captura cliques apenas no card */
 }
 
@@ -44,7 +47,7 @@ body.dark .conversations-modal-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30px 20px 30px 20px; /* Aumentado padding inferior de 20px para 30px */
+  padding: 22px 20px 18px 20px; /* padding vertical reduzido para aproximar da linha divisória */
   background: white;
   position: sticky;
   top: 0;
@@ -62,28 +65,39 @@ body.dark .conversations-modal-header {
   font-weight: 700;
   margin: 0;
   color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px; /* desloca ícone + texto um pouco para a direita */
 }
 
 body.dark .conversations-modal-title {
   color: var(--text-dark-theme);
 }
 
+.conversations-modal-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+}
+
 .conversations-modal-close {
-  position: absolute;
-  right: 15px;
-  top: 15px;
+  /* Usa o flex do header para alinhar verticalmente com o título */
+  margin-left: auto;
   background: transparent;
-  border: 0;
+  border: 1px solid transparent;
   color: #666;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
-  width: 30px;
-  height: 30px;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, color 0.18s ease;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 999px;
 }
 
 body.dark .conversations-modal-close {
@@ -92,7 +106,9 @@ body.dark .conversations-modal-close {
 
 .conversations-modal-close:hover {
   color: var(--red-orange);
-  transform: rotate(90deg);
+  background: rgba(244, 162, 97, 0.12);
+  border-color: rgba(244, 162, 97, 0.45);
+  transform: translateY(-1px);
 }
 
 /* Barra de pesquisa */
@@ -118,7 +134,7 @@ body.dark .conversations-search-box {
 
 .conversations-search-box:focus-within {
   border-color: var(--orange);
-  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.1);
+  box-shadow: none;
 }
 
 .conversations-search-icon {
@@ -148,41 +164,118 @@ body.dark .conversations-search-input::placeholder {
   color: var(--text-muted-dark);
 }
 
+/* Área principal: lista de conversas ou chat */
+.conversations-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 /* Lista de conversas */
 .conversations-list {
-  padding: 0 20px 20px 20px;
+  padding: 4px 20px 20px 20px; /* pequeno respiro no topo para o hover do primeiro card */
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+  animation: conversationsViewFade 0.28s ease-out;
+  will-change: opacity, transform;
 }
 
-/* Item de conversa */
+/* Scrollbar da lista de conversas - mesma estética das outras listas/modais */
+.conversations-list::-webkit-scrollbar {
+  width: 8px; /* ligeiramente mais grossa para não "sumir" visualmente */
+}
+
+.conversations-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.conversations-list::-webkit-scrollbar-thumb {
+  background: #c4c4c4;
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+
+.conversations-list::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* Estado vazio da lista de conversas */
+.conversations-empty-state {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 20px; /* reduzido para aproximar mais do centro visual da área */
+  margin-top: -32px; /* leve deslocamento para cima para centralizar melhor */
+  gap: 14px;
+}
+
+.conversations-empty-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-gray);
+}
+
+.conversations-empty-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+body.dark .conversations-empty-icon {
+  border-color: var(--border-dark);
+  color: var(--text-secondary-dark);
+}
+
+body.dark .conversations-empty-text {
+  color: var(--text-dark-theme);
+}
+
+/* Item de conversa - estilo inspirado nos cards do dropdown de instituições */
 .conversation-item {
   display: flex;
   align-items: center;
-  padding: 16px;
-  background: white;
+  padding: 16px 20px;
+  background: var(--bg-light);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease,
+              background-color 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
   position: relative;
-  border-left: 4px solid var(--orange);
 }
 
 body.dark .conversation-item {
-  background: var(--bg-modal-dark);
-  box-shadow: 0 2px 8px var(--shadow-dark);
-}
-
-body.dark .conversation-item:hover {
-  background: var(--hover-bg-dark);
-  box-shadow: 0 4px 12px var(--shadow-dark);
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
 }
 
 .conversation-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  background-color: var(--bg-hover-light);
+  border-color: var(--orange);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(244, 162, 97, 0.15);
+}
+
+body.dark .conversation-item:hover {
+  background-color: var(--hover-bg-dark);
+  border-color: var(--orange);
+  box-shadow: 0 2px 8px var(--shadow-dark);
 }
 
 /* Avatar placeholder (sem foto) */
@@ -190,13 +283,9 @@ body.dark .conversation-item:hover {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f4a261 0%, #e79e21 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
   margin-right: 12px;
   flex-shrink: 0;
 }
@@ -225,14 +314,33 @@ body.dark .conversation-name {
   font-size: 14px;
   color: #666;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   line-height: 1.4;
 }
 
 body.dark .conversation-message {
   color: var(--text-secondary-dark);
+}
+
+.conversation-message-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conversation-message-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #999;
+}
+
+body.dark .conversation-message-time {
+  color: var(--text-muted-dark);
 }
 
 /* Tag e contador */
@@ -276,8 +384,8 @@ body.dark .conversation-message {
   }
   
   .conversations-modal-overlay {
-    left: 0;
-    width: 100%;
+    left: 6px;
+    width: calc(100% - 12px);
   }
 }
 
@@ -312,6 +420,18 @@ body.dark .conversation-message {
   animation: slideInFromLeft 0.3s ease-out;
 }
 
+/* Animação suave para entrada da lista de conversas */
+@keyframes conversationsViewFade {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Área clicável fora do card para fechar */
 .conversations-dismiss-area {
   flex: 1;
@@ -319,3 +439,4 @@ body.dark .conversation-message {
   pointer-events: auto; /* captura clique para fechar */
   background: transparent;
 }
+

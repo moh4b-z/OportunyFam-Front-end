@@ -271,7 +271,7 @@ body.dark .profile-back-btn:hover {
 }
 
 .profile-content {
-  padding: 12px 4px;
+  padding: 6px 4px;
 }
 
 /* Trigger de descrição (ícone + texto "Sobre a instituição") */
@@ -281,6 +281,18 @@ body.dark .profile-back-btn:hover {
   align-items: center;
   gap: 4px;
   margin: 4px 0 8px 4px;
+}
+
+.profile-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 4px 4px 4px;
+}
+
+.profile-actions-row .profile-description-container {
+  margin: 0;
 }
 
 .profile-description-trigger {
@@ -419,7 +431,7 @@ body.dark .profile-description-box::after {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 16px 8px;
+  padding: 10px 8px;
 }
 
 .profile-avatar-large .default-institution-icon {
@@ -811,10 +823,10 @@ body.dark {
 .sidebar {
   /* FIX: Fica fixo e usa a variável de largura */
   position: fixed;
-  left: 0;
-  top: 0;
+  left: 6px;
+  top: 6px;
   z-index: 1000;
-  height: 100vh; 
+  height: calc(100vh - 12px); 
   width: var(--sidebar-width);
   
   /* Seus estilos de gradiente */
@@ -824,6 +836,7 @@ body.dark {
   align-items: center;
   padding: 20px 0;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); /* Opcional: para separação visual */
+  border-radius: 12px; /* cantos levemente arredondados apenas no lado direito */
 }
 
 /* A div anterior "logo-box" foi substituída por "logo-placeholder" */

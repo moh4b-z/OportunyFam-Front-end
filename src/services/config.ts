@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'https://oportunyfam-back-end.onrender.com/v1/oportunyfam'
+export const API_BASE_URL = 'https://oportunyfam-bcf0ghd9fkevaeez.canadacentral-01.azurewebsites.net/v1/oportunyfam'

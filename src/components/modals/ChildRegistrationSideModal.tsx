@@ -191,6 +191,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
+              background: #fff;
+            }
+            
+            body.dark .form-input:focus + .form-label,
+            body.dark .form-input:not(:placeholder-shown) + .form-label {
+              background: #000;
             }
             
             .form-label {
@@ -244,6 +250,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
+              background: #fff;
+            }
+            
+            body.dark .form-select:focus + .form-label,
+            body.dark .form-select:not([value=""]) + .form-label {
+              background: #000;
             }
             
             .date-input-wrapper {
@@ -297,6 +309,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
+              background: #fff;
+            }
+            
+            body.dark .date-input:focus ~ .form-label,
+            body.dark .date-input:not(:placeholder-shown) ~ .form-label {
+              background: #000;
             }
             
             .password-wrapper {
@@ -308,6 +326,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
+              background: #fff;
+            }
+            
+            body.dark .password-wrapper .form-input:focus ~ .form-label,
+            body.dark .password-wrapper .form-input:not(:placeholder-shown) ~ .form-label {
+              background: #000;
             }
             
             .password-toggle {

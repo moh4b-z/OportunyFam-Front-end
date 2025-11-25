@@ -140,11 +140,8 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
-              <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-              <circle cx="18" cy="6" r="3" />
-              <path d="M18 9v6" />
-              <path d="M15 12h6" />
+              <circle cx="12" cy="8" r="5" />
+              <path d="M3 21v-2a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2" />
             </svg>
             <span>Cadastrar Criança</span>
           </h1>

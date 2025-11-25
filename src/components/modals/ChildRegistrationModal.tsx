@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { ChildData, SexoOption } from '@/types'
 import { childService } from '@/services/childService'
 import { utilsService } from '@/services/utilsService'
+import { azureStorageService } from '@/services/azureStorageService'
 import styles from '@/app/styles/GeneralModal.css'
 
 // Hook para detectar tema atual
@@ -64,6 +65,7 @@ export default function ChildRegistrationModal({
   const [sexoOptions, setSexoOptions] = useState<SexoOption[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
 
   // Carrega opções de sexo
   useEffect(() => {
@@ -107,6 +109,28 @@ export default function ChildRegistrationModal({
       ...prev,
       [name]: name === 'id_sexo' ? parseInt(value) : value
     }))
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingImage(true)
+    try {
+      const imageUrl = await azureStorageService.uploadImage(file)
+      setFormData(prev => ({ ...prev, foto_perfil: imageUrl }))
+    } catch (error) {
+      console.log('⚠️ Azure falhou, usando base64 local')
+      // Fallback para base64
+      const reader = new FileReader()
+      reader.onload = () => {
+        const dataUrl = reader.result as string
+        setFormData(prev => ({ ...prev, foto_perfil: dataUrl }))
+      }
+      reader.readAsDataURL(file)
+    } finally {
+      setIsUploadingImage(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -193,8 +217,8 @@ export default function ChildRegistrationModal({
           box-shadow: 0 0 0 2px rgba(246, 166, 35, 0.2) !important;
         }
       `}</style>
-      <div className="modal-overlay">
-        <div className="modal-card" style={{ 
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ 
           maxWidth: '500px', 
           width: '90%',
           borderRadius: '18px'
@@ -286,6 +310,75 @@ export default function ChildRegistrationModal({
                 fontSize: '14px'
               }}
             />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+              Foto de perfil
+            </label>
+            <div style={{
+              border: '2px dashed #e5e7eb',
+              borderRadius: '12px',
+              padding: '20px',
+              textAlign: 'center',
+              background: '#f9fafb',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.borderColor = '#f6a623';
+              e.currentTarget.style.background = '#fef3e2';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.borderColor = '#e5e7eb';
+              e.currentTarget.style.background = '#f9fafb';
+            }}
+            onClick={() => document.getElementById('photo-input')?.click()}
+            >
+              {formData.foto_perfil ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
+                    <polyline points="20,6 9,17 4,12"/>
+                  </svg>
+                  <span style={{ color: '#22c55e', fontSize: '14px', fontWeight: '500' }}>Imagem selecionada</span>
+                </div>
+              ) : isUploadingImage ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid #f6a623',
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                  <span style={{ color: '#f6a623', fontSize: '14px' }}>Enviando...</span>
+                </div>
+              ) : (
+                <div>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" style={{ margin: '0 auto 8px' }}>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21,15 16,10 5,21"/>
+                  </svg>
+                  <p style={{ margin: '0', color: '#6b7280', fontSize: '14px' }}>Clique para selecionar uma foto</p>
+                </div>
+              )}
+            </div>
+            <input
+              id="photo-input"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={isUploadingImage}
+              style={{ display: 'none' }}
+            />
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
           </div>
 
           <div style={{ marginBottom: '15px' }}>

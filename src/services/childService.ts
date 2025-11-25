@@ -95,5 +95,42 @@ export const childService = {
         : (err?.message || 'Erro de conexão. Verifique sua internet.')
       throw new Error(msg)
     }
+  },
+
+  async getChildrenByUserId(userId: number) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/usuarios/${userId}`)
+      
+      if (!response.ok) {
+        throw new Error('Erro ao carregar filhos')
+      }
+
+      const data = await response.json()
+      
+      if (data.status && data.usuario && data.usuario.criancas_dependentes) {
+        return data.usuario.criancas_dependentes
+      }
+      
+      return []
+    } catch (err: any) {
+      console.error('Erro ao buscar filhos:', err)
+      return []
+    }
+  },
+
+  async deleteChild(childId: number) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/criancas/${childId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        throw new Error('Erro ao excluir criança')
+      }
+
+      return response.json()
+    } catch (err: any) {
+      throw new Error('Erro ao excluir criança')
+    }
   }
 }

@@ -1,0 +1,86 @@
+/*
+ * ===============================================
+ * Category Chips Component
+ * ===============================================
+ */
+
+.chipsContainer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.chip {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chip:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.chipActive {
+  background-color: var(--orange, #f4a261);
+  color: white;
+  box-shadow: 0 2px 8px rgba(244, 162, 97, 0.3);
+}
+
+.chipActive:hover {
+  background-color: #e79e21;
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.4);
+}
+
+/* Tema escuro */
+:global(body.dark) .chip {
+  background-color: var(--input-bg-dark);
+  color: var(--text-dark-theme);
+  box-shadow: 0 2px 4px var(--shadow-dark);
+}
+
+:global(body.dark) .chip:hover {
+  background-color: var(--hover-bg-dark);
+  box-shadow: 0 4px 8px var(--shadow-dark);
+}
+
+:global(body.dark) .chipActive {
+  background-color: var(--orange, #f4a261);
+  color: white;
+  box-shadow: 0 2px 8px rgba(244, 162, 97, 0.4);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .chipsContainer {
+    gap: 8px;
+  }
+  
+  .chip {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chipsContainer {
+    gap: 6px;
+  }
+  
+  .chip {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+}

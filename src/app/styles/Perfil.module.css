@@ -1,0 +1,228 @@
+/*
+ * ===============================================
+ * Componente Perfil - Bolinha no canto superior direito
+ * ===============================================
+ */
+
+/* Overlay removido - não é mais necessário */
+
+.profileContainer {
+  position: relative;
+  z-index: 700; /* Z-index ajustado para ficar acima dos controles do mapa */
+}
+
+.profileWrapper {
+  position: relative;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 6;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid var(--orange);
+}
+
+.profileWrapper:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.profileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profileIcon {
+  color: white;
+  font-size: 24px;
+}
+
+.notifDot {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  background: #ff3b30;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/*
+ * ===============================================
+ * Menu do Perfil
+ * ===============================================
+ */
+.profileMenu {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 260px;
+  z-index: 800; /* Z-index alto mas organizado na hierarquia */
+  transition: all 0.3s ease;
+  transform-origin: top right;
+  animation: fadeInFromTop 0.3s ease-out;
+  border: 1px solid var(--border-color);
+}
+
+/* Estilos para o tema escuro */
+:global(body.dark) .profileMenu {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.menuItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  color: var(--text-dark);
+}
+
+/* Estilo para os ícones SVG do menu - cor laranja */
+.menuItem svg {
+  stroke: var(--orange);
+  transition: stroke 0.2s ease;
+}
+
+.menuItem:hover {
+  background-color: var(--bg-light);
+}
+
+/* Estilos para o tema escuro */
+:global(body.dark) .menuItem {
+  color: var(--text-dark-theme);
+}
+
+:global(body.dark) .menuItem:hover {
+  background-color: var(--bg-dark);
+}
+
+/* Ícones SVG no tema escuro também ficam laranjas */
+:global(body.dark) .menuItem svg {
+  stroke: var(--orange);
+}
+
+.menuDivider {
+  border: none;
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 8px 0;
+}
+
+/* Estilos para o tema escuro */
+:global(body.dark) .menuDivider {
+  background-color: var(--border-dark);
+}
+
+
+/* 6. NOVO ESTILO PARA DESTAQUE DO ITEM DE SAÍDA */
+.logoutItem {
+  color: var(--text-logout, #ff3b30); /* Cor vermelha (pode ser ajustada) */
+  font-weight: 600; /* Pode ser um pouco mais forte */
+  padding: 12px 14px; /* Mais padding para destacar */
+}
+
+/* Garante que o ícone também seja vermelho */
+.logoutItem svg {
+  stroke: var(--text-logout, #ff3b30);
+}
+
+.logoutItem:hover {
+  background-color: var(--bg-logout-hover, rgba(255, 59, 48, 0.1));
+}
+
+/* Estilos para o tema escuro */
+:global(body.dark) .logoutItem {
+  color: var(--text-logout-dark, #ff5c5c);
+}
+
+:global(body.dark) .logoutItem svg {
+  stroke: var(--text-logout-dark, #ff5c5c);
+}
+
+:global(body.dark) .logoutItem:hover {
+  background-color: var(--bg-logout-dark-hover, rgba(255, 92, 92, 0.1));
+}
+
+
+
+/*
+ * ===============================================
+ * Toggle do Tema no Menu
+ * ===============================================
+ */
+.themeToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switch {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  background-color: #ccc;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.switchActive {
+  background-color: var(--orange);
+}
+
+.switchSlider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.switchActive .switchSlider {
+  transform: translateX(14px);
+}
+
+/* Estilos para o tema escuro */
+:global(body.dark) .switch {
+  background-color: #555;
+}
+
+:global(body.dark) .switchActive {
+  background-color: var(--orange);
+}
+
+/* Animação de entrada */
+@keyframes fadeInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

@@ -8,12 +8,12 @@ interface BarraLateralProps {
   onNotificationClick?: (data?: any) => void;
   onConversationsClick?: () => void;
   onLocationClick?: () => void;
-  onCommunityClick?: () => void;
+  onChildRegistrationClick?: () => void;
   isNotificationsOpen?: boolean;
   isConversationsOpen?: boolean;
   isSearchOpen?: boolean;
   isLocationOpen?: boolean;
-  isCommunityOpen?: boolean;
+  isChildRegistrationOpen?: boolean;
 }
 
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -23,7 +23,7 @@ const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export default function BarraLateral({ onSearchClick, onNotificationClick, onConversationsClick, onLocationClick, onCommunityClick, isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isCommunityOpen }: BarraLateralProps) {
+export default function BarraLateral({ onSearchClick, onNotificationClick, onConversationsClick, onLocationClick, onChildRegistrationClick, isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isChildRegistrationOpen }: BarraLateralProps) {
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
 
   const handleIconClick = (iconName: string) => {
@@ -58,14 +58,14 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
     if (isConversationsOpen === false && activeIcon === 'messages') setActiveIcon(null);
     if (isSearchOpen === false && activeIcon === 'new-feature') setActiveIcon(null);
     if (isLocationOpen === false && activeIcon === 'location') setActiveIcon(null);
-    if (isCommunityOpen === false && activeIcon === 'community') setActiveIcon(null);
+    if (isChildRegistrationOpen === false && activeIcon === 'child-registration') setActiveIcon(null);
 
     if (isNotificationsOpen) setActiveIcon('notification');
     if (isConversationsOpen) setActiveIcon('messages');
     if (isSearchOpen) setActiveIcon('new-feature');
     if (isLocationOpen) setActiveIcon('location');
-    if (isCommunityOpen) setActiveIcon('community');
-  }, [isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isCommunityOpen]);
+    if (isChildRegistrationOpen) setActiveIcon('child-registration');
+  }, [isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isChildRegistrationOpen]);
 
   return (
     <aside className="sidebar">
@@ -110,16 +110,17 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
         </button>
 
         <button
-          className={`icon-btn ${activeIcon === "community" ? "active" : ""}`}
+          className={`icon-btn ${activeIcon === "child-registration" ? "active" : ""}`}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => { handleIconClick("community"); onCommunityClick?.(); }}
-          aria-label="Comunidade"
+          onClick={() => { handleIconClick("child-registration"); onChildRegistrationClick?.(); }}
+          aria-label="Cadastrar Criança"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+            <circle cx="18" cy="6" r="3" />
+            <path d="M18 9v6" />
+            <path d="M15 12h6" />
           </svg>
         </button>
 

@@ -274,7 +274,7 @@ body.dark .profile-back-btn:hover {
 }
 
 .profile-content {
-  padding: 6px 4px;
+  padding: 6px 4px 0 4px;
 }
 
 /* Trigger de descrição (ícone + texto "Sobre a instituição") */
@@ -700,8 +700,7 @@ body.dark .profile-publicacoes-empty-text {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  max-height: 280px;
-  overflow-y: auto;
+  margin-top: 8px;
 }
 
 .profile-atividades-list {

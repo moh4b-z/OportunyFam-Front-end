@@ -10,7 +10,7 @@ import NotificationsModal from "@/components/modals/NotificationsModal";
 import Perfil from "@/components/shared/Perfil";
 import LogoutModal from "@/components/modals/LogoutModal";
 import ConversationsModal from "@/components/modals/ConversationsModal";
-import ChildRegistrationModal from "@/components/modals/ChildRegistrationModal";
+import ChildRegistrationSideModal from "@/components/modals/ChildRegistrationSideModal";
 import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -36,6 +36,7 @@ export default function HomePage() {
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
   const [isLocationPanelOpen, setIsLocationPanelOpen] = useState<boolean>(false);
   const [isCommunityPanelOpen, setIsCommunityPanelOpen] = useState<boolean>(false);
+  const [isChildRegistrationSideModalOpen, setIsChildRegistrationSideModalOpen] = useState<boolean>(false);
   const [userConversations, setUserConversations] = useState<any[]>([]);
   const [userPessoaId, setUserPessoaId] = useState<number | null>(null);
 
@@ -132,6 +133,11 @@ export default function HomePage() {
       setIsNotificationsModalOpen(false);
       return;
     }
+    // Fechar outros modais antes de abrir este
+    setIsConversationsModalOpen(false);
+    setIsChildRegistrationSideModalOpen(false);
+    setConversationInstitution(null);
+    
     // Vai abrir: seta dados (se houver) e abre
     if (data) {
       setNotifications(data);
@@ -144,13 +150,42 @@ export default function HomePage() {
   };
 
   const handleConversationsClick = () => {
-    // Toggle abre/fecha
-    setIsConversationsModalOpen(prev => !prev);
+    // Toggle: se já está aberto, fecha
+    if (isConversationsModalOpen) {
+      setIsConversationsModalOpen(false);
+      setConversationInstitution(null);
+      return;
+    }
+    // Fechar outros modais antes de abrir este
+    setIsNotificationsModalOpen(false);
+    setIsChildRegistrationSideModalOpen(false);
+    
+    // Abrir modal de conversas
+    setIsConversationsModalOpen(true);
   };
 
   const closeConversationsModal = () => {
     setIsConversationsModalOpen(false);
     setConversationInstitution(null);
+  };
+
+  const handleChildRegistrationClick = () => {
+    // Toggle: se já está aberto, fecha
+    if (isChildRegistrationSideModalOpen) {
+      setIsChildRegistrationSideModalOpen(false);
+      return;
+    }
+    // Fechar outros modais antes de abrir este
+    setIsNotificationsModalOpen(false);
+    setIsConversationsModalOpen(false);
+    setConversationInstitution(null);
+    
+    // Abrir modal de cadastro de criança
+    setIsChildRegistrationSideModalOpen(true);
+  };
+
+  const closeChildRegistrationSideModal = () => {
+    setIsChildRegistrationSideModalOpen(false);
   };
 
   const handleLogoutConfirm = (): void => {
@@ -216,8 +251,10 @@ export default function HomePage() {
       <BarraLateral 
         onNotificationClick={handleNotificationClick}
         onConversationsClick={handleConversationsClick}
+        onChildRegistrationClick={handleChildRegistrationClick}
         isNotificationsOpen={isNotificationsModalOpen}
         isConversationsOpen={isConversationsModalOpen}
+        isChildRegistrationOpen={isChildRegistrationSideModalOpen}
       />
       <div className="app-content-wrapper">
         {/* Mapa ocupa toda a área */}
@@ -308,12 +345,12 @@ export default function HomePage() {
         onRefreshConversations={loadUserConversations}
       />
 
-      {/* Modal de cadastro de criança */}
-      <ChildRegistrationModal
-        isOpen={showChildRegistration}
-        onClose={handleCloseChildRegistration}
+      {/* Modal lateral de cadastro de criança */}
+      <ChildRegistrationSideModal
+        isOpen={isChildRegistrationSideModalOpen}
+        onClose={closeChildRegistrationSideModal}
         onSuccess={handleChildRegistrationSuccess}
-        userId={authUser ? parseInt(authUser.id) : 999} // ID temporário para testes
+        userId={authUser ? parseInt(authUser.id) : 999}
       />
       
       {/* Mensagem de sucesso após cadastrar criança */}

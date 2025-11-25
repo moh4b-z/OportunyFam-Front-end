@@ -18,12 +18,15 @@ declare global {
 
 interface MapaProps {
   highlightedInstitution?: Instituicao | null;
+  institutions?: Instituicao[] | null;
 }
 
-export default function Mapa({ highlightedInstitution }: MapaProps) {
+export default function Mapa({ highlightedInstitution, institutions }: MapaProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const markersByIdRef = useRef<Record<string, any>>({});
+  const geocodeCacheRef = useRef<Record<string, { lat: number; lng: number }>>({});
   const infoWindowRef = useRef<any>(null);
   const homeMarkerRef = useRef<any | null>(null);
   const homeCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
@@ -141,24 +144,19 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
         }
 
         const homeIconSvg = `
-          <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="40" height="54" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <!-- Mesmo gradient laranja do pin de localização -->
-              <linearGradient id="homeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#FFA726" />
-                <stop offset="100%" stop-color="#FB8C00" />
+              <linearGradient id="homePinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#EF5350" />
+                <stop offset="100%" stop-color="#E53935" />
               </linearGradient>
             </defs>
-            <!-- Casinha (sem fundo, só o desenho na mesma cor do pin) -->
-            <path
-              d="M6 17L16 8L26 17V26C26 26.5523 25.5523 27 25 27H19.5C18.9477 27 18.5 26.5523 18.5 26V20.5H13.5V26C13.5 26.5523 13.0523 27 12.5 27H7C6.44772 27 6 26.5523 6 26V17Z"
-              fill="url(#homeGradient)"
-              stroke="#FB8C00"
-              stroke-width="1.2"
-              stroke-linejoin="round"
-            />
-            <!-- Pequena chaminé -->
-            <path d="M19 9.5V6.5" stroke="#FB8C00" stroke-width="1.2" stroke-linecap="round" />
+            <path d="M12 0C5.373 0 0 5.6 0 12.5C0 20 12 32 12 32S24 20 24 12.5C24 5.6 18.627 0 12 0Z"
+                  fill="url(#homePinGradient)"
+                  stroke="#FFFFFF"
+                  stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="4.2" fill="#FFFFFF" opacity="0.92"/>
+            <circle cx="12" cy="12" r="2.2" fill="#E53935"/>
           </svg>
         `;
 
@@ -168,8 +166,8 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
           title: "Seu local salvo",
           icon: {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(homeIconSvg),
-            scaledSize: new w.google.maps.Size(40, 40),
-            anchor: new w.google.maps.Point(20, 32) // ancora próximo à base da casa
+            scaledSize: new w.google.maps.Size(40, 54),
+            anchor: new w.google.maps.Point(20, 54) // ancora na base do pin vermelho
           },
           zIndex: 9999
         });
@@ -185,8 +183,13 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
           const addressLine = hasAddress ? `${street}${number ? ", " + number : ""}` : "";
 
           const content = `
-            <div class="map-infowindow">
-              <button type="button" class="map-infowindow-close" aria-label="Fechar">×</button>
+            <div class="map-infowindow home">
+              <button type="button" class="map-infowindow-close" aria-label="Fechar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
               <div class="map-infowindow-name">Seu local salvo</div>
               ${addressLine ? `<div class="map-infowindow-address">${addressLine}</div>` : ""}
             </div>
@@ -229,80 +232,78 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
     addHomeMarker();
   }, [user, mapReady]);
 
-  // Atualiza marcador quando instituição muda
+  // Sincroniza marcadores com a lista de instituições recebida via props
   useEffect(() => {
-    if (!googleMapRef.current || !highlightedInstitution) return;
+    if (!googleMapRef.current || !mapReady) return;
+    const w = window as any;
+    if (!w.google || !w.google.maps) return;
 
-    const updateMapWithInstitution = async () => {
-      const w = window as any;
-      if (!w.google || !w.google.maps) return;
+    const getId = (inst: Instituicao) => String(inst.instituicao_id ?? inst.id ?? '');
 
-      try {
-        // Limpa marcadores anteriores
-        markersRef.current.forEach(marker => marker.setMap(null));
-        markersRef.current = [];
+    const syncMarkers = async () => {
+      const list = Array.isArray(institutions) ? institutions : [];
+      const toKeep = new Set<string>();
 
-        const alwaysGeocode = (process.env.NEXT_PUBLIC_ALWAYS_GEOCODE === 'true');
-        let lat: number | null = null;
-        let lng: number | null = null;
+      // Adiciona marcadores novos
+      for (const inst of list) {
+        const id = getId(inst);
+        if (!id) continue;
+        toKeep.add(id);
+        if (markersByIdRef.current[id]) continue;
 
-        // Tenta usar as coordenadas existentes primeiro
-        if (!alwaysGeocode &&
-          highlightedInstitution.endereco?.latitude && 
-          highlightedInstitution.endereco?.longitude
-        ) {
-          lat = highlightedInstitution.endereco.latitude;
-          lng = highlightedInstitution.endereco.longitude;
-        } else {
-          // Se não tiver coordenadas, faz a geocodificação
-          const coords = await geocodeAddress(highlightedInstitution);
-          lat = coords?.lat ?? null;
-          lng = coords?.lng ?? null;
-        }
+        let lat: number | null = inst.endereco?.latitude ?? null;
+        let lng: number | null = inst.endereco?.longitude ?? null;
+        if (lat === 0) lat = null;
+        if (lng === 0) lng = null;
 
-        // Se ainda não tiver coords válidas, tenta usar o local salvo do usuário
-        if ((lat == null || lng == null) && homeCoordsRef.current) {
-          lat = homeCoordsRef.current.lat;
-          lng = homeCoordsRef.current.lng;
-        }
-
-        // Se mesmo assim não tivermos coords, usa o centro padrão de SP
         if (lat == null || lng == null) {
-          lat = -23.5505;
-          lng = -46.6333;
+          const cached = geocodeCacheRef.current[id];
+          if (cached) {
+            lat = cached.lat; lng = cached.lng;
+          } else {
+            try {
+              const coords = await geocodeAddress(inst);
+              if (coords) {
+                lat = coords.lat; lng = coords.lng;
+                geocodeCacheRef.current[id] = { lat, lng };
+              }
+            } catch {}
+          }
         }
 
-        // Cria marcador customizado com SVG
+        if (lat == null || lng == null) continue;
+
+        const orangePinSvg = `
+          <svg width="32" height="44" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="pinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#FFA726;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#FB8C00;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <path d="M12 0C5.373 0 0 5.373 0 12C0 19 12 32 12 32S24 19 24 12C24 5.373 18.627 0 12 0Z"
+                  fill="url(#pinGradient)"
+                  stroke="#FFFFFF"
+                  stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="5" fill="#FFFFFF" opacity="0.92"/>
+            <circle cx="12" cy="12" r="2.5" fill="#FB8C00"/>
+          </svg>
+        `;
+
         const marker = new w.google.maps.Marker({
           position: { lat, lng },
           map: googleMapRef.current,
-          title: highlightedInstitution.nome,
+          title: inst.nome,
           icon: {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-              <svg width="32" height="44" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="pinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#FFA726;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#FB8C00;stop-opacity:1" />
-                  </linearGradient>
-                </defs>
-                <path d="M12 0C5.373 0 0 5.373 0 12C0 19 12 32 12 32S24 19 24 12C24 5.373 18.627 0 12 0Z"
-                      fill="url(#pinGradient)"
-                      stroke="#FFFFFF"
-                      stroke-width="1.5"/>
-                <circle cx="12" cy="12" r="5" fill="#FFFFFF" opacity="0.92"/>
-                <circle cx="12" cy="12" r="2.5" fill="#FB8C00"/>
-              </svg>
-            `),
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(orangePinSvg),
             scaledSize: new w.google.maps.Size(32, 44),
             anchor: new w.google.maps.Point(16, 44)
           },
           animation: w.google.maps.Animation.DROP
         });
 
-        // Adiciona InfoWindow ao clicar no marcador
         marker.addListener('click', () => {
-          const end = highlightedInstitution.endereco;
+          const end = inst.endereco;
           const street = end?.logradouro || '';
           const number = end?.numero || '';
           const hasAddress = street || number;
@@ -310,15 +311,20 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
 
           const content = `
             <div class="map-infowindow">
-              <button type="button" class="map-infowindow-close" aria-label="Fechar">×</button>
-              <div class="map-infowindow-name">${highlightedInstitution.nome}</div>
-              ${addressLine ? `<div class="map-infowindow-address">${addressLine}</div>` : ''}
+              <button type="button" class="map-infowindow-close" aria-label="Fechar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+              <div class="map-infowindow-name">${inst.nome}</div>
+              ${addressLine ? `<div class=\"map-infowindow-address\">${addressLine}</div>` : ''}
             </div>
           `;
+
           infoWindowRef.current.setContent(content);
           infoWindowRef.current.open(googleMapRef.current, marker);
 
-          // Garante que o botão X interno feche a caixinha com animação de saída
           const w = window as any;
           if (w.google && w.google.maps && w.google.maps.event) {
             w.google.maps.event.addListenerOnce(infoWindowRef.current, 'domready', () => {
@@ -340,18 +346,79 @@ export default function Mapa({ highlightedInstitution }: MapaProps) {
           }
         });
 
-        markersRef.current.push(marker);
+        markersByIdRef.current[id] = marker;
+      }
 
-        // Centraliza o mapa na instituição
+      // Remove marcadores que não estão mais na lista
+      Object.keys(markersByIdRef.current).forEach((id) => {
+        if (!toKeep.has(id)) {
+          const m = markersByIdRef.current[id];
+          if (m) m.setMap(null);
+          delete markersByIdRef.current[id];
+        }
+      });
+
+      // Atualiza a lista auxiliar
+      markersRef.current = Object.values(markersByIdRef.current);
+    };
+
+    syncMarkers();
+  }, [institutions, mapReady]);
+
+  // Quando uma instituição for destacada, centraliza no marcador existente (sem recriar)
+  useEffect(() => {
+    if (!googleMapRef.current || !highlightedInstitution) return;
+    const getId = (inst: Instituicao) => String(inst.instituicao_id ?? inst.id ?? '');
+    const id = getId(highlightedInstitution);
+    const marker = id ? markersByIdRef.current[id] : null;
+
+    const centerOn = async () => {
+      if (marker && marker.getPosition) {
+        const pos = marker.getPosition();
+        googleMapRef.current.setCenter(pos);
+        googleMapRef.current.setZoom(15);
+        // Abre InfoWindow no pin selecionado
+        const end = highlightedInstitution.endereco;
+        const street = end?.logradouro || '';
+        const number = end?.numero || '';
+        const hasAddress = street || number;
+        const addressLine = hasAddress ? `${street}${number ? ', ' + number : ''}` : '';
+        const content = `
+          <div class="map-infowindow">
+            <button type="button" class="map-infowindow-close" aria-label="Fechar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <div class="map-infowindow-name">${highlightedInstitution.nome}</div>
+            ${addressLine ? `<div class=\"map-infowindow-address\">${addressLine}</div>` : ''}
+          </div>
+        `;
+        infoWindowRef.current.setContent(content);
+        infoWindowRef.current.open(googleMapRef.current, marker);
+        return;
+      }
+
+      // Fallback: centraliza por coordenadas conhecidas/geocodificadas, sem recriar marcadores
+      let lat: number | null = highlightedInstitution.endereco?.latitude ?? null;
+      let lng: number | null = highlightedInstitution.endereco?.longitude ?? null;
+      if (lat === 0) lat = null; if (lng === 0) lng = null;
+      const cached = id ? geocodeCacheRef.current[id] : null;
+      if ((lat == null || lng == null) && cached) { lat = cached.lat; lng = cached.lng; }
+      if (lat == null || lng == null) {
+        try {
+          const coords = await geocodeAddress(highlightedInstitution);
+          if (coords) { lat = coords.lat; lng = coords.lng; if (id) geocodeCacheRef.current[id] = coords; }
+        } catch {}
+      }
+      if (lat != null && lng != null) {
         googleMapRef.current.setCenter({ lat, lng });
         googleMapRef.current.setZoom(15);
-
-      } catch (error) {
-        console.error('Erro ao atualizar o mapa com a instituição:', error);
       }
     };
 
-    updateMapWithInstitution();
+    centerOn();
   }, [highlightedInstitution]);
 
   return <div ref={mapRef} style={{ width: "100%", height: "100%", minHeight: "500px" }} />;

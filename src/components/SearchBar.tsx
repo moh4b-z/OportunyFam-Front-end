@@ -29,6 +29,7 @@ interface SearchBarProps {
   onInstitutionSelect: (institution: Instituicao) => void;
   onStartConversation?: (institution: Instituicao) => void;
   onRefreshConversations?: () => Promise<void> | void;
+  onInstitutionsUpdate?: (institutions: Instituicao[]) => void;
 }
 
 interface SearchResultOptionProps {
@@ -129,7 +130,7 @@ const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelecte
   );
 };
 
-export default function SearchBar({ onInstitutionSelect, onStartConversation, onRefreshConversations }: SearchBarProps) {
+export default function SearchBar({ onInstitutionSelect, onStartConversation, onRefreshConversations, onInstitutionsUpdate }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
@@ -158,6 +159,7 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [selectedPublication, setSelectedPublication] = useState<any | null>(null);
   const [publicationOrigin, setPublicationOrigin] = useState<{ x: string; y: string }>({ x: '50%', y: '50%' });
+  const [initialLoadDone, setInitialLoadDone] = useState<boolean>(false);
 
   useEffect(() => {
     // Reset image error quando trocar de instituição
@@ -328,14 +330,15 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/instituicoes`);
+
       if (!response.ok) {
         throw new Error('Erro ao carregar instituições');
       }
       const data = await response.json();
       if (data.status && data.instituicoes) {
         const formattedInstitutions = data.instituicoes.map((inst: any) => ({
-          id: inst.instituicao_id,
-          instituicao_id: inst.instituicao_id,
+          id: inst.instituicao_id || inst.id,
+          instituicao_id: inst.instituicao_id || inst.id,
           nome: inst.nome,
           email: inst.email,
           foto_perfil: inst.foto_perfil || null,
@@ -361,14 +364,33 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
         }));
         setAllInstitutions(formattedInstitutions);
         setInstitutions(formattedInstitutions);
+        if (onInstitutionsUpdate) {
+          try { onInstitutionsUpdate(formattedInstitutions); } catch {}
+        }
         setHasLoadedAll(true);
         setDataSource('api');
+        setInitialLoadDone(true);
       }
     } catch (err) {
       console.error('Erro ao carregar instituições:', err);
       setError('Não foi possível carregar as instituições. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Carrega as instituições quando o componente é montado
+  useEffect(() => {
+    if (!initialLoadDone && !loading) {
+      loadAllInstitutionsOnce();
+    }
+  }, [initialLoadDone, loading]);
+
+  // Carrega as instituições quando o usuário foca no input (como fallback)
+  const handleFocus = () => {
+    setSearchFocused(true);
+    if (!initialLoadDone && !loading) {
+      loadAllInstitutionsOnce();
     }
   };
 
@@ -397,6 +419,13 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
     setInstitutions(filtered);
     setPage(1);
   }, [debouncedSearchTerm, hasLoadedAll, allInstitutions, locationFilter]);
+
+  // Emite a lista atual de instituições (filtrada ou completa) para o componente pai (Mapa)
+  useEffect(() => {
+    if (onInstitutionsUpdate) {
+      try { onInstitutionsUpdate(institutions); } catch {}
+    }
+  }, [institutions, onInstitutionsUpdate]);
 
   // Reseta para a primeira página quando a fonte de dados mudar (ex.: filtros externos)
   useEffect(() => {
@@ -638,7 +667,7 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
     const icons = {
       user: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="8" r="4" />
+          <circle cx="12" cy="8" r="4"/>
           <path d="M4 20c0-3.3137 3.134-6 7-6h2c3.866 0 7 2.6863 7 6" />
         </svg>
       ),
@@ -713,7 +742,7 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
           placeholder="Pesquise aqui"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => { if (viewMode !== 'profile') { setSearchFocused(true); loadAllInstitutionsOnce(); } }}
+          onFocus={handleFocus}
           onBlur={(e) => {
             const next = e.relatedTarget as HTMLElement | null;
             // Se o foco for para o botão de filtro ou para o dropdown de opções, mantém aberto
@@ -1285,7 +1314,10 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
               onClick={handleClosePublication}
               aria-label="Fechar publicação"
             >
-              ×
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </button>
             {selectedPublication.imagem && (
               <img

@@ -39,6 +39,7 @@ export default function HomePage() {
   const [isChildRegistrationSideModalOpen, setIsChildRegistrationSideModalOpen] = useState<boolean>(false);
   const [userConversations, setUserConversations] = useState<any[]>([]);
   const [userPessoaId, setUserPessoaId] = useState<number | null>(null);
+  const [mapInstitutions, setMapInstitutions] = useState<Instituicao[]>([]);
 
   // refs para fechar ao clicar fora
   const searchRef = useRef<HTMLDivElement>(null);
@@ -259,7 +260,7 @@ export default function HomePage() {
       <div className="app-content-wrapper">
         {/* Mapa ocupa toda a área */}
         <div className={mapaStyles.mapWrapper}>
-          <Mapa highlightedInstitution={selectedInstitution} />
+          <Mapa highlightedInstitution={selectedInstitution} institutions={mapInstitutions} />
         </div>
 
         {/* Painel de busca */}
@@ -311,6 +312,7 @@ export default function HomePage() {
                 setIsConversationsModalOpen(true);
               }}
               onRefreshConversations={loadUserConversations}
+              onInstitutionsUpdate={(list) => setMapInstitutions(list)}
             />
           </div>
           <Perfil 

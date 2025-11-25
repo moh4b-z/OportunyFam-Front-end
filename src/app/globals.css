@@ -1829,12 +1829,19 @@ body.dark .modal-text {
   background: transparent;
   color: var(--orange);
   font-size: 20px;
-  line-height: 1;
+  line-height: 0;
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.16s ease, transform 0.16s ease;
+}
+
+.map-infowindow-close svg {
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .map-infowindow-close:hover {
@@ -1854,6 +1861,16 @@ body.dark .map-infowindow {
 
 body.dark .map-infowindow-address {
   color: var(--text-secondary-dark);
+}
+
+/* Ajustes específicos para a InfoWindow do pin vermelho (local salvo) */
+.map-infowindow.home .map-infowindow-close {
+  top: 6px;
+  right: 6px;
+}
+.map-infowindow.home .map-infowindow-close svg {
+  width: 16px;
+  height: 16px;
 }
 
 body.dark .map-infowindow::before {

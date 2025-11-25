@@ -184,7 +184,6 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
             .form-input:focus {
               border-color: #f4a261;
               background: transparent;
-              box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.1);
             }
             
             .form-input:focus + .form-label,
@@ -238,7 +237,6 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
             .form-select:focus {
               border-color: #f4a261;
               background-color: transparent;
-              box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.1);
             }
             
             .form-select:focus + .form-label,
@@ -292,7 +290,6 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
             .date-input:focus {
               border-color: #f4a261;
               background: transparent;
-              box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.1);
             }
             
             .date-input:focus ~ .form-label,

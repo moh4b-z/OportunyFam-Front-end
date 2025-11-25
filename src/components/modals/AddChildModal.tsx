@@ -63,6 +63,7 @@ const AddChildModal: React.FC<AddChildModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      // 1. Cadastrar a criança
       const response = await fetch("https://oportunyfam-back-end.onrender.com/v1/oportunyfam/criancas", {
         method: "POST",
         headers: {
@@ -70,11 +71,38 @@ const AddChildModal: React.FC<AddChildModalProps> = ({
         },
         body: JSON.stringify({
           ...formData,
-          id_usuario: userId,
+          id_usuario: userId || 1,
         }),
       });
 
       if (response.ok) {
+        const childData = await response.json();
+        let childId = null;
+        
+        // Extrair ID da criança criada
+        if (childData && childData.dados && childData.dados.id) {
+          childId = childData.dados.id;
+        } else if (childData && childData.id) {
+          childId = childData.id;
+        }
+
+        // 2. Se uma instituição foi selecionada e temos o ID da criança, fazer a associação
+        if (selectedInstituicao && childId) {
+          try {
+            await fetch(`https://oportunyfam-back-end.onrender.com/v1/oportunyfam/criancas/${childId}/instituicoes`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                id_instituicao: parseInt(selectedInstituicao)
+              }),
+            });
+          } catch (error) {
+            console.error("Erro ao associar instituição:", error);
+          }
+        }
+
         alert("Filho adicionado com sucesso!");
         setFormData({
           nome: "",
@@ -85,6 +113,7 @@ const AddChildModal: React.FC<AddChildModalProps> = ({
           data_nascimento: "",
           id_sexo: 1,
         });
+        setSelectedInstituicao("");
         onChildAdded?.();
         onClose();
       } else {

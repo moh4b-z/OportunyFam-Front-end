@@ -41,6 +41,12 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({ isOpen, onClose
       setLoading(true);
       const conversasApi = await buscarConversas(usuarioId);
       
+      // Verificar se conversasApi é um array
+      if (!Array.isArray(conversasApi)) {
+        console.log('API não retornou array:', conversasApi);
+        throw new Error('Dados inválidos da API');
+      }
+      
       const conversasFormatadas: Conversation[] = conversasApi.map((conversa: Conversa) => ({
         id: conversa.id,
         name: conversa.nome_contato || 'Contato',

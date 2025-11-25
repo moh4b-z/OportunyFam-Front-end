@@ -69,10 +69,10 @@ function getRandomSaoPauloCoords() {
   const minLng = -46.8;
   const maxLng = -46.4;
   
-  return {
-    latitude: minLat + Math.random() * (maxLat - minLat),
-    longitude: minLng + Math.random() * (maxLng - minLng)
-  };
+  return [
+    minLat + Math.random() * (maxLat - minLat),
+    minLng + Math.random() * (maxLng - minLng)
+  ];
 }
 
 // Gera endereços aleatórios
@@ -81,8 +81,16 @@ const bairros = ['Vila Mariana', 'Bela Vista', 'Jardim Paulista', 'Moema', 'Itai
 
 import { saoPauloInstitutions } from './saoPauloInstitutions';
 
+// Definição do tipo para os cursos profissionais
+type ProfessionalCourse = {
+  name: string;
+  institution: string;
+  location: string;
+  coords: [number, number];
+};
+
 // Base de dados MASSIVA de instituições de São Paulo
-const professionalCourses: Record<string, Array<{name: string, institution: string, location: string, coords: [number, number]}>> = {
+const professionalCourses: Record<string, ProfessionalCourse[]> = {
   // SENAI - Cursos Técnicos
   'senai': [
     {name: 'SENAI Vila Leopoldina', institution: 'SENAI', location: 'Vila Leopoldina', coords: [-23.5267, -46.7378]},
@@ -432,7 +440,7 @@ export function searchMockInstitutions(searchTerm: string): Instituicao[] {
   
   // 4. BUSCA EXPANDIDA - Gera múltiplos resultados
   if (searchTerm.length >= 3) {
-    const expandedResults = [];
+    const expandedResults: Instituicao[] = [];
     const variations = [
       `Curso de ${searchTerm}`,
       `Curso Técnico em ${searchTerm}`,

@@ -1,5 +1,10 @@
 // BASE MASSIVA DE INSTITUIÇÕES DE SÃO PAULO - EDUCAÇÃO, ESPORTES E CULTURA
-export const saoPauloInstitutions = {
+export const saoPauloInstitutions: Record<string, Array<{
+  name: string;
+  institution: string;
+  location: string;
+  coords: [number, number];  // Garantindo que coords seja uma tupla [number, number]
+}>> = {
   // SENAI - TODAS AS UNIDADES
   senai: [
     {name: 'SENAI Vila Leopoldina - Mariano Ferraz', institution: 'SENAI', location: 'Vila Leopoldina', coords: [-23.5267891, -46.7378234]},

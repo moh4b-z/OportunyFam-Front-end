@@ -142,11 +142,17 @@ export const populateService = {
         const hasAddressKeyword = addressKeywords.some(keyword => searchTerm.includes(keyword))
         
         if (hasAddressKeyword) {
-          // Mapeia endereços reais para regiões corretas
-          const realAddresses = {
-            'rua voluntários da pátria': { region: 'Santana', coords: [-23.5186234, -46.6264567] },
-            'avenida paulista': { region: 'Bela Vista', coords: [-23.5618345, -46.6565789] },
-            'rua augusta': { region: 'Consolação', coords: [-23.5505234, -46.6333567] },
+          // Interface para o tipo de endereço
+          interface AddressInfo {
+            region: string;
+            coords: [number, number];
+          }
+          
+          // Mapeamento de endereços reais para coordenadas
+          const realAddresses: { [key: string]: AddressInfo } = {
+            'rua voluntários da pátria': { region: 'Santana', coords: [-23.4995456, -46.6264567] },
+            'avenida paulista': { region: 'Bela Vista', coords: [-23.5619456, -46.6565234] },
+            'rua augusta': { region: 'Consolação', coords: [-23.5569456, -46.6589234] },
             'avenida faria lima': { region: 'Itaim Bibi', coords: [-23.5875456, -46.6747234] },
             'rua oscar freire': { region: 'Jardins', coords: [-23.5618789, -46.6565234] },
             'avenida rebouças': { region: 'Pinheiros', coords: [-23.5729456, -46.6889234] },
@@ -162,23 +168,23 @@ export const populateService = {
           
           // Se não encontrou endereço exato, tenta mapear por região mencionada
           if (!foundAddress) {
-            const regionKeywords = {
-              'santana': { region: 'Santana', coords: [-23.5186234, -46.6264567] },
-              'vila madalena': { region: 'Vila Madalena', coords: [-23.5506234, -46.6889567] },
-              'pinheiros': { region: 'Pinheiros', coords: [-23.5729456, -46.6889234] },
-              'moema': { region: 'Moema', coords: [-23.5967456, -46.6631789] },
-              'itaim': { region: 'Itaim Bibi', coords: [-23.5875456, -46.6747234] },
-              'jardins': { region: 'Jardins', coords: [-23.5618789, -46.6565234] },
-              'centro': { region: 'Centro', coords: [-23.5505456, -46.6333678] },
-              'liberdade': { region: 'Liberdade', coords: [-23.5587345, -46.6347891] },
-              'bela vista': { region: 'Bela Vista', coords: [-23.5618345, -46.6565789] },
-              'vila olímpia': { region: 'Vila Olímpia', coords: [-23.5967789, -46.6889123] },
-              'morumbi': { region: 'Morumbi', coords: [-23.6167456, -46.7000123] },
-              'santo amaro': { region: 'Santo Amaro', coords: [-23.6528234, -46.7081567] },
-              'ipiranga': { region: 'Ipiranga', coords: [-23.5875678, -46.6103234] },
-              'tatuapé': { region: 'Tatuapé', coords: [-23.5378891, -46.5664123] },
-              'penha': { region: 'Penha', coords: [-23.5267891, -46.5431456] },
-              'lapa': { region: 'Lapa', coords: [-23.5267456, -46.7017123] }
+            const regionKeywords: Record<string, AddressInfo> = {
+              'santana': { region: 'Santana', coords: [-23.5186234, -46.6264567] as [number, number] },
+              'vila madalena': { region: 'Vila Madalena', coords: [-23.5506234, -46.6889567] as [number, number] },
+              'pinheiros': { region: 'Pinheiros', coords: [-23.5729456, -46.6889234] as [number, number] },
+              'moema': { region: 'Moema', coords: [-23.5967456, -46.6631789] as [number, number] },
+              'itaim': { region: 'Itaim Bibi', coords: [-23.5875456, -46.6747234] as [number, number] },
+              'jardins': { region: 'Jardins', coords: [-23.5618789, -46.6565234] as [number, number] },
+              'centro': { region: 'Centro', coords: [-23.5505456, -46.6333678] as [number, number] },
+              'liberdade': { region: 'Liberdade', coords: [-23.5587345, -46.6347891] as [number, number] },
+              'bela vista': { region: 'Bela Vista', coords: [-23.5618345, -46.6565789] as [number, number] },
+              'vila olímpia': { region: 'Vila Olímpia', coords: [-23.5967789, -46.6889123] as [number, number] },
+              'morumbi': { region: 'Morumbi', coords: [-23.6167456, -46.7000123] as [number, number] },
+              'santo amaro': { region: 'Santo Amaro', coords: [-23.6528234, -46.7081567] as [number, number] },
+              'ipiranga': { region: 'Ipiranga', coords: [-23.5875678, -46.6103234] as [number, number] },
+              'tatuapé': { region: 'Tatuapé', coords: [-23.5378891, -46.5664123] as [number, number] },
+              'penha': { region: 'Penha', coords: [-23.5267891, -46.5431456] as [number, number] },
+              'lapa': { region: 'Lapa', coords: [-23.5267456, -46.7017123] as [number, number] }
             }
             
             // Procura se o endereço contém nome de região

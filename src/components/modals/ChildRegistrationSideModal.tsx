@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChildData, SexoOption } from '@/types';
 import { childService } from '@/services/childService';
 import { utilsService } from '@/services/utilsService';
+import { azureStorageService } from '@/services/azureStorageService';
 import "../../app/styles/ConversationsModal.css";
 
 interface ChildRegistrationSideModalProps {
@@ -32,9 +33,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const dateInputRef = useRef<HTMLInputElement | null>(null);
   const [sexoOptions, setSexoOptions] = useState<SexoOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Carregar opções de sexo
   useEffect(() => {
@@ -49,6 +53,8 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
 
     if (isOpen) {
       loadSexoOptions();
+      setIsSuccess(false);
+      setError(null);
     }
   }, [isOpen]);
 
@@ -66,6 +72,42 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const url = await azureStorageService.uploadImage(file);
+      handleInputChange('foto_perfil', url);
+    } catch (error) {
+      console.error('Erro ao enviar foto da criança para o Azure:', error);
+      setError('Não foi possível enviar a foto. Tente novamente.');
+    }
+  };
+
+  const openDatePicker = () => {
+    if (!dateInputRef.current) return;
+
+    const input = dateInputRef.current as HTMLInputElement & {
+      showPicker?: () => void;
+    };
+
+    try {
+      if (input.showPicker) {
+        input.showPicker();
+        return;
+      }
+    } catch {
+      // Ignora falhas do showPicker em navegadores que não suportam
+    }
+
+    // Fallback: foco + click para tentar abrir o datepicker nativo
+    input.focus();
+    try {
+      input.click();
+    } catch {}
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,8 +153,13 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
       };
 
       await childService.registerChild(childData);
+      setIsSuccess(true);
       onSuccess();
-      onClose();
+
+      // Mantém a modal aberta por um curto período para exibir a mensagem de sucesso
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error('Erro ao cadastrar criança:', error);
       setError(error instanceof Error ? error.message : 'Erro ao cadastrar criança');
@@ -157,8 +204,82 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
         </div>
 
         {/* Conteúdo principal - Formulário */}
-        <div className="conversations-main" style={{ padding: '20px', overflowY: 'auto' }}>
+        <div className="conversations-main" style={{ padding: '20px', overflowY: 'auto', position: 'relative' }}>
           <style jsx>{`
+            .photo-upload-wrapper {
+              display: flex;
+              justify-content: center;
+              margin-bottom: 24px;
+            }
+
+            /* Mesmo visual do bloco de logo/card (card-logo-block), só que maior na modal */
+            .photo-upload-circle {
+              position: relative;
+              width: 124px;
+              height: 124px;
+              border-radius: 50%;
+              background: linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(231, 111, 81, 0.1));
+              padding: 2px;
+              overflow: hidden;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              border: none;
+              box-sizing: border-box;
+              transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+            }
+
+            .photo-upload-circle:hover {
+              transform: translateY(-1px);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            }
+
+            .photo-upload-image {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+
+            .photo-upload-overlay {
+              position: absolute;
+              inset: 0;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              background: radial-gradient(circle at center, rgba(0,0,0,0.45), rgba(0,0,0,0.75));
+              opacity: 0;
+              transition: opacity 0.2s ease;
+              color: #fff;
+              text-align: center;
+              padding: 8px;
+            }
+
+            .photo-upload-circle:hover .photo-upload-overlay {
+              opacity: 1;
+            }
+
+            .photo-upload-plus {
+              font-size: 20px;
+              font-weight: 600;
+              line-height: 1;
+            }
+
+            .photo-upload-text {
+              font-size: 12px;
+              font-weight: 500;
+            }
+
+            :global(body.dark) .photo-upload-circle {
+              background: linear-gradient(135deg, rgba(244, 162, 97, 0.18), rgba(231, 111, 81, 0.16));
+            }
+
+            :global(body.dark) .photo-upload-circle:hover {
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+            }
+
             .form-group {
               position: relative;
               margin-bottom: 24px;
@@ -177,7 +298,7 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               box-sizing: border-box;
             }
             
-            body.dark .form-input {
+            :global(body.dark) .form-input {
               color: #fff;
             }
             
@@ -191,12 +312,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
-              background: #fff;
+              background: var(--bg-card);
             }
             
-            body.dark .form-input:focus + .form-label,
-            body.dark .form-input:not(:placeholder-shown) + .form-label {
-              background: #000;
+            :global(body.dark) .form-input:focus + .form-label,
+            :global(body.dark) .form-input:not(:placeholder-shown) + .form-label {
+              background: var(--bg-card-dark);
             }
             
             .form-label {
@@ -209,11 +330,11 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transition: all 0.3s ease;
               transform-origin: left top;
               background: transparent;
-              padding: 0 4px;
+              padding: 0 8px;
               border-radius: 4px;
             }
             
-            body.dark .form-label {
+            :global(body.dark) .form-label {
               color: #fff;
             }
             
@@ -222,7 +343,7 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               padding: 20px 16px 12px 16px;
               border: 1px solid rgba(244, 162, 97, 0.4);
               border-radius: 8px;
-              background: transparent;
+              background-color: var(--bg-card);
               font-size: 16px;
               color: #333;
               transition: all 0.3s ease;
@@ -236,13 +357,15 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               padding-right: 48px;
             }
             
-            body.dark .form-select {
+            :global(body.dark) .form-select {
               color: #fff;
+              background-color: var(--bg-card-dark);
+              border-color: rgba(244, 162, 97, 0.5);
             }
             
             .form-select:focus {
               border-color: #f4a261;
-              background-color: transparent;
+              background-color: var(--bg-card);
             }
             
             .form-select:focus + .form-label,
@@ -250,12 +373,23 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
-              background: #fff;
+              background: var(--bg-card);
             }
             
-            body.dark .form-select:focus + .form-label,
-            body.dark .form-select:not([value=""]) + .form-label {
-              background: #000;
+            :global(body.dark) .form-select:focus + .form-label,
+            :global(body.dark) .form-select:not([value=""]) + .form-label {
+              background: var(--bg-card-dark);
+            }
+            
+            /* Ajuste visual do fundo das opções do select */
+            :global(.form-select option) {
+              background-color: var(--bg-card);
+              color: var(--text-dark);
+            }
+            
+            :global(body.dark) .form-select option {
+              background-color: var(--bg-card-dark);
+              color: var(--text-dark-theme);
             }
             
             .date-input-wrapper {
@@ -267,25 +401,48 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               padding: 20px 48px 12px 16px;
               border: 1px solid rgba(244, 162, 97, 0.4);
               border-radius: 8px;
-              background: transparent;
+              background-color: var(--bg-card);
               font-size: 16px;
               color: #333;
               transition: all 0.3s ease;
               outline: none;
               box-sizing: border-box;
+              -webkit-appearance: none;
+              -moz-appearance: textfield;
+              appearance: none;
             }
             
-            body.dark .date-input {
+            :global(body.dark) .date-input {
               color: #fff;
+              background-color: var(--bg-card-dark);
+              border-color: rgba(244, 162, 97, 0.5);
+              color-scheme: dark;
             }
             
-            .date-input::-webkit-calendar-picker-indicator {
-              opacity: 0;
-              position: absolute;
-              right: 12px;
-              width: 20px;
-              height: 20px;
-              cursor: pointer;
+            :global(.date-input::-webkit-calendar-picker-indicator),
+            :global(input[type="date"]::-webkit-calendar-picker-indicator) {
+              opacity: 0 !important;
+              display: none !important;
+              -webkit-appearance: none;
+              background: transparent;
+              color: transparent;
+              width: 0;
+              height: 0;
+              margin: 0;
+              padding: 0;
+            }
+
+            /* Firefox - esconder ícone nativo do datepicker */
+            :global(input[type="date"]::-moz-calendar-picker-indicator) {
+              opacity: 0 !important;
+              display: none !important;
+              -moz-appearance: none;
+              background: transparent;
+              color: transparent;
+              width: 0;
+              height: 0;
+              margin: 0;
+              padding: 0;
             }
             
             .date-icon {
@@ -293,15 +450,21 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               right: 16px;
               top: 50%;
               transform: translateY(-50%);
-              pointer-events: none;
+              pointer-events: auto;
               color: #f4a261;
               width: 20px;
               height: 20px;
+              cursor: pointer;
+              z-index: 2;
             }
             
             .date-input:focus {
               border-color: #f4a261;
-              background: transparent;
+              background-color: var(--bg-card);
+            }
+
+            :global(body.dark) .date-input:focus {
+              background-color: var(--bg-card-dark);
             }
             
             .date-input:focus ~ .form-label,
@@ -309,12 +472,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
-              background: #fff;
+              background: var(--bg-card);
             }
             
-            body.dark .date-input:focus ~ .form-label,
-            body.dark .date-input:not(:placeholder-shown) ~ .form-label {
-              background: #000;
+            :global(body.dark) .date-input:focus ~ .form-label,
+            :global(body.dark) .date-input:not(:placeholder-shown) ~ .form-label {
+              background: var(--bg-card-dark);
             }
             
             .password-wrapper {
@@ -326,12 +489,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transform: translateY(-24px) scale(0.85);
               color: #f4a261;
               font-weight: 600;
-              background: #fff;
+              background: var(--bg-card);
             }
             
-            body.dark .password-wrapper .form-input:focus ~ .form-label,
-            body.dark .password-wrapper .form-input:not(:placeholder-shown) ~ .form-label {
-              background: #000;
+            :global(body.dark) .password-wrapper .form-input:focus ~ .form-label,
+            :global(body.dark) .password-wrapper .form-input:not(:placeholder-shown) ~ .form-label {
+              background: var(--bg-card-dark);
             }
             
             .password-toggle {
@@ -346,11 +509,11 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               font-size: 18px;
               padding: 4px;
               border-radius: 4px;
-              transition: background-color 0.2s ease;
+              transition: transform 0.15s ease-out;
             }
             
             .password-toggle:hover {
-              background-color: rgba(244, 162, 97, 0.1);
+              transform: translateY(-50%) scale(1.08);
             }
             
             .error-message {
@@ -385,7 +548,7 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               transition: all 0.3s ease;
             }
             
-            body.dark .btn-cancel {
+            :global(body.dark) .btn-cancel {
               color: #ccc;
             }
             
@@ -419,9 +582,125 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               cursor: not-allowed;
               transform: none;
             }
+
+            .child-success-overlay {
+              position: absolute;
+              inset: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: rgba(0, 0, 0, 0.35);
+              z-index: 50;
+            }
+
+            .child-success-card {
+              background: var(--bg-card);
+              border-radius: 12px;
+              padding: 24px 24px 20px 24px;
+              max-width: 380px;
+              width: 100%;
+              text-align: center;
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            }
+
+            :global(body.dark) .child-success-card {
+              background: var(--bg-card-dark);
+              color: var(--text-dark-theme);
+              box-shadow: 0 10px 25px var(--shadow-dark);
+            }
+
+            .child-success-icon {
+              width: 60px;
+              height: 60px;
+              border-radius: 50%;
+              background: #10B981;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #fff;
+              font-size: 30px;
+              margin: 0 auto 18px auto;
+            }
+
+            .child-success-title {
+              font-size: 22px;
+              font-weight: 600;
+              margin-bottom: 8px;
+              color: #1F2937;
+            }
+
+            .child-success-message {
+              font-size: 15px;
+              color: #6B7280;
+              margin-bottom: 4px;
+            }
+
+            :global(body.dark) .child-success-title {
+              color: var(--text-dark-theme);
+            }
+
+            :global(body.dark) .child-success-message {
+              color: var(--text-secondary-dark);
+            }
           `}</style>
+
+          {isSuccess && (
+            <div className="child-success-overlay">
+              <div className="child-success-card">
+                <div className="child-success-icon">✓</div>
+                <h2 className="child-success-title">Tudo certo!</h2>
+                <p className="child-success-message">Criança cadastrada com sucesso.</p>
+              </div>
+            </div>
+          )}
           
           <form onSubmit={handleSubmit}>
+            <div className="photo-upload-wrapper">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handlePhotoChange}
+              />
+              <button
+                type="button"
+                className="photo-upload-circle"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {formData.foto_perfil ? (
+                  <img
+                    src={formData.foto_perfil}
+                    alt="Foto da criança"
+                    className="photo-upload-image"
+                  />
+                ) : (
+                  <div className="default-institution-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {/* Cabeça da criança */}
+                      <circle cx="12" cy="7.5" r="3.2" />
+                      {/* Corpo/roupa */}
+                      <path d="M7 19.5c0-2.2 2.2-4 5-4s5 1.8 5 4" />
+                      {/* Braços levemente abertos */}
+                      <path d="M8.2 12.5 6 14.5" />
+                      <path d="M15.8 12.5 18 14.5" />
+                    </svg>
+                  </div>
+                )}
+                <div className="photo-upload-overlay">
+                  <span className="photo-upload-plus">+</span>
+                  <span className="photo-upload-text">Adicionar foto</span>
+                </div>
+              </button>
+            </div>
+
             {/* Nome */}
             <div className="form-group">
               <input
@@ -450,24 +729,28 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
             </div>
 
             {/* Data de Nascimento */}
-            <div className="form-group">
-              <div className="date-input-wrapper">
-                <input
-                  type="date"
-                  className="date-input"
-                  value={formData.data_nascimento || ''}
-                  onChange={(e) => handleInputChange('data_nascimento', e.target.value)}
-                  placeholder=" "
-                  required
-                />
-                <svg className="date-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <label className="form-label">Data de nascimento</label>
-              </div>
+            <div className="form-group date-input-wrapper">
+              <input
+                type="date"
+                ref={dateInputRef}
+                className="date-input"
+                value={formData.data_nascimento || ''}
+                onChange={(e) => handleInputChange('data_nascimento', e.target.value)}
+                placeholder=" "
+                required
+              />
+              <svg
+                className="date-icon"
+                viewBox="0 0 24 24"
+                onClick={openDatePicker}
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" fill="none"/>
+                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor"/>
+                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor"/>
+                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor"/>
+                <rect x="9" y="14" width="6" height="4" rx="1" ry="1" fill="currentColor"/>
+              </svg>
+              <label className="form-label">Data de nascimento</label>
             </div>
 
             {/* Sexo */}
@@ -517,17 +800,18 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     {showPassword ? (
                       <>
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
                       </>
                     ) : (
                       <>
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
                       </>
                     )}
                   </svg>
@@ -552,17 +836,18 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  title={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     {showConfirmPassword ? (
                       <>
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
                       </>
                     ) : (
                       <>
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
                       </>
                     )}
                   </svg>

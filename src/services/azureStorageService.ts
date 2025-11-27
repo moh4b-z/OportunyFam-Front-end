@@ -1,13 +1,18 @@
 export const azureStorageService = {
   async uploadImage(file: File): Promise<string> {
-    const sasToken = process.env.NEXT_PUBLIC_AZURE_STORAGE_KEY
-    console.log('🔑 SAS Token:', sasToken ? 'Encontrado' : 'Não encontrado')
-    
+    // Dados fornecidos pelo usuário para upload de imagens de perfil
+    const account = 'oportunyfamstorage'
+    const container = 'imagens-perfil'
+    const sasToken =
+      'sp=racwl&st=2025-11-18T13:06:56Z&se=2025-12-05T21:21:56Z&sv=2024-11-04&sr=c&sig=blfBJt5Lw0S9tB1mSpo%2FRufvFq5eXaPQNFI3mZ36Z5Y%3D'
+
     const fileName = `${Date.now()}-${file.name}`
-    const uploadUrl = `https://oportunyfam.blob.core.windows.net/images/${fileName}?${sasToken}`
-    
-    console.log('📤 Enviando para:', uploadUrl.split('?')[0])
-    console.log('📁 Arquivo:', file.name, 'Tamanho:', file.size, 'bytes')
+
+    const baseUrl = `https://${account}.blob.core.windows.net/${container}`
+    const uploadUrl = `${baseUrl}/${encodeURIComponent(fileName)}?${sasToken}`
+
+    console.log(' Enviando para:', baseUrl)
+    console.log(' Arquivo:', file.name, 'Tamanho:', file.size, 'bytes')
     
     try {
       const response = await fetch(uploadUrl, {
@@ -27,7 +32,7 @@ export const azureStorageService = {
         throw new Error(`Erro ${response.status}: ${errorText}`)
       }
       
-      const finalUrl = `https://oportunyfam.blob.core.windows.net/images/${fileName}`
+      const finalUrl = `${baseUrl}/${encodeURIComponent(fileName)}`
       console.log('✅ Upload concluído! URL final:', finalUrl)
       return finalUrl
     } catch (error) {

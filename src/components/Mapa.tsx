@@ -19,9 +19,10 @@ declare global {
 interface MapaProps {
   highlightedInstitution?: Instituicao | null;
   institutions?: Instituicao[] | null;
+  onInstitutionPinClick?: (institution: Instituicao) => void;
 }
 
-export default function Mapa({ highlightedInstitution, institutions }: MapaProps) {
+export default function Mapa({ highlightedInstitution, institutions, onInstitutionPinClick }: MapaProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -204,7 +205,8 @@ export default function Mapa({ highlightedInstitution, institutions }: MapaProps
               const popup = document.querySelector('.map-infowindow') as HTMLDivElement | null;
               const btn = document.querySelector('.map-infowindow-close') as HTMLButtonElement | null;
               if (btn) {
-                btn.onclick = () => {
+                btn.onclick = (e) => {
+                  e.stopPropagation();
                   if (popup) {
                     popup.classList.add('map-infowindow-closing');
                     setTimeout(() => {
@@ -303,6 +305,10 @@ export default function Mapa({ highlightedInstitution, institutions }: MapaProps
         });
 
         marker.addListener('click', () => {
+          if (onInstitutionPinClick) {
+            onInstitutionPinClick(inst);
+          }
+
           const end = inst.endereco;
           const street = end?.logradouro || '';
           const number = end?.numero || '';
@@ -318,7 +324,7 @@ export default function Mapa({ highlightedInstitution, institutions }: MapaProps
                 </svg>
               </button>
               <div class="map-infowindow-name">${inst.nome}</div>
-              ${addressLine ? `<div class=\"map-infowindow-address\">${addressLine}</div>` : ''}
+              ${addressLine ? `<div class="map-infowindow-address">${addressLine}</div>` : ''}
             </div>
           `;
 
@@ -331,7 +337,8 @@ export default function Mapa({ highlightedInstitution, institutions }: MapaProps
               const popup = document.querySelector('.map-infowindow') as HTMLDivElement | null;
               const btn = document.querySelector('.map-infowindow-close') as HTMLButtonElement | null;
               if (btn) {
-                btn.onclick = () => {
+                btn.onclick = (e) => {
+                  e.stopPropagation();
                   if (popup) {
                     popup.classList.add('map-infowindow-closing');
                     setTimeout(() => {

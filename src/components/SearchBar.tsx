@@ -30,6 +30,8 @@ interface SearchBarProps {
   onStartConversation?: (institution: Instituicao) => void;
   onRefreshConversations?: () => Promise<void> | void;
   onInstitutionsUpdate?: (institutions: Instituicao[]) => void;
+  highlightedInstitution?: Instituicao | null;
+  onCloseProfile?: () => void;
 }
 
 interface SearchResultOptionProps {
@@ -130,7 +132,7 @@ const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelecte
   );
 };
 
-export default function SearchBar({ onInstitutionSelect, onStartConversation, onRefreshConversations, onInstitutionsUpdate }: SearchBarProps) {
+export default function SearchBar({ onInstitutionSelect, onStartConversation, onRefreshConversations, onInstitutionsUpdate, highlightedInstitution, onCloseProfile }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
@@ -323,6 +325,28 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const isDropdownOpen = searchFocused || viewMode === 'profile'; // mantém aberto quando em perfil
   const isFullDropdownOpen = isDropdownOpen && hasLoadedAll;
+
+  // Quando uma instituição é destacada externamente (ex.: clique no pin do mapa),
+  // abre diretamente o painel de perfil dessa instituição.
+  useEffect(() => {
+    if (!highlightedInstitution) return;
+
+    const id = highlightedInstitution.instituicao_id ?? highlightedInstitution.id;
+    if (!id) return;
+
+    const currentId = detailInstitution?.instituicao_id ?? detailInstitution?.id;
+    if (currentId === id && viewMode === 'profile') return;
+
+    const matchInList = institutions.find((inst) => (inst.instituicao_id ?? inst.id) === id);
+    const matchInAll = allInstitutions.find((inst) => (inst.instituicao_id ?? inst.id) === id);
+    const target = matchInList || matchInAll || highlightedInstitution;
+
+    setSelectedInstitution(id);
+    setDetailInstitution(target);
+    setViewMode('profile');
+    setProfileTab('publicacoes');
+    setSearchFocused(false);
+  }, [highlightedInstitution, institutions, allInstitutions, detailInstitution, viewMode]);
 
   // Carrega TODAS as instituições uma única vez, somente quando o usuário focar no input
   const loadAllInstitutionsOnce = async () => {
@@ -834,7 +858,12 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
                               // focus após o repaint para garantir que o input esteja ativo
                               setTimeout(() => inputRef.current?.focus(), 0);
                             } catch {}
+
+                            if (onCloseProfile) {
+                              try { onCloseProfile(); } catch {}
+                            }
                           }}
+
                           aria-label="Voltar para a lista"
                           title="Voltar"
                         >

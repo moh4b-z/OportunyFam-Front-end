@@ -15,7 +15,6 @@ import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import SessionInfo from "@/components/SessionInfo";
-import SuccessModal from "@/components/modals/SuccessModal";
 import { childService } from "@/services/childService";
 
 export default function HomePage() {
@@ -32,7 +31,7 @@ export default function HomePage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
   const [isConversationsModalOpen, setIsConversationsModalOpen] = useState<boolean>(false);
-  const [isChildSuccessOpen, setIsChildSuccessOpen] = useState<boolean>(false);
+
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
   const [isLocationPanelOpen, setIsLocationPanelOpen] = useState<boolean>(false);
   const [isCommunityPanelOpen, setIsCommunityPanelOpen] = useState<boolean>(false);
@@ -227,20 +226,26 @@ export default function HomePage() {
     // Atualiza o usuário para indicar que agora tem crianças
     console.log('Criança cadastrada com sucesso!');
     
-    // Fechar modal de cadastro e exibir mensagem de sucesso
+    // Caso exista algum fluxo usando showChildRegistration (primeiro acesso), garante fechamento
     setShowChildRegistration(false);
-    setIsChildSuccessOpen(true);
   };
 
   const handleCloseChildRegistration = () => {
     setShowChildRegistration(false);
   };
 
-  // Usa os dados do usuário logado do contexto
-  const user = authUser || {
-    nome: "Usuário",
-    foto_perfil: undefined
-  };
+  // Usa os dados do usuário logado do contexto, adaptando para o tipo esperado em <Perfil>
+  const perfilUser = authUser
+    ? {
+        id: Number(authUser.id) || undefined,
+        nome: authUser.nome,
+        foto_perfil: authUser.foto_perfil,
+        email: authUser.email,
+      }
+    : {
+        nome: "Usuário",
+        foto_perfil: undefined,
+      };
 
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
@@ -260,7 +265,11 @@ export default function HomePage() {
       <div className="app-content-wrapper">
         {/* Mapa ocupa toda a área */}
         <div className={mapaStyles.mapWrapper}>
-          <Mapa highlightedInstitution={selectedInstitution} institutions={mapInstitutions} />
+          <Mapa 
+            highlightedInstitution={selectedInstitution} 
+            institutions={mapInstitutions}
+            onInstitutionPinClick={handleInstitutionSelect}
+          />
         </div>
 
         {/* Painel de busca */}
@@ -313,10 +322,12 @@ export default function HomePage() {
               }}
               onRefreshConversations={loadUserConversations}
               onInstitutionsUpdate={(list) => setMapInstitutions(list)}
+              highlightedInstitution={selectedInstitution}
+              onCloseProfile={() => setSelectedInstitution(null)}
             />
           </div>
           <Perfil 
-            user={user}
+            user={perfilUser}
             hasNotifications={notifications.length > 0}
             onMenuItemClick={handleProfileMenuClick}
           />
@@ -353,15 +364,6 @@ export default function HomePage() {
         onClose={closeChildRegistrationSideModal}
         onSuccess={handleChildRegistrationSuccess}
         userId={authUser ? parseInt(authUser.id) : 999}
-      />
-      
-      {/* Mensagem de sucesso após cadastrar criança */}
-      <SuccessModal
-        isOpen={isChildSuccessOpen}
-        title="Tudo certo!"
-        message="Criança cadastrada com sucesso."
-        onClose={() => setIsChildSuccessOpen(false)}
-        autoCloseDelay={1500}
       />
       
       {/* Componente para mostrar informações da sessão (apenas para demonstração) */}

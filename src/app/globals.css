@@ -1481,6 +1481,18 @@ body.dark .location-dropdown {
   height: 6px;
 }
 
+/* Remove setas (botões) de navegação do scrollbar */
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:vertical:increment,
+::-webkit-scrollbar-button:vertical:decrement,
+::-webkit-scrollbar-button:horizontal:increment,
+::-webkit-scrollbar-button:horizontal:decrement {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 3px;

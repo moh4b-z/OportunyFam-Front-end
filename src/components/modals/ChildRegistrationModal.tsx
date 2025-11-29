@@ -312,7 +312,7 @@ export default function ChildRegistrationModal({
             />
           </div>
 
-          <div style={{ marginBottom: '15px' }}>
+          <div style={{ marginBottom: '40px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
               Foto de perfil
             </label>

@@ -33,6 +33,9 @@ interface ApiUltimaMensagem {
   descricao: string;
   data_envio?: string;
   id_remetente?: number;
+  tipo?: 'TEXTO' | 'AUDIO';
+  audio_url?: string | null;
+  audio_duracao?: number | null;
 }
 
 interface ApiConversation {
@@ -113,40 +116,48 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({
           // Quando vier apenas string, não sabemos o remetente; por padrão usamos o nome da instituição
           lastMessagePrefix = name;
         } else if (lastMessageRaw && typeof lastMessageRaw === 'object') {
-          const { descricao, id_remetente, data_envio } = lastMessageRaw as ApiUltimaMensagem;
-          if (typeof descricao === 'string') {
+          const { descricao, id_remetente, data_envio, tipo } = lastMessageRaw as ApiUltimaMensagem;
+          
+          // Se for áudio, mostra texto estilo WhatsApp
+          if (tipo === 'AUDIO') {
+            const audioDuracao = (lastMessageRaw as ApiUltimaMensagem).audio_duracao || 0;
+            const mins = Math.floor(audioDuracao / 60);
+            const secs = audioDuracao % 60;
+            const durationText = `${mins}:${secs.toString().padStart(2, '0')}`;
+            lastMessage = `🎤audio🎤Mensagem de voz (${durationText})`;
+          } else if (typeof descricao === 'string') {
             lastMessage = descricao;
+          }
 
-            const isUserSender = currentUserPessoaId != null && id_remetente === currentUserPessoaId;
+          const isUserSender = currentUserPessoaId != null && id_remetente === currentUserPessoaId;
 
-            if (isUserSender) {
-              lastMessagePrefix = 'Você';
-            } else {
-              lastMessagePrefix = name;
+          if (isUserSender) {
+            lastMessagePrefix = 'Você';
+          } else {
+            lastMessagePrefix = name;
+          }
+
+          // Se foi o usuário logado que enviou a última mensagem, tenta usar o
+          // horário local salvo em localStorage para essa conversa.
+          if (isUserSender && typeof window !== 'undefined' && conversationId && !Number.isNaN(conversationId)) {
+            const storageKey = `last-message-local-time-${conversationId}-${currentUserPessoaId}`;
+            const storedTime = window.localStorage.getItem(storageKey);
+            if (storedTime) {
+              lastMessageTime = storedTime;
             }
+          }
 
-            // Se foi o usuário logado que enviou a última mensagem, tenta usar o
-            // horário local salvo em localStorage para essa conversa.
-            if (isUserSender && typeof window !== 'undefined' && conversationId && !Number.isNaN(conversationId)) {
-              const storageKey = `last-message-local-time-${conversationId}-${currentUserPessoaId}`;
-              const storedTime = window.localStorage.getItem(storageKey);
-              if (storedTime) {
-                lastMessageTime = storedTime;
-              }
-            }
-
-            // Fallback / base para ordenação: usa data_envio da API como data real
-            if (data_envio) {
-              const dt = new Date(data_envio);
-              if (!isNaN(dt.getTime())) {
-                lastMessageTimestamp = dt.getTime();
-                // Se ainda não tivermos um horário para exibir, formata a partir daqui
-                if (!lastMessageTime) {
-                  lastMessageTime = dt.toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-                }
+          // Fallback / base para ordenação: usa data_envio da API como data real
+          if (data_envio) {
+            const dt = new Date(data_envio);
+            if (!isNaN(dt.getTime())) {
+              lastMessageTimestamp = dt.getTime();
+              // Se ainda não tivermos um horário para exibir, formata a partir daqui
+              if (!lastMessageTime) {
+                lastMessageTime = dt.toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
               }
             }
           }
@@ -377,7 +388,31 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({
                               {conversation.lastMessagePrefix && (
                                 <strong>{conversation.lastMessagePrefix}: </strong>
                               )}
-                              {conversation.lastMessage}
+                              {conversation.lastMessage.startsWith('🎤audio🎤') ? (
+                                <span className="audio-message-preview">
+                                  <svg
+                                    className="audio-preview-icon"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#e8943f"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                    <line x1="12" y1="19" x2="12" y2="23" />
+                                    <line x1="8" y1="23" x2="16" y2="23" />
+                                  </svg>
+                                  <span className="audio-preview-text">
+                                    {conversation.lastMessage.replace('🎤audio🎤', '')}
+                                  </span>
+                                </span>
+                              ) : (
+                                conversation.lastMessage
+                              )}
                             </>
                           ) : (
                             "Nenhuma mensagem ainda. Envie a primeira mensagem."

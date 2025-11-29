@@ -276,6 +276,9 @@ export interface Mensagem {
     id_conversa: number
     id_pessoa: number
     criado_em?: string | null
+    tipo?: 'TEXTO' | 'AUDIO'
+    audio_url?: string | null
+    audio_duracao?: number | null
 }
 
 export interface Conversa {
@@ -298,6 +301,9 @@ export interface MensagemRequest {
     descricao: string
     id_conversa: number
     id_pessoa: number
+    tipo?: 'TEXTO' | 'AUDIO'
+    audio_url?: string | null
+    audio_duracao?: number | null
 }
 
 // ----------------- REQUISIÇÕES EM LOTE (AULAS) -----------------

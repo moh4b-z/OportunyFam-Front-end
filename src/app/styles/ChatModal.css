@@ -590,3 +590,307 @@ body.dark .chat-input-field::placeholder {
     transform: translateX(0);
   }
 }
+
+/* ===============================================
+ * Player de Áudio
+ * =============================================== */
+
+.audio-message .chat-message-bubble {
+  padding: 8px 12px;
+  min-width: 220px;
+}
+
+.audio-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.audio-player > * {
+  flex-shrink: 0;
+}
+
+.audio-player .audio-progress-container {
+  flex-shrink: 1;
+}
+
+.audio-play-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.audio-player.sent .audio-play-btn {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.audio-player.sent .audio-play-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.audio-player.received .audio-play-btn {
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+.audio-player.received .audio-play-btn:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+body.dark .audio-player.received .audio-play-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ccc;
+}
+
+body.dark .audio-player.received .audio-play-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.audio-progress-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 120px;
+  padding-top: 6px;
+}
+
+.audio-progress-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.audio-player.sent .audio-progress-slider {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.9) var(--progress, 0%),
+    rgba(255, 255, 255, 0.3) var(--progress, 0%),
+    rgba(255, 255, 255, 0.3) 100%
+  );
+}
+
+.audio-player.received .audio-progress-slider {
+  background: linear-gradient(
+    to right,
+    #e8943f 0%,
+    #e8943f var(--progress, 0%),
+    rgba(0, 0, 0, 0.15) var(--progress, 0%),
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+body.dark .audio-player.received .audio-progress-slider {
+  background: linear-gradient(
+    to right,
+    #e8943f 0%,
+    #e8943f var(--progress, 0%),
+    rgba(255, 255, 255, 0.2) var(--progress, 0%),
+    rgba(255, 255, 255, 0.2) 100%
+  );
+}
+
+.audio-progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.audio-player.sent .audio-progress-slider::-webkit-slider-thumb {
+  background: white;
+}
+
+.audio-player.received .audio-progress-slider::-webkit-slider-thumb {
+  background: #e8943f;
+}
+
+.audio-progress-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.audio-progress-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.audio-player.sent .audio-progress-slider::-moz-range-thumb {
+  background: white;
+}
+
+.audio-player.received .audio-progress-slider::-moz-range-thumb {
+  background: #e8943f;
+}
+
+.audio-time-single {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.audio-player.sent .audio-time-single {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.audio-player.received .audio-time-single {
+  color: #666;
+}
+
+body.dark .audio-player.received .audio-time-single {
+  color: #aaa;
+}
+
+/* ===============================================
+ * Botão de Microfone e Gravação de Áudio
+ * =============================================== */
+
+.chat-mic-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  transition: background 0.2s ease, transform 0.1s ease;
+  border-radius: 999px;
+  margin-left: 6px;
+}
+
+.chat-mic-btn:hover {
+  background: rgba(244, 162, 97, 0.12);
+  transform: translateY(-1px);
+}
+
+/* UI de Gravação */
+.chat-recording-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 24px;
+  gap: 12px;
+}
+
+body.dark .chat-recording-box {
+  background: #2a2a2a;
+}
+
+.chat-cancel-recording-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chat-cancel-recording-btn:hover {
+  background: rgba(220, 53, 69, 0.2);
+}
+
+.chat-recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.chat-recording-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dc3545;
+  animation: recordingPulse 1s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+.chat-recording-time {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+body.dark .chat-recording-time {
+  color: #eee;
+}
+
+.chat-send-recording-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #e8943f;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chat-send-recording-btn:hover:not(:disabled) {
+  background: #d4832f;
+  transform: scale(1.05);
+}
+
+.chat-send-recording-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.chat-sending-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

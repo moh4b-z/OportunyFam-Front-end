@@ -466,7 +466,7 @@ body.dark {
 */
 .sidebar {
   width: 90px;
-  background: linear-gradient(180deg, var(--orange) 0%, var(--red-orange) 100%);
+  background: var(--orange);
   display: flex;
   flex-direction: column;
   align-items: center;

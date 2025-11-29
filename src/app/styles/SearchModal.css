@@ -107,3 +107,346 @@ body.dark .search-modal-content {
   display: flex;
   justify-content: flex-end;
 }
+
+/* ===============================================
+ * Popup de Inscrição de Criança em Atividade
+ * =============================================== */
+
+.enroll-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.enroll-popup {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: popupSlideIn 0.3s ease;
+}
+
+body.dark .enroll-popup {
+  background: var(--bg-card-dark);
+  color: var(--text-dark-theme);
+}
+
+@keyframes popupSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.enroll-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.enroll-popup-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+body.dark .enroll-popup-close {
+  color: #aaa;
+}
+
+body.dark .enroll-popup-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.enroll-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.enroll-icon {
+  margin-bottom: 16px;
+}
+
+.enroll-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 20px 0;
+}
+
+body.dark .enroll-title {
+  color: #fff;
+}
+
+.enroll-title-success {
+  color: #22c55e;
+}
+
+.enroll-title-error {
+  color: #ef4444;
+}
+
+.enroll-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: #666;
+}
+
+body.dark .enroll-loading {
+  color: #aaa;
+}
+
+.enroll-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(232, 148, 63, 0.2);
+  border-top-color: #e8943f;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.enroll-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.enroll-empty {
+  padding: 20px;
+  color: #666;
+}
+
+.enroll-empty p {
+  margin: 0 0 8px 0;
+}
+
+body.dark .enroll-empty {
+  color: #aaa;
+}
+
+.enroll-children-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.enroll-child-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: transparent;
+  border: 2px solid #e8943f;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+body.dark .enroll-child-item {
+  border-color: #f4a261;
+  background: transparent;
+}
+
+.enroll-child-item:hover {
+  background: rgba(232, 148, 63, 0.1);
+  transform: translateX(4px);
+}
+
+body.dark .enroll-child-item:hover {
+  background: rgba(244, 162, 97, 0.15);
+}
+
+.enroll-child-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.enroll-child-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.enroll-child-avatar .default-institution-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.enroll-child-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+body.dark .enroll-child-name {
+  color: #f5f5f5;
+}
+
+.enroll-child-arrow {
+  color: #999;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+body.dark .enroll-child-arrow {
+  color: #666;
+}
+
+.enroll-confirm-text {
+  color: #555;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+body.dark .enroll-confirm-text {
+  color: #bbb;
+}
+
+.enroll-confirm-text strong {
+  color: #e8943f;
+}
+
+.enroll-success-text {
+  color: #555;
+  margin: 0 0 8px 0;
+}
+
+body.dark .enroll-success-text {
+  color: #bbb;
+}
+
+.enroll-success-note {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+body.dark .enroll-success-note {
+  color: #999;
+}
+
+.enroll-error-text {
+  color: #ef4444;
+  margin: 0 0 20px 0;
+}
+
+.enroll-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.enroll-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enroll-btn-cancel {
+  background: transparent;
+  border: 2px solid #ddd;
+  color: #666;
+}
+
+body.dark .enroll-btn-cancel {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #aaa;
+}
+
+.enroll-btn-cancel:hover:not(:disabled) {
+  border-color: #ccc;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.dark .enroll-btn-cancel:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.enroll-btn-confirm {
+  background: #e8943f;
+  border: none;
+  color: white;
+}
+
+.enroll-btn-confirm:hover:not(:disabled) {
+  background: #d4832f;
+}
+
+.enroll-btn-confirm:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.enroll-btn-done {
+  background: #e8943f;
+  border: none;
+  color: white;
+  margin-top: 20px;
+}
+
+.enroll-btn-done:hover {
+  background: #d4832f;
+}

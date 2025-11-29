@@ -7,9 +7,19 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import { Instituicao, TipoInstituicao, ConversaRequest, AtividadeResumo, AulaResumo } from "@/types";
 import { geocodeAddress } from "@/services/Instituicoes";
 import { API_BASE_URL } from "@/services/config";
+import { childService } from "@/services/childService";
 import StreetViewModal from "./StreetViewModal";
 import "../app/styles/SearchCard.css";
 import "../app/styles/SearchModal.css";
+
+// Interface para criança dependente
+interface ChildDependente {
+  nome: string;
+  id_pessoa: number;
+  id_crianca: number;
+  foto_perfil?: string | null;
+  id_responsavel: number;
+}
 
 interface AtividadeDetalhada {
   atividade_id: number;
@@ -162,6 +172,16 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
   const [selectedPublication, setSelectedPublication] = useState<any | null>(null);
   const [publicationOrigin, setPublicationOrigin] = useState<{ x: string; y: string }>({ x: '50%', y: '50%' });
   const [initialLoadDone, setInitialLoadDone] = useState<boolean>(false);
+
+  // Estados para popup de inscrição de criança em atividade
+  const [showEnrollPopup, setShowEnrollPopup] = useState<boolean>(false);
+  const [enrollStep, setEnrollStep] = useState<'select' | 'confirm' | 'success' | 'error'>('select');
+  const [enrollActivityId, setEnrollActivityId] = useState<number | null>(null);
+  const [enrollActivityName, setEnrollActivityName] = useState<string>('');
+  const [userChildren, setUserChildren] = useState<ChildDependente[]>([]);
+  const [selectedChild, setSelectedChild] = useState<ChildDependente | null>(null);
+  const [enrollLoading, setEnrollLoading] = useState<boolean>(false);
+  const [enrollError, setEnrollError] = useState<string | null>(null);
 
   useEffect(() => {
     // Reset image error quando trocar de instituição
@@ -678,6 +698,88 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
 
   const handleClosePublication = () => {
     setSelectedPublication(null);
+  };
+
+  // Funções para inscrição de criança em atividade
+  const handleOpenEnrollPopup = async (atividadeId: number, atividadeNome: string) => {
+    setEnrollActivityId(atividadeId);
+    setEnrollActivityName(atividadeNome);
+    setEnrollStep('select');
+    setSelectedChild(null);
+    setEnrollError(null);
+    setEnrollLoading(true);
+    setShowEnrollPopup(true);
+
+    // Busca as crianças do usuário
+    try {
+      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user-data') : null;
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const userId = parsed?.id || parsed?.usuario_id;
+        if (userId) {
+          const children = await childService.getChildrenByUserId(Number(userId));
+          setUserChildren(children || []);
+        }
+      }
+    } catch (err) {
+      setUserChildren([]);
+    } finally {
+      setEnrollLoading(false);
+    }
+  };
+
+  const handleSelectChild = (child: ChildDependente) => {
+    setSelectedChild(child);
+    setEnrollStep('confirm');
+  };
+
+  const handleConfirmEnroll = async () => {
+    if (!selectedChild || !enrollActivityId) return;
+
+    setEnrollLoading(true);
+    setEnrollError(null);
+
+    try {
+      const payload = {
+        id_responsavel: selectedChild.id_responsavel,
+        id_atividade: enrollActivityId,
+        id_crianca: selectedChild.id_crianca
+      };
+
+      const response = await fetch(`${API_BASE_URL}/inscricoes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.status === 409) {
+        setEnrollError('Esta criança já está inscrita nesta atividade.');
+        setEnrollStep('error');
+        return;
+      }
+
+      if (!response.ok) {
+        setEnrollError('Não foi possível realizar a inscrição. Tente novamente.');
+        setEnrollStep('error');
+        return;
+      }
+
+      setEnrollStep('success');
+    } catch (err) {
+      setEnrollError('Erro de conexão. Verifique sua internet e tente novamente.');
+      setEnrollStep('error');
+    } finally {
+      setEnrollLoading(false);
+    }
+  };
+
+  const handleCloseEnrollPopup = () => {
+    setShowEnrollPopup(false);
+    setEnrollStep('select');
+    setSelectedChild(null);
+    setEnrollError(null);
   };
 
   // Removido CategoryChips
@@ -1228,7 +1330,7 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
                                                 <button
                                                   type="button"
                                                   className="profile-atividade-cta-btn"
-                                                  onClick={(e) => e.preventDefault()}
+                                                  onClick={() => handleOpenEnrollPopup(atividade.atividade_id, atividade.titulo)}
                                                 >
                                                   Cadastrar criança na atividade
                                                 </button>
@@ -1358,6 +1460,186 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
             {selectedPublication.descricao && (
               <div className="profile-publicacao-modal-description">
                 {selectedPublication.descricao}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Popup de inscrição de criança em atividade */}
+      {showEnrollPopup && (
+        <div className="enroll-popup-overlay" onClick={handleCloseEnrollPopup}>
+          <div className="enroll-popup" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="enroll-popup-close"
+              onClick={handleCloseEnrollPopup}
+              aria-label="Fechar"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            {/* Step 1: Selecionar criança */}
+            {enrollStep === 'select' && (
+              <div className="enroll-step">
+                <div className="enroll-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="1.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <h3 className="enroll-title">Qual das crianças você deseja inscrever nesta atividade?</h3>
+                
+                {enrollLoading ? (
+                  <div className="enroll-loading">
+                    <span className="enroll-spinner"></span>
+                    <span>Carregando crianças...</span>
+                  </div>
+                ) : userChildren.length === 0 ? (
+                  <div className="enroll-empty">
+                    <p>Você ainda não possui crianças cadastradas.</p>
+                    <p>Cadastre uma criança primeiro para poder inscrevê-la em atividades.</p>
+                  </div>
+                ) : (
+                  <div className="enroll-children-list">
+                    {userChildren.map((child) => (
+                      <button
+                        key={child.id_crianca}
+                        type="button"
+                        className="enroll-child-item"
+                        onClick={() => handleSelectChild(child)}
+                      >
+                        <div className="enroll-child-avatar">
+                          {child.foto_perfil ? (
+                            <img src={child.foto_perfil} alt={child.nome} />
+                          ) : (
+                            <div className="default-institution-icon">
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <span className="enroll-child-name">{child.nome}</span>
+                        <svg className="enroll-child-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Confirmação */}
+            {enrollStep === 'confirm' && selectedChild && (
+              <div className="enroll-step">
+                <div className="enroll-icon enroll-icon-confirm">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="1.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                  </svg>
+                </div>
+                <h3 className="enroll-title">Confirmar inscrição</h3>
+                <p className="enroll-confirm-text">
+                  Você está inscrevendo <strong>{selectedChild.nome}</strong> na atividade <strong>{enrollActivityName}</strong>.
+                </p>
+                <p className="enroll-confirm-text">Deseja prosseguir?</p>
+                <div className="enroll-actions">
+                  <button
+                    type="button"
+                    className="enroll-btn enroll-btn-cancel"
+                    onClick={() => setEnrollStep('select')}
+                    disabled={enrollLoading}
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    type="button"
+                    className="enroll-btn enroll-btn-confirm"
+                    onClick={handleConfirmEnroll}
+                    disabled={enrollLoading}
+                  >
+                    {enrollLoading ? (
+                      <>
+                        <span className="enroll-spinner-small"></span>
+                        Inscrevendo...
+                      </>
+                    ) : (
+                      'Confirmar inscrição'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Sucesso */}
+            {enrollStep === 'success' && (
+              <div className="enroll-step">
+                <div className="enroll-icon enroll-icon-success">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9 12l2 2 4-4" />
+                  </svg>
+                </div>
+                <h3 className="enroll-title enroll-title-success">Solicitação enviada!</h3>
+                <p className="enroll-success-text">
+                  Sua solicitação de inscrição foi enviada com sucesso.
+                </p>
+                <p className="enroll-success-text enroll-success-note">
+                  A instituição responsável pela atividade irá analisar e aprovar a inscrição.
+                </p>
+                <button
+                  type="button"
+                  className="enroll-btn enroll-btn-done"
+                  onClick={handleCloseEnrollPopup}
+                >
+                  Entendi
+                </button>
+              </div>
+            )}
+
+            {/* Step 4: Erro */}
+            {enrollStep === 'error' && (
+              <div className="enroll-step">
+                <div className="enroll-icon enroll-icon-error">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                </div>
+                <h3 className="enroll-title enroll-title-error">Não foi possível inscrever</h3>
+                <p className="enroll-error-text">{enrollError}</p>
+                <div className="enroll-actions">
+                  <button
+                    type="button"
+                    className="enroll-btn enroll-btn-cancel"
+                    onClick={() => setEnrollStep('select')}
+                  >
+                    Tentar novamente
+                  </button>
+                  <button
+                    type="button"
+                    className="enroll-btn enroll-btn-done"
+                    onClick={handleCloseEnrollPopup}
+                  >
+                    Fechar
+                  </button>
+                </div>
               </div>
             )}
           </div>

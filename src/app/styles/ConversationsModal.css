@@ -440,3 +440,21 @@ body.dark .conversation-message-time {
   background: transparent;
 }
 
+/* ===============================================
+ * Preview de Mensagem de Áudio
+ * =============================================== */
+
+.audio-message-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.audio-preview-icon {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.audio-preview-text {
+  color: inherit;
+}

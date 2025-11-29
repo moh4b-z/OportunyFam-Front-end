@@ -8,8 +8,8 @@
 @import './styles/z-index-config.css';
 :root {
   /* Cores do código que você forneceu */
-  --orange: #f4a261;
-  --red-orange: #e76f51;
+  --orange: #e8943f;
+  --red-orange: #d4832e;
   --soft-yellow: #e79e21;
   --dark-modal: #3d3434;
   --light-text: #fff;
@@ -23,7 +23,7 @@
   --sidebar-width: 80px; 
   
   /* Cores da Sidebar e Card */
-  --sidebar-bg-color: #f4a261; 
+  --sidebar-bg-color: #e8943f; 
   --card-bg-color: #f7f7f7; 
 
   /* Variáveis para o tema escuro */
@@ -1164,8 +1164,8 @@ body.dark {
   height: calc(100vh - 12px); 
   width: var(--sidebar-width);
   
-  /* Seus estilos de gradiente */
-  background: linear-gradient(180deg, var(--orange) 0%, var(--red-orange) 100%);
+  /* Cor sólida */
+  background: var(--orange);
   display: flex;
   flex-direction: column;
   align-items: center;

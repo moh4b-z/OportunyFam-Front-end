@@ -33,6 +33,45 @@ export default function Mapa({ highlightedInstitution, institutions, onInstituti
   const homeCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
   const { user } = useAuth();
   const [mapReady, setMapReady] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  const lightStyles: any[] = [
+    {
+      featureType: "poi",
+      elementType: "labels",
+      stylers: [{ visibility: "off" }]
+    }
+  ];
+
+  const darkStyles: any[] = [
+    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+    { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#263c3f' }] },
+    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a76' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
+    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
+    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
+    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+    { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
+    { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] }
+  ];
+
+  useEffect(() => {
+    const check = () => setIsDark(document.body.classList.contains('dark'));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Carrega a API do Google Maps
   useEffect(() => {
@@ -40,6 +79,9 @@ export default function Mapa({ highlightedInstitution, institutions, onInstituti
       if (!mapRef.current) return;
       const w = window as any;
       if (!w.google || !w.google.maps) return;
+
+      // Verifica o tema atual diretamente do DOM
+      const currentIsDark = document.body.classList.contains('dark');
 
       // Cria o mapa
       googleMapRef.current = new w.google.maps.Map(mapRef.current, {
@@ -50,13 +92,7 @@ export default function Mapa({ highlightedInstitution, institutions, onInstituti
         fullscreenControl: false,
         zoomControl: true,
         clickableIcons: false,
-        styles: [
-          {
-            featureType: "poi",
-            elementType: "labels",
-            stylers: [{ visibility: "off" }]
-          }
-        ]
+        styles: currentIsDark ? darkStyles : lightStyles
       });
 
       // Cria InfoWindow reutilizável
@@ -82,6 +118,13 @@ export default function Mapa({ highlightedInstitution, institutions, onInstituti
       initializeMap();
     })();
   }, []);
+
+  useEffect(() => {
+    if (!googleMapRef.current) return;
+    const w = window as any;
+    if (!w.google || !w.google.maps) return;
+    googleMapRef.current.setOptions({ styles: isDark ? darkStyles : lightStyles });
+  }, [isDark]);
 
   // Adiciona marcador de "casa" para o usuário logado (local salvo)
   useEffect(() => {

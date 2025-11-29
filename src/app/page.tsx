@@ -14,7 +14,6 @@ import ChildRegistrationSideModal from "@/components/modals/ChildRegistrationSid
 import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
-import SessionInfo from "@/components/SessionInfo";
 import { childService } from "@/services/childService";
 
 export default function HomePage() {
@@ -122,6 +121,20 @@ export default function HomePage() {
   useEffect(() => {
     loadUserConversations();
   }, [authUser?.id]);
+
+  // Abre a modal de cadastro de criança na PRIMEIRA visita do usuário
+  useEffect(() => {
+    if (authUser?.id && !isLoading) {
+      const firstVisitKey = `oportunyfam_first_visit_${authUser.id}`;
+      const hasVisitedBefore = localStorage.getItem(firstVisitKey);
+      
+      if (!hasVisitedBefore) {
+        // Primeira visita - abre a modal e marca como visitado
+        setIsChildRegistrationSideModalOpen(true);
+        localStorage.setItem(firstVisitKey, 'true');
+      }
+    }
+  }, [authUser?.id, isLoading]);
 
   const handleInstitutionSelect = (institution: Instituicao) => {
     setSelectedInstitution(institution);
@@ -365,9 +378,6 @@ export default function HomePage() {
         onSuccess={handleChildRegistrationSuccess}
         userId={authUser ? parseInt(authUser.id) : 999}
       />
-      
-      {/* Componente para mostrar informações da sessão (apenas para demonstração) */}
-      <SessionInfo />
     </div>
   );
 }

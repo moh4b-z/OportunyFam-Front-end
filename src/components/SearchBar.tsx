@@ -42,6 +42,9 @@ interface SearchBarProps {
   onInstitutionsUpdate?: (institutions: Instituicao[]) => void;
   highlightedInstitution?: Instituicao | null;
   onCloseProfile?: () => void;
+  onOpenChildRegistration?: () => void;
+  // Dados pré-carregados da home (evita chamadas duplicadas)
+  preloadedChildren?: ChildDependente[];
 }
 
 interface SearchResultOptionProps {
@@ -142,7 +145,7 @@ const SearchResultOption = ({ institution, onClick, onStreetViewClick, isSelecte
   );
 };
 
-export default function SearchBar({ onInstitutionSelect, onStartConversation, onRefreshConversations, onInstitutionsUpdate, highlightedInstitution, onCloseProfile }: SearchBarProps) {
+export default function SearchBar({ onInstitutionSelect, onStartConversation, onRefreshConversations, onInstitutionsUpdate, highlightedInstitution, onCloseProfile, onOpenChildRegistration, preloadedChildren }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState<number | null>(null);
@@ -585,20 +588,7 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
       const instPessoaIdRaw = instData?.instituicao?.pessoa_id ?? instData?.pessoa_id;
 
       // Busca pessoa_id do usuário logado a partir do id salvo no localStorage
-      let userIdFromStorage: string | null = null;
-      try {
-        const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user-data') : null;
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser);
-          if (parsed && typeof parsed.id !== 'undefined') {
-            userIdFromStorage = String(parsed.id);
-          } else if (parsed && typeof parsed.usuario_id !== 'undefined') {
-            userIdFromStorage = String(parsed.usuario_id);
-          }
-        }
-      } catch (err) {
-        console.error('Erro ao ler user-data do localStorage:', err);
-      }
+      const userIdFromStorage = typeof window !== 'undefined' ? localStorage.getItem('user-id') : null;
 
       if (!userIdFromStorage) {
         console.error('Não foi possível obter o id do usuário logado a partir do localStorage');
@@ -707,24 +697,26 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
     setEnrollStep('select');
     setSelectedChild(null);
     setEnrollError(null);
-    setEnrollLoading(true);
     setShowEnrollPopup(true);
 
-    // Busca as crianças do usuário
-    try {
-      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user-data') : null;
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        const userId = parsed?.id || parsed?.usuario_id;
+    // Usa dados pré-carregados da home se disponíveis (evita chamada de API)
+    if (preloadedChildren && preloadedChildren.length > 0) {
+      setUserChildren(preloadedChildren);
+      setEnrollLoading(false);
+    } else {
+      // Fallback: busca da API apenas se não tiver dados pré-carregados
+      setEnrollLoading(true);
+      try {
+        const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') : null;
         if (userId) {
           const children = await childService.getChildrenByUserId(Number(userId));
           setUserChildren(children || []);
         }
+      } catch (err) {
+        setUserChildren([]);
+      } finally {
+        setEnrollLoading(false);
       }
-    } catch (err) {
-      setUserChildren([]);
-    } finally {
-      setEnrollLoading(false);
     }
   };
 
@@ -1504,6 +1496,22 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
                   <div className="enroll-empty">
                     <p>Você ainda não possui crianças cadastradas.</p>
                     <p>Cadastre uma criança primeiro para poder inscrevê-la em atividades.</p>
+                    <button
+                      type="button"
+                      className="enroll-register-btn"
+                      onClick={() => {
+                        setShowEnrollPopup(false);
+                        onOpenChildRegistration?.();
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <line x1="19" y1="8" x2="19" y2="14" />
+                        <line x1="16" y1="11" x2="22" y2="11" />
+                      </svg>
+                      Cadastrar uma Criança Agora
+                    </button>
                   </div>
                 ) : (
                   <div className="enroll-children-list">

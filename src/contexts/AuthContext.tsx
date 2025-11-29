@@ -9,6 +9,8 @@ interface User {
   id: string
   nome: string
   email: string
+  telefone?: string
+  cpf?: string
   foto_perfil?: string
   isFirstLogin?: boolean
   hasChildren?: boolean
@@ -22,6 +24,7 @@ interface AuthContextType {
   isLoading: boolean
   showChildRegistration: boolean
   setShowChildRegistration: (show: boolean) => void
+  refreshUserData: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -32,22 +35,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showChildRegistration, setShowChildRegistration] = useState(false)
   const router = useRouter()
 
+  // Busca os dados completos do usuário pela API
+  const fetchUserData = async (userId: number): Promise<User | null> => {
+    try {
+      const fullUserData = await childService.getUserById(userId)
+      const userData = fullUserData?.usuario ?? fullUserData
+      
+      if (!userData) return null
+
+      const hasChildren = Array.isArray(userData?.criancas_dependentes) && userData.criancas_dependentes.length > 0
+      const rawTipoNivel = userData?.tipo_nivel ?? ''
+      const isResponsible = typeof rawTipoNivel === 'string' && rawTipoNivel.toLowerCase().includes('fam')
+
+      return {
+        id: userId.toString(),
+        nome: userData?.nome ?? '',
+        email: userData?.email ?? '',
+        telefone: userData?.telefone ?? undefined,
+        cpf: userData?.cpf ?? undefined,
+        foto_perfil: userData?.foto_perfil || undefined,
+        hasChildren,
+        isFirstLogin: isResponsible && !hasChildren,
+        tipo: isResponsible ? 'usuario' : undefined,
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados do usuário:', error)
+      return null
+    }
+  }
+
   // Verifica se o usuário está logado ao carregar a página
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const token = document.cookie
         .split('; ')
         .find(row => row.startsWith('auth-token='))
         ?.split('=')[1]
 
-      const userData = localStorage.getItem('user-data')
+      // Agora só salva o ID no localStorage
+      const storedUserId = localStorage.getItem('user-id')
       
-      if (token && userData) {
+      if (token && storedUserId) {
         try {
-          const user = JSON.parse(userData)
-          setUser(user)
+          const userId = Number(storedUserId)
+          if (Number.isFinite(userId)) {
+            // Busca os dados completos do usuário via API
+            const userData = await fetchUserData(userId)
+            if (userData) {
+              setUser(userData)
+            } else {
+              logout()
+            }
+          } else {
+            logout()
+          }
         } catch (error) {
-          console.error('Erro ao parsear dados do usuário:', error)
+          console.error('Erro ao carregar dados do usuário:', error)
           logout()
         }
       }
@@ -119,29 +162,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
-      const user: User = {
-        id: userIdNumber.toString(),
-        nome: userData?.nome ?? userData?.usuario?.nome ?? '',
-        email: userData?.email ?? userData?.usuario?.email ?? '',
-        foto_perfil: (userData?.foto_perfil ?? userData?.usuario?.foto_perfil) || undefined,
-        hasChildren,
-        isFirstLogin: isResponsible && !hasChildren,
-        tipo: loginTipo,
-      }
-
       // Define a duração do cookie baseado na opção "lembrar-se de mim"
       const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60 // 30 dias ou 24 horas
       
       // Define o cookie de autenticação
       document.cookie = `auth-token=${token}; path=/; max-age=${maxAge}`
 
-      // Salva os dados do usuário no localStorage
-      localStorage.setItem('user-data', JSON.stringify(user))
+      // Salva APENAS o ID do usuário no localStorage (dados são buscados da API)
+      localStorage.setItem('user-id', userIdNumber.toString())
       
       // Salva a preferência "lembrar-se de mim"
       localStorage.setItem('remember-me', rememberMe.toString())
       
-      setUser(user)
+      // Busca os dados completos do usuário via API
+      const fullUser = await fetchUserData(userIdNumber)
+      if (!fullUser) {
+        throw new Error('Falha ao carregar dados do usuário')
+      }
+      
+      setUser(fullUser)
       
       // Se é responsável e não tem crianças, mostra modal de cadastro
       if (isResponsible && !hasChildren) {
@@ -165,14 +204,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Remove o cookie
     document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
     
-    // Remove dados do localStorage
-    localStorage.removeItem('user-data')
+    // Remove apenas o ID do localStorage
+    localStorage.removeItem('user-id')
     localStorage.removeItem('remember-me')
     
     setUser(null)
     
     // Redireciona para login
     router.push('/login')
+  }
+
+  // Função para atualizar os dados do usuário (busca novamente da API)
+  const refreshUserData = async () => {
+    const storedUserId = localStorage.getItem('user-id')
+    if (storedUserId) {
+      const userId = Number(storedUserId)
+      if (Number.isFinite(userId)) {
+        const userData = await fetchUserData(userId)
+        if (userData) {
+          setUser(userData)
+        }
+      }
+    }
   }
 
   return (
@@ -182,7 +235,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout, 
       isLoading, 
       showChildRegistration, 
-      setShowChildRegistration 
+      setShowChildRegistration,
+      refreshUserData
     }}>
       {children}
     </AuthContext.Provider>

@@ -1201,7 +1201,12 @@ body.dark {
 .icon-panel {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 35px;
+}
+
+/* Spacer para empurrar o logout para baixo */
+.spacer {
+  flex: 1;
 }
 
 .icon-btn {
@@ -1229,6 +1234,16 @@ body.dark {
   background-color: var(--soft-yellow);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(231, 158, 33, 0.3);
+}
+
+/* Painel de ícones inferior da sidebar */
+.icon-panel-bottom {
+  margin-bottom: 20px;
+}
+
+/* Botão de logout com cor diferenciada */
+.icon-btn-logout:hover {
+  background-color: rgba(239, 68, 68, 0.3);
 }
 
 

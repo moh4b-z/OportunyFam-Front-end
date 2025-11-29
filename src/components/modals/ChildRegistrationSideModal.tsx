@@ -20,6 +20,10 @@ interface ChildRegistrationSideModalProps {
   onClose: () => void;
   onSuccess: () => void;
   userId: number;
+  // Dados pré-carregados da home (evita chamadas duplicadas)
+  initialChildren?: ChildDependente[];
+  initialSexoOptions?: SexoOption[];
+  onChildrenChange?: () => void;
 }
 
 const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
@@ -27,6 +31,9 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
   onClose,
   onSuccess,
   userId,
+  initialChildren,
+  initialSexoOptions,
+  onChildrenChange,
 }) => {
   // Controle de view: 'list' = lista de crianças, 'form' = formulário de cadastro
   const [currentView, setCurrentView] = useState<'list' | 'form'>('list');
@@ -82,43 +89,24 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carregar crianças do usuário
+  // Usa dados pré-carregados da home (se disponíveis) - evita chamadas duplicadas
   useEffect(() => {
-    const loadChildren = async () => {
-      if (!userId) return;
-      setIsLoadingChildren(true);
-      try {
-        const userData = await childService.getUserById(userId);
-        const criancas = userData?.criancas_dependentes || [];
-        setChildren(criancas);
-      } catch (error) {
-        console.error('Erro ao carregar crianças:', error);
-        setChildren([]);
-      } finally {
-        setIsLoadingChildren(false);
-      }
-    };
+    if (initialChildren) {
+      setChildren(initialChildren);
+    }
+  }, [initialChildren]);
 
+  useEffect(() => {
+    if (initialSexoOptions && initialSexoOptions.length > 0) {
+      setSexoOptions(initialSexoOptions);
+    }
+  }, [initialSexoOptions]);
+
+  // Apenas reseta a view quando abre o modal (não faz mais chamadas de API)
+  useEffect(() => {
     if (isOpen) {
-      loadChildren();
       setCurrentView('list');
       setError(null);
-    }
-  }, [isOpen, userId]);
-
-  // Carregar opções de sexo
-  useEffect(() => {
-    const loadSexoOptions = async () => {
-      try {
-        const options = await childService.getSexoOptions();
-        setSexoOptions(options);
-      } catch (error) {
-        console.error('Erro ao carregar opções de sexo:', error);
-      }
-    };
-
-    if (isOpen) {
-      loadSexoOptions();
     }
   }, [isOpen]);
 
@@ -219,14 +207,8 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
       await childService.registerChild(childData);
       onSuccess();
 
-      // Recarrega as crianças
-      try {
-        const userData = await childService.getUserById(userId);
-        const criancas = userData?.criancas_dependentes || [];
-        setChildren(criancas);
-      } catch (err) {
-        console.error('Erro ao recarregar crianças:', err);
-      }
+      // Notifica a home para atualizar a lista de crianças (chamada centralizada)
+      onChildrenChange?.();
       
       // Limpa o formulário
       setFormData({
@@ -534,33 +516,41 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
           display: flex;
           flex-direction: column;
           gap: 12px;
+          padding-top: 4px;
         }
 
         .child-item {
           display: flex;
           align-items: center;
           gap: 14px;
-          padding: 14px;
+          padding: 16px 20px;
           margin: 0 8px;
-          background: transparent;
-          border: 2px solid #e8943f;
-          border-radius: 16px;
+          background: var(--bg-light);
+          border-radius: 12px;
+          border: 1px solid var(--border-color);
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: transform 0.2s ease,
+                      background-color 0.2s ease,
+                      border-color 0.2s ease,
+                      box-shadow 0.2s ease;
         }
 
         .child-item:hover {
-          background: rgba(232, 148, 63, 0.1);
-          transform: translateX(4px);
+          background-color: var(--bg-hover-light);
+          border-color: var(--orange);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(244, 162, 97, 0.15);
         }
 
         :global(body.dark) .child-item {
-          border-color: #f4a261;
-          background: transparent;
+          background: var(--bg-card-dark);
+          border-color: var(--border-dark);
         }
 
         :global(body.dark) .child-item:hover {
-          background: rgba(244, 162, 97, 0.15);
+          background-color: var(--hover-bg-dark);
+          border-color: var(--orange);
+          box-shadow: 0 2px 8px var(--shadow-dark);
         }
 
         .child-avatar {
@@ -1000,6 +990,12 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
         .password-wrapper {
           position: relative;
         }
+
+        /* Esconde o botão nativo de mostrar senha do navegador */
+        .password-wrapper input::-ms-reveal,
+        .password-wrapper input::-ms-clear {
+          display: none;
+        }
         
         .password-wrapper .form-input:focus ~ .form-label,
         .password-wrapper .form-input:not(:placeholder-shown) ~ .form-label {
@@ -1119,22 +1115,18 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
-              <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-              {currentView === 'list' && (
-                <>
-                  <circle cx="18" cy="8" r="2.5" />
-                  <path d="M18 5v-1" />
-                  <path d="M18 14v-1" />
-                </>
-              )}
-              {currentView === 'form' && (
-                <>
-                  <circle cx="18" cy="6" r="3" />
-                  <path d="M18 9v6" />
-                  <path d="M15 12h6" />
-                </>
-              )}
+              {/* Rosto da criança */}
+              <circle cx="12" cy="9" r="7" />
+              {/* Cabelo/topete */}
+              <path d="M8 3c2-2 6-2 8 0" />
+              {/* Olhos */}
+              <circle cx="9.5" cy="8" r="1.2" fill="currentColor" />
+              <circle cx="14.5" cy="8" r="1.2" fill="currentColor" />
+              {/* Sorriso */}
+              <path d="M9 12c1.5 2 4.5 2 6 0" />
+              {/* Corpo */}
+              <path d="M12 16v5" />
+              <path d="M8 21h8" />
             </svg>
             <span>{currentView === 'list' ? 'Suas Crianças' : 'Cadastrar Criança'}</span>
           </h1>

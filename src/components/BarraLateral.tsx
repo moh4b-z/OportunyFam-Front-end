@@ -1,71 +1,75 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "@/services/config";
 
 interface BarraLateralProps {
-  onSearchClick?: () => void;
-  onNotificationClick?: (data?: any) => void;
   onConversationsClick?: () => void;
-  onLocationClick?: () => void;
   onChildRegistrationClick?: () => void;
-  isNotificationsOpen?: boolean;
+  onAccountClick?: () => void;
+  onLogoutClick?: () => void;
   isConversationsOpen?: boolean;
-  isSearchOpen?: boolean;
-  isLocationOpen?: boolean;
   isChildRegistrationOpen?: boolean;
+  isAccountOpen?: boolean;
 }
 
-const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="m21 21-4.34-4.34" />
-    <circle cx="11" cy="11" r="8" />
-  </svg>
-);
-
-export default function BarraLateral({ onSearchClick, onNotificationClick, onConversationsClick, onLocationClick, onChildRegistrationClick, isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isChildRegistrationOpen }: BarraLateralProps) {
+export default function BarraLateral({ 
+  onConversationsClick, 
+  onChildRegistrationClick, 
+  onAccountClick,
+  onLogoutClick,
+  isConversationsOpen, 
+  isChildRegistrationOpen,
+  isAccountOpen
+}: BarraLateralProps) {
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Carregar tema do localStorage na inicialização
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.body.classList.add('dark');
+      document.body.classList.remove('light');
+    } else {
+      setIsDarkMode(false);
+      document.body.classList.add('light');
+      document.body.classList.remove('dark');
+    }
+  }, []);
+
+  // Função para alternar tema
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    
+    if (newTheme) {
+      document.body.classList.add('dark');
+      document.body.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.add('light');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const handleIconClick = (iconName: string) => {
     setActiveIcon(activeIcon === iconName ? null : iconName);
   };
 
-  const handleNotificationClick = async () => {
-    // Se já está aberto, apenas toggle para fechar via callback do pai
-    if (isNotificationsOpen) {
-      onNotificationClick?.();
-      return;
-    }
-    // Vai abrir: busca dados e envia para o pai
-    try {
-      const res = await fetch(`${API_BASE_URL}/notificacoes`);
-      const data = await res.json();
-      onNotificationClick?.(data);
-    } catch (err) {
-      console.error("Erro ao buscar notificações:", err);
-      const mockNotifications = [
-        { id: 1, message: "Nova vaga disponível no Instituto Água Viva", date: "2024-10-16 09:30" },
-        { id: 2, message: "Evento beneficente na Casa da Esperança", date: "2024-10-16 08:45" },
-        { id: 3, message: "Oportunidade de voluntariado na Creche Sonho Dourado", date: "2024-10-16 07:20" }
-      ];
-      onNotificationClick?.(mockNotifications);
-    }
-  };
-
   useEffect(() => {
     // Sincroniza estado visual com os paineis abertos/fechados
-    if (isNotificationsOpen === false && activeIcon === 'notification') setActiveIcon(null);
     if (isConversationsOpen === false && activeIcon === 'messages') setActiveIcon(null);
-    if (isSearchOpen === false && activeIcon === 'new-feature') setActiveIcon(null);
-    if (isLocationOpen === false && activeIcon === 'location') setActiveIcon(null);
     if (isChildRegistrationOpen === false && activeIcon === 'child-registration') setActiveIcon(null);
+    if (isAccountOpen === false && activeIcon === 'account') setActiveIcon(null);
 
-    if (isNotificationsOpen) setActiveIcon('notification');
     if (isConversationsOpen) setActiveIcon('messages');
-    if (isSearchOpen) setActiveIcon('new-feature');
-    if (isLocationOpen) setActiveIcon('location');
     if (isChildRegistrationOpen) setActiveIcon('child-registration');
-  }, [isNotificationsOpen, isConversationsOpen, isSearchOpen, isLocationOpen, isChildRegistrationOpen]);
+    if (isAccountOpen) setActiveIcon('account');
+  }, [isConversationsOpen, isChildRegistrationOpen, isAccountOpen]);
 
   return (
     <aside className="sidebar">
@@ -74,67 +78,102 @@ export default function BarraLateral({ onSearchClick, onNotificationClick, onCon
       </div>
 
       <div className="icon-panel">
-        <button
-          className={`icon-btn ${activeIcon === "notification" ? "active" : ""}`}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => { handleIconClick("notification"); handleNotificationClick(); }}
-          aria-label="Notificações"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-          </svg>
-        </button>
-
+        {/* Mensagens */}
         <button
           className={`icon-btn ${activeIcon === "messages" ? "active" : ""}`}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={() => { handleIconClick("messages"); onConversationsClick?.(); }}
           aria-label="Mensagens"
+          title="Mensagens"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
         </button>
 
-        <button
-          className={`icon-btn ${activeIcon === "location" ? "active" : ""}`}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => { handleIconClick("location"); onLocationClick?.(); }}
-          aria-label="Localização"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-        </button>
-
+        {/* Crianças */}
         <button
           className={`icon-btn ${activeIcon === "child-registration" ? "active" : ""}`}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={() => { handleIconClick("child-registration"); onChildRegistrationClick?.(); }}
-          aria-label="Cadastrar Criança"
+          aria-label="Crianças"
+          title="Crianças"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
-            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-            <circle cx="18" cy="6" r="3" />
-            <path d="M18 9v6" />
-            <path d="M15 12h6" />
+            {/* Rosto da criança */}
+            <circle cx="12" cy="9" r="7" />
+            {/* Cabelo/topete */}
+            <path d="M8 3c2-2 6-2 8 0" />
+            {/* Olhos */}
+            <circle cx="9.5" cy="8" r="1.2" fill="currentColor" />
+            <circle cx="14.5" cy="8" r="1.2" fill="currentColor" />
+            {/* Sorriso */}
+            <path d="M9 12c1.5 2 4.5 2 6 0" />
+            {/* Corpo */}
+            <path d="M12 16v5" />
+            <path d="M8 21h8" />
           </svg>
         </button>
 
+        {/* Conta */}
         <button
-          className={`icon-btn ${activeIcon === "new-feature" ? "active" : ""}`}
+          className={`icon-btn ${activeIcon === "account" ? "active" : ""}`}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => { handleIconClick("new-feature"); onSearchClick?.(); }}
-          aria-label="Buscar Instituições"
+          onClick={() => { handleIconClick("account"); onAccountClick?.(); }}
+          aria-label="Minha Conta"
+          title="Minha Conta"
         >
-          <SearchIcon />
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </button>
+
+        {/* Tema */}
+        <button
+          className="icon-btn"
+          onClick={toggleTheme}
+          aria-label="Alternar Tema"
+          title={isDarkMode ? "Modo Claro" : "Modo Escuro"}
+        >
+          {isDarkMode ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          )}
         </button>
       </div>
 
       <div className="spacer" />
+
+      {/* Botão de Logout fixo na parte inferior */}
+      <div className="icon-panel icon-panel-bottom">
+        <button
+          className="icon-btn icon-btn-logout"
+          onClick={onLogoutClick}
+          aria-label="Sair"
+          title="Sair"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16,17 21,12 16,7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+
     </aside>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import "../../app/styles/ConversationsModal.css";
 import styles from "../../app/styles/SimpleAccountModal.module.css";
 import ChildRegistrationModal from "./ChildRegistrationModal";
 import { childService } from "@/services/childService";
@@ -13,9 +14,13 @@ interface SimpleAccountModalProps {
   userName: string;
   email?: string;
   phone?: string;
+  cpf?: string;
   userId?: number;
   childrenNames?: string[];
   onUserUpdate?: (updatedData: {email?: string, telefone?: string}) => void;
+  // Dados pré-carregados da home (evita chamadas duplicadas)
+  initialChildren?: Crianca[];
+  onChildrenChange?: () => void;
 }
 
 const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
@@ -24,11 +29,13 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   userName,
   email,
   phone,
+  cpf,
   userId,
   childrenNames,
   onUserUpdate,
+  initialChildren,
+  onChildrenChange,
 }) => {
-  if (!isOpen) return null;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const storageKey = useMemo(
@@ -42,40 +49,37 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [childToDelete, setChildToDelete] = useState<Crianca | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{[key: string]: string}>({});
   const [currentEmail, setCurrentEmail] = useState(email || '');
   const [currentPhone, setCurrentPhone] = useState(phone || '');
   const [hasChanges, setHasChanges] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [pendingCloseAction, setPendingCloseAction] = useState<(() => void) | null>(null);
 
-  // Carrega filhos do usuário
-  const loadChildren = async () => {
-    if (!userId) return;
-    
-    setIsLoadingChildren(true);
-    try {
-      const childrenData = await childService.getChildrenByUserId(userId);
-      setChildren(childrenData || []);
-    } catch (error) {
-      console.error('Erro ao carregar filhos:', error);
-    } finally {
-      setIsLoadingChildren(false);
-    }
-  };
-
+  // Usa dados pré-carregados da home (se disponíveis) - evita chamadas duplicadas
   useEffect(() => {
-    if (isOpen && userId) {
-      loadChildren();
+    if (initialChildren) {
+      // Converte formato ChildDependente para Crianca se necessário
+      const convertedChildren = initialChildren.map((child: any) => ({
+        crianca_id: child.id_crianca || child.crianca_id,
+        nome: child.nome,
+        foto_perfil: child.foto_perfil,
+        id_responsavel: child.id_responsavel,
+        id_pessoa: child.id_pessoa
+      }));
+      setChildren(convertedChildren);
     }
-  }, [isOpen, userId]);
+  }, [initialChildren]);
 
   const handleAddChild = () => {
     setIsChildModalOpen(true);
   };
 
   const handleChildRegistrationSuccess = () => {
-    loadChildren(); // Recarrega a lista de filhos
+    // Notifica a home para atualizar a lista de crianças (chamada centralizada)
+    onChildrenChange?.();
     setIsChildModalOpen(false);
   };
 
@@ -90,7 +94,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   };
 
   const confirmDeleteChild = async () => {
-    const childId = childToDelete?.id_crianca;
+    const childId = childToDelete?.crianca_id;
     console.log('Excluindo criança ID:', childId);
     
     setDeleteModalOpen(false);
@@ -98,7 +102,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
     
     if (childId) {
       // Remove da lista imediatamente
-      setChildren(prev => prev.filter(child => child.id_crianca !== childId));
+      setChildren(prev => prev.filter(child => child.crianca_id !== childId));
       // Fecha qualquer dropdown aberto
       setExpandedIndex(null);
       
@@ -106,79 +110,106 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
       try {
         await childService.deleteChild(childId);
         console.log('Criança excluída da API');
+        // Notifica a home para atualizar
+        onChildrenChange?.();
       } catch (error) {
         console.error('Erro ao excluir da API:', error);
-        // Se falhar, recarrega lista
-        loadChildren();
+        // Se falhar, notifica a home para recarregar lista
+        onChildrenChange?.();
       }
     }
   };
 
-  const handleEditMode = () => {
-    setIsEditMode(true);
-    setEditValues({
-      email: currentEmail || '',
-      telefone: currentPhone || ''
-    });
+  const startEditingField = (field: string) => {
+    if (!editingField) {
+      setEditValues({
+        email: currentEmail || '',
+        telefone: currentPhone || ''
+      });
+    }
+    setEditingField(field);
   };
 
   const handleSaveChanges = async () => {
     if (!userId) return;
     
-    console.log('🔄 Enviando dados para API:', editValues);
-    console.log('📍 URL:', `https://oportunyfam-back-end.onrender.com/v1/oportunyfam/usuarios/${userId}`);
-    
     try {
+      // Monta o payload completo com os dados atuais + alterações
+      const payload = {
+        nome: userName,
+        email: editValues.email || currentEmail,
+        telefone: editValues.telefone || currentPhone,
+        cpf: cpf || '',
+        id_tipo_nivel: 1 // Padrão sempre 1
+      };
+      
       const response = await fetch(`https://oportunyfam-back-end.onrender.com/v1/oportunyfam/usuarios/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(editValues)
+        body: JSON.stringify(payload)
       });
       
-      console.log('📊 Status da resposta:', response.status);
-      
       if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Resposta da API:', result);
+        setCurrentEmail(editValues.email || currentEmail);
+        setCurrentPhone(editValues.telefone || currentPhone);
         
-        // Atualiza dados locais
-        setCurrentEmail(editValues.email || '');
-        setCurrentPhone(editValues.telefone || '');
-        
-        // Notifica componente pai
         if (onUserUpdate) {
           onUserUpdate({
-            email: editValues.email,
-            telefone: editValues.telefone
+            email: editValues.email || currentEmail,
+            telefone: editValues.telefone || currentPhone
           });
         }
         
-        setIsEditMode(false);
+        setEditingField(null);
         setHasChanges(false);
         setShowSaveModal(false);
-        alert('✅ Dados salvos com sucesso!');
+        setEditValues({});
       } else {
-        const errorData = await response.text();
-        console.error('❌ Erro da API:', errorData);
         alert('❌ Erro ao salvar dados');
       }
     } catch (error) {
-      console.error('❌ Erro de conexão:', error);
       alert('❌ Erro de conexão');
     }
   };
 
-  const handleCancelEdit = () => {
-    setIsEditMode(false);
+  const handleDiscardChanges = () => {
+    setEditingField(null);
     setHasChanges(false);
     setEditValues({});
+    setShowDiscardModal(false);
+    if (pendingCloseAction) {
+      pendingCloseAction();
+      setPendingCloseAction(null);
+    }
+  };
+
+  const handleCloseWithCheck = () => {
+    if (hasChanges) {
+      setPendingCloseAction(() => onClose);
+      setShowDiscardModal(true);
+    } else {
+      onClose();
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
+    const originalValue = field === 'email' ? currentEmail : currentPhone;
     setEditValues({...editValues, [field]: value});
-    setHasChanges(true);
+    
+    // Verifica se há mudanças reais comparando com valores originais
+    const newEditValues = {...editValues, [field]: value};
+    const emailChanged = newEditValues.email !== currentEmail;
+    const phoneChanged = newEditValues.telefone !== currentPhone;
+    setHasChanges(emailChanged || phoneChanged);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && hasChanges) {
+      e.preventDefault();
+      setShowSaveModal(true);
+    }
   };
 
   const onPickAvatar = () => fileInputRef.current?.click();
@@ -217,22 +248,91 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
     } catch {}
   }, [storageKey, isOpen]);
 
+  if (!isOpen) return null;
+
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2>Conta</h2>
-          <button className={styles.closeButton} onClick={onClose} aria-label="Fechar">×</button>
+    <>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(251, 146, 60, 0.4); }
+          50% { transform: scale(1.05); box-shadow: 0 4px 12px rgba(251, 146, 60, 0.6); }
+        }
+      `}</style>
+      <div className="conversations-modal-overlay">
+      <div className="conversations-modal-card" style={{ display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
+        <div className="conversations-modal-header">
+          <h1 className="conversations-modal-title">
+            <svg
+              className="conversations-modal-title-icon"
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span>Minha Conta</span>
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {hasChanges && (
+              <button 
+                onClick={() => setShowSaveModal(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #fb923c, #f97316)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(251, 146, 60, 0.4)',
+                  transition: 'all 0.2s ease',
+                  animation: 'pulse 2s infinite'
+                }}
+                title="Salvar alterações"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+              </button>
+            )}
+            <button className="conversations-modal-close" onClick={handleCloseWithCheck}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div className={styles.content}>
+        <div className="conversations-main" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
           <div className={styles.profileBlock}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div className={styles.profileAvatar}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="avatar" />
                 ) : (
-                  <span>{(userName || "U").charAt(0).toUpperCase()}</span>
+                  <svg
+                    className={styles.profileAvatarIcon}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
                 )}
                 <button className={styles.editBadge} aria-label="Editar foto" onClick={onPickAvatar} disabled={isUploadingAvatar}>
                   {isUploadingAvatar ? (
@@ -284,40 +384,28 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                     e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
                   }}
                 >
-                  Excluir
+                  Excluir foto
                 </button>
               )}
-              <button 
-                onClick={handleEditMode}
-                style={{
-                  marginTop: '8px',
-                  marginLeft: '8px',
-                  padding: '4px 8px',
-                  background: '#fb923c',
-                  border: 'none',
-                  borderRadius: '6px',
-                  color: 'white',
-                  fontSize: '11px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  boxShadow: '0 1px 2px rgba(251,146,60,0.2)'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = '#f97316';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(251,146,60,0.3)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = '#fb923c';
-                  e.currentTarget.style.boxShadow = '0 1px 2px rgba(251,146,60,0.2)';
-                }}
-              >
-                Alterar Dados
-              </button>
             </div>
           </div>
 
           <div className={styles.fields}>
+            {/* Campo Nome */}
+            <div className={styles.fieldRow}>
+              <div className={styles.leftIcon}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <div className={styles.fieldContent}>
+                <span className={styles.label}>Nome:</span>
+                <span className={styles.value}>{userName || "Usuário"}</span>
+              </div>
+            </div>
+
+            {/* Campo Email - Editável */}
             <div className={styles.fieldRow}>
               <div className={styles.leftIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -327,26 +415,50 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
               </div>
               <div className={styles.fieldContent}>
                 <span className={styles.label}>Email:</span>
-                {isEditMode ? (
+                {editingField === 'email' ? (
                   <input 
                     type="email"
                     value={editValues.email || ''}
                     onChange={(e) => handleInputChange('email', e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    autoFocus
                     style={{
                       padding: '8px 12px',
                       border: '2px solid #fb923c',
                       borderRadius: '6px',
                       fontSize: '14px',
                       outline: 'none',
-                      background: '#fef7ed'
+                      background: '#fef7ed',
+                      flex: 1
                     }}
                   />
                 ) : (
-                  <span className={styles.value}>{maskEmail(currentEmail || "usuario@dominio.com")}</span>
+                  <span className={styles.value}>{currentEmail || "usuario@dominio.com"}</span>
                 )}
               </div>
+              <button 
+                className={styles.editBtn} 
+                onClick={() => startEditingField('email')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: editingField === 'email' ? 0.5 : 1
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                </svg>
+              </button>
             </div>
 
+            {/* Campo Telefone - Editável */}
             <div className={styles.fieldRow}>
               <div className={styles.leftIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -354,84 +466,65 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                 </svg>
               </div>
               <div className={styles.fieldContent}>
-                <span className={styles.label}>Numero:</span>
-                {isEditMode ? (
+                <span className={styles.label}>Telefone:</span>
+                {editingField === 'telefone' ? (
                   <input 
                     type="tel"
                     value={editValues.telefone || ''}
                     onChange={(e) => handleInputChange('telefone', e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    autoFocus
                     style={{
                       padding: '8px 12px',
                       border: '2px solid #fb923c',
                       borderRadius: '6px',
                       fontSize: '14px',
                       outline: 'none',
-                      background: '#fef7ed'
+                      background: '#fef7ed',
+                      flex: 1
                     }}
                   />
                 ) : (
-                  <span className={styles.value}>{maskPhone(currentPhone || "11000000000")}</span>
+                  <span className={styles.value}>{currentPhone || "Não informado"}</span>
                 )}
               </div>
-            </div>
-
-            <div className={styles.fieldRow}>
-              <div className={styles.leftIcon}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172A2 2 0 0 0 11.414 16l.814-.814a6.5 6.5 0 1 0-4-4z"/>
-                  <circle cx="16.5" cy="7.5" r=".5" fill="#f4a261"/>
-                </svg>
-              </div>
-              <div className={styles.fieldContent}>
-                <span className={styles.label}>Senha:</span>
-                <span className={styles.value}>****************</span>
-              </div>
-              <button className={styles.editBtn} aria-label="Editar senha">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button 
+                className={styles.editBtn} 
+                onClick={() => startEditingField('telefone')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: editingField === 'telefone' ? 0.5 : 1
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9"/>
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                 </svg>
               </button>
             </div>
-          </div>
 
-          {isEditMode && (
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '20px' }}>
-              <button 
-                onClick={() => setShowSaveModal(true)}
-                style={{
-                  padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #fb923c, #f97316)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: 'white',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.3)',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Salvar Dados
-              </button>
-              <button 
-                onClick={handleCancelEdit}
-                style={{
-                  padding: '12px 24px',
-                  background: '#f3f4f6',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  color: '#374151',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Cancelar
-              </button>
+            <div className={styles.fieldRow}>
+              <div className={styles.leftIcon}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/>
+                  <path d="M7 8h2"/>
+                  <path d="M7 12h10"/>
+                  <path d="M7 16h6"/>
+                </svg>
+              </div>
+              <div className={styles.fieldContent}>
+                <span className={styles.label}>CPF:</span>
+                <span className={styles.value}>{cpf || "Não informado"}</span>
+              </div>
             </div>
-          )}
+          </div>
 
           <div className={styles.sectionHeader}>
             <span>Filhos:</span>
@@ -551,6 +644,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
       {deleteModalOpen && (
         <div 
           onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
           style={{
             position: 'fixed',
             top: 0,
@@ -562,26 +656,32 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 9999
+            zIndex: 99999,
+            pointerEvents: 'auto'
           }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            maxWidth: '400px',
-            width: '90%',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-            textAlign: 'center'
-          }}>
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              textAlign: 'center',
+              pointerEvents: 'auto'
+            }}>
             <h3 style={{ margin: '0 0 16px 0', color: '#1f2937', fontSize: '18px' }}>
               Deseja excluir {childToDelete?.nome}?
             </h3>
             <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px' }}>
               Esta ação não pode ser desfeita.
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', pointerEvents: 'auto' }}>
               <button 
-                onClick={() => setDeleteModalOpen(false)}
+                onClick={(e) => { e.stopPropagation(); setDeleteModalOpen(false); }}
+                onMouseDown={(e) => e.stopPropagation()}
                 style={{
                   padding: '8px 16px',
                   border: '1px solid #d1d5db',
@@ -589,13 +689,15 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                   background: 'white',
                   color: '#374151',
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  pointerEvents: 'auto'
                 }}
               >
                 Não
               </button>
               <button 
-                onClick={confirmDeleteChild}
+                onClick={(e) => { e.stopPropagation(); confirmDeleteChild(); }}
+                onMouseDown={(e) => e.stopPropagation()}
                 style={{
                   padding: '8px 16px',
                   border: 'none',
@@ -603,7 +705,8 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                   background: '#ef4444',
                   color: 'white',
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  pointerEvents: 'auto'
                 }}
               >
                 Sim
@@ -616,6 +719,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
       {showSaveModal && (
         <div 
           onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
           style={{
             position: 'fixed',
             top: 0,
@@ -627,57 +731,182 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 9999
+            zIndex: 99999,
+            pointerEvents: 'auto'
           }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            maxWidth: '400px',
-            width: '90%',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-            textAlign: 'center'
-          }}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#1f2937', fontSize: '18px' }}>
-              Deseja salvar dados?
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              textAlign: 'center',
+              pointerEvents: 'auto'
+            }}>
+            <div style={{ 
+              width: '48px', 
+              height: '48px', 
+              borderRadius: '50%', 
+              background: 'linear-gradient(135deg, #fb923c, #f97316)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+            </div>
+            <h3 style={{ margin: '0 0 12px 0', color: '#1f2937', fontSize: '18px', fontWeight: '600' }}>
+              Salvar alterações?
             </h3>
             <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px' }}>
-              As alterações serão salvas permanentemente.
+              Suas alterações serão salvas permanentemente.
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', pointerEvents: 'auto' }}>
               <button 
-                onClick={() => setShowSaveModal(false)}
+                onClick={(e) => { e.stopPropagation(); setShowSaveModal(false); }}
+                onMouseDown={(e) => e.stopPropagation()}
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 20px',
                   border: '1px solid #d1d5db',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   background: 'white',
                   color: '#374151',
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  pointerEvents: 'auto'
                 }}
               >
-                Não
+                Cancelar
               </button>
               <button 
-                onClick={handleSaveChanges}
+                onClick={(e) => { e.stopPropagation(); handleSaveChanges(); }}
+                onMouseDown={(e) => e.stopPropagation()}
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 20px',
                   border: 'none',
-                  borderRadius: '6px',
-                  background: '#fb923c',
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #fb923c, #f97316)',
                   color: 'white',
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  pointerEvents: 'auto'
                 }}
               >
-                Sim
+                Salvar
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+
+      {showDiscardModal && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            pointerEvents: 'auto'
+          }}>
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              textAlign: 'center',
+              pointerEvents: 'auto'
+            }}>
+            <div style={{ 
+              width: '48px', 
+              height: '48px', 
+              borderRadius: '50%', 
+              background: '#fef3c7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <h3 style={{ margin: '0 0 12px 0', color: '#1f2937', fontSize: '18px', fontWeight: '600' }}>
+              Descartar alterações?
+            </h3>
+            <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px' }}>
+              Você tem alterações não salvas. Deseja descartá-las?
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', pointerEvents: 'auto' }}>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDiscardModal(false);
+                  setPendingCloseAction(null);
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                style={{
+                  padding: '10px 20px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  background: 'white',
+                  color: '#374151',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  pointerEvents: 'auto'
+                }}
+              >
+                Continuar editando
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleDiscardChanges(); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#ef4444',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  pointerEvents: 'auto'
+                }}
+              >
+                Descartar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 };
 

@@ -34,9 +34,6 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirmLog
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        {/* Título principal */}
-        <h2 className={styles.modalTitle}>Confirmar Saída</h2>
-        
         {/* Ícone de saída */}
         <div className={styles.modalIcon}>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

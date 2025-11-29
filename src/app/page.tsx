@@ -5,16 +5,25 @@ import dynamic from "next/dynamic";
 import BarraLateral from "@/components/BarraLateral";
 import SearchBar from "@/components/SearchBar";
 const Mapa = dynamic(() => import("../components/Mapa"), { ssr: false });
-import { Instituicao } from "@/types";
+import { Instituicao, SexoOption, Crianca } from "@/types";
 import NotificationsModal from "@/components/modals/NotificationsModal";
-import Perfil from "@/components/shared/Perfil";
 import LogoutModal from "@/components/modals/LogoutModal";
 import ConversationsModal from "@/components/modals/ConversationsModal";
 import ChildRegistrationSideModal from "@/components/modals/ChildRegistrationSideModal";
+import SimpleAccountModal from "@/components/modals/SimpleAccountModal";
 import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import { childService } from "@/services/childService";
+
+// Interface para crianças dependentes (formato da API)
+interface ChildDependente {
+  nome: string;
+  id_pessoa: number;
+  id_crianca: number;
+  foto_perfil: string | null;
+  id_responsavel: number;
+}
 
 export default function HomePage() {
   const { 
@@ -35,9 +44,16 @@ export default function HomePage() {
   const [isLocationPanelOpen, setIsLocationPanelOpen] = useState<boolean>(false);
   const [isCommunityPanelOpen, setIsCommunityPanelOpen] = useState<boolean>(false);
   const [isChildRegistrationSideModalOpen, setIsChildRegistrationSideModalOpen] = useState<boolean>(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [userConversations, setUserConversations] = useState<any[]>([]);
   const [userPessoaId, setUserPessoaId] = useState<number | null>(null);
   const [mapInstitutions, setMapInstitutions] = useState<Instituicao[]>([]);
+  
+  // === DADOS CARREGADOS UMA VEZ NA INICIALIZAÇÃO ===
+  const [userChildren, setUserChildren] = useState<ChildDependente[]>([]);
+  const [userSavedLocations, setUserSavedLocations] = useState<any[]>([]);
+  const [sexoOptions, setSexoOptions] = useState<SexoOption[]>([]);
+  const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
   // refs para fechar ao clicar fora
   const searchRef = useRef<HTMLDivElement>(null);
@@ -65,8 +81,8 @@ export default function HomePage() {
     return () => document.removeEventListener('mousedown', onDocMouseDown, true);
   }, [isSearchPanelOpen, isLocationPanelOpen, isCommunityPanelOpen]);
 
-  // Carrega as conversas do usuário (usando id do contexto ou do localStorage)
-  const loadUserConversations = async () => {
+  // === CARREGA TODOS OS DADOS DO USUÁRIO UMA ÚNICA VEZ ===
+  const loadAllUserData = async () => {
     try {
       let userIdNumber: number | null = null;
 
@@ -78,20 +94,12 @@ export default function HomePage() {
       }
 
       if (!userIdNumber && typeof window !== "undefined") {
-        try {
-          const storedUser = localStorage.getItem("user-data");
-          if (storedUser) {
-            const parsedStored = JSON.parse(storedUser);
-            const rawId = parsedStored?.id ?? parsedStored?.usuario_id ?? parsedStored?.usuario?.id;
-            if (rawId != null) {
-              const parsedId = Number(rawId);
-              if (!Number.isNaN(parsedId)) {
-                userIdNumber = parsedId;
-              }
-            }
+        const storedUserId = localStorage.getItem("user-id");
+        if (storedUserId) {
+          const parsedId = Number(storedUserId);
+          if (!Number.isNaN(parsedId)) {
+            userIdNumber = parsedId;
           }
-        } catch (err) {
-          console.error("Erro ao ler user-data do localStorage:", err);
         }
       }
 
@@ -99,27 +107,82 @@ export default function HomePage() {
         return;
       }
 
+      // UMA única chamada para getUserById - extrai TODOS os dados
       const fullUser = await childService.getUserById(userIdNumber);
 
-      // Guarda o pessoa_id do usuário logado para uso no envio de mensagens do chat
+      // pessoa_id para chat
       const pessoaIdRaw = (fullUser as any)?.pessoa_id ?? (fullUser as any)?.id_pessoa;
       const pessoaId = Number(pessoaIdRaw);
       if (!Number.isNaN(pessoaId)) {
         setUserPessoaId(pessoaId);
       }
 
+      // Conversas
+      const conversas = Array.isArray((fullUser as any)?.conversas)
+        ? (fullUser as any).conversas
+        : [];
+      setUserConversations(conversas);
+
+      // Crianças dependentes
+      const criancas = Array.isArray((fullUser as any)?.criancas_dependentes)
+        ? (fullUser as any).criancas_dependentes
+        : [];
+      setUserChildren(criancas);
+
+      // Locais salvos (para o mapa)
+      const locais = Array.isArray((fullUser as any)?.locais_salvos)
+        ? (fullUser as any).locais_salvos
+        : [];
+      setUserSavedLocations(locais);
+
+      setIsUserDataLoaded(true);
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+    }
+  };
+
+  // Carrega opções de sexo UMA vez (dados estáticos)
+  const loadSexoOptions = async () => {
+    try {
+      const options = await childService.getSexoOptions();
+      setSexoOptions(options);
+    } catch (error) {
+      console.error("Erro ao carregar opções de sexo:", error);
+    }
+  };
+
+  // Callback para atualizar crianças após criar/deletar
+  const refreshUserChildren = async () => {
+    if (!authUser?.id) return;
+    try {
+      const fullUser = await childService.getUserById(parseInt(authUser.id));
+      const criancas = Array.isArray((fullUser as any)?.criancas_dependentes)
+        ? (fullUser as any).criancas_dependentes
+        : [];
+      setUserChildren(criancas);
+    } catch (error) {
+      console.error("Erro ao atualizar crianças:", error);
+    }
+  };
+
+  // Callback para atualizar conversas (usado após enviar mensagem)
+  const loadUserConversations = async () => {
+    if (!authUser?.id) return;
+    try {
+      const fullUser = await childService.getUserById(parseInt(authUser.id));
       const conversas = Array.isArray((fullUser as any)?.conversas)
         ? (fullUser as any).conversas
         : [];
       setUserConversations(conversas);
     } catch (error) {
-      console.error("Erro ao carregar conversas do usuário:", error);
+      console.error("Erro ao atualizar conversas:", error);
     }
   };
 
-  // Busca conversas na carga inicial (e quando o id do usuário mudar)
+  // Carrega TUDO na inicialização (uma única vez)
   useEffect(() => {
-    loadUserConversations();
+    loadAllUserData();
+    loadSexoOptions();
   }, [authUser?.id]);
 
   // Abre a modal de cadastro de criança na PRIMEIRA visita do usuário
@@ -172,6 +235,7 @@ export default function HomePage() {
     // Fechar outros modais antes de abrir este
     setIsNotificationsModalOpen(false);
     setIsChildRegistrationSideModalOpen(false);
+    setIsAccountModalOpen(false);
     
     // Abrir modal de conversas
     setIsConversationsModalOpen(true);
@@ -191,6 +255,7 @@ export default function HomePage() {
     // Fechar outros modais antes de abrir este
     setIsNotificationsModalOpen(false);
     setIsConversationsModalOpen(false);
+    setIsAccountModalOpen(false);
     setConversationInstitution(null);
     
     // Abrir modal de cadastro de criança
@@ -201,6 +266,22 @@ export default function HomePage() {
     setIsChildRegistrationSideModalOpen(false);
   };
 
+  const handleAccountClick = () => {
+    if (isAccountModalOpen) {
+      setIsAccountModalOpen(false);
+      return;
+    }
+    setIsNotificationsModalOpen(false);
+    setIsConversationsModalOpen(false);
+    setIsChildRegistrationSideModalOpen(false);
+    setConversationInstitution(null);
+    setIsAccountModalOpen(true);
+  };
+
+  const closeAccountModal = () => {
+    setIsAccountModalOpen(false);
+  };
+
   const handleLogoutConfirm = (): void => {
     logout();
     setIsLogoutModalOpen(false);
@@ -208,30 +289,6 @@ export default function HomePage() {
 
   const handleLogoutCancel = (): void => {
     setIsLogoutModalOpen(false);
-  };
-
-  const handleProfileMenuClick = (action: string): void => {
-    // Aqui você pode implementar as ações do menu do perfil
-    switch (action) {
-      case 'profile':
-        // Abrir perfil
-        break;
-      case 'settings':
-        // Abrir configurações
-        break;
-      case 'theme':
-        // Alternar tema
-        break;
-      case 'help':
-        // Abrir ajuda
-        break;
-      case 'logout':
-        setIsLogoutModalOpen(true);
-        break;
-      case 'login':
-        // Fazer login
-        break;
-    }
   };
 
   // Funções para o modal de cadastro de criança
@@ -247,19 +304,6 @@ export default function HomePage() {
     setShowChildRegistration(false);
   };
 
-  // Usa os dados do usuário logado do contexto, adaptando para o tipo esperado em <Perfil>
-  const perfilUser = authUser
-    ? {
-        id: Number(authUser.id) || undefined,
-        nome: authUser.nome,
-        foto_perfil: authUser.foto_perfil,
-        email: authUser.email,
-      }
-    : {
-        nome: "Usuário",
-        foto_perfil: undefined,
-      };
-
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
     return <LoadingScreen />;
@@ -268,12 +312,13 @@ export default function HomePage() {
   return (
     <div className="main-container">
       <BarraLateral 
-        onNotificationClick={handleNotificationClick}
         onConversationsClick={handleConversationsClick}
         onChildRegistrationClick={handleChildRegistrationClick}
-        isNotificationsOpen={isNotificationsModalOpen}
+        onAccountClick={handleAccountClick}
+        onLogoutClick={() => setIsLogoutModalOpen(true)}
         isConversationsOpen={isConversationsModalOpen}
         isChildRegistrationOpen={isChildRegistrationSideModalOpen}
+        isAccountOpen={isAccountModalOpen}
       />
       <div className="app-content-wrapper">
         {/* Mapa ocupa toda a área */}
@@ -337,13 +382,10 @@ export default function HomePage() {
               onInstitutionsUpdate={(list) => setMapInstitutions(list)}
               highlightedInstitution={selectedInstitution}
               onCloseProfile={() => setSelectedInstitution(null)}
+              onOpenChildRegistration={handleChildRegistrationClick}
+              preloadedChildren={userChildren}
             />
           </div>
-          <Perfil 
-            user={perfilUser}
-            hasNotifications={notifications.length > 0}
-            onMenuItemClick={handleProfileMenuClick}
-          />
         </div>
       </div>
       
@@ -377,6 +419,22 @@ export default function HomePage() {
         onClose={closeChildRegistrationSideModal}
         onSuccess={handleChildRegistrationSuccess}
         userId={authUser ? parseInt(authUser.id) : 999}
+        initialChildren={userChildren}
+        initialSexoOptions={sexoOptions}
+        onChildrenChange={refreshUserChildren}
+      />
+
+      {/* Modal lateral de conta */}
+      <SimpleAccountModal
+        isOpen={isAccountModalOpen}
+        onClose={closeAccountModal}
+        userName={authUser?.nome || "Usuário"}
+        email={authUser?.email}
+        phone={authUser?.telefone}
+        cpf={authUser?.cpf}
+        userId={authUser ? parseInt(authUser.id) : undefined}
+        initialChildren={userChildren}
+        onChildrenChange={refreshUserChildren}
       />
     </div>
   );

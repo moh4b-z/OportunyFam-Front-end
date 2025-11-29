@@ -447,6 +447,28 @@ export default function Mapa({ highlightedInstitution, institutions, onInstituti
         `;
         infoWindowRef.current.setContent(content);
         infoWindowRef.current.open(googleMapRef.current, marker);
+
+        // Adiciona listener para o botão de fechar
+        const w = window as any;
+        if (w.google && w.google.maps && w.google.maps.event) {
+          w.google.maps.event.addListenerOnce(infoWindowRef.current, 'domready', () => {
+            const popup = document.querySelector('.map-infowindow') as HTMLDivElement | null;
+            const btn = document.querySelector('.map-infowindow-close') as HTMLButtonElement | null;
+            if (btn) {
+              btn.onclick = (e) => {
+                e.stopPropagation();
+                if (popup) {
+                  popup.classList.add('map-infowindow-closing');
+                  setTimeout(() => {
+                    infoWindowRef.current.close();
+                  }, 180);
+                } else {
+                  infoWindowRef.current.close();
+                }
+              };
+            }
+          });
+        }
         return;
       }
 

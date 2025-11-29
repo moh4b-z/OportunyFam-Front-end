@@ -15,6 +15,7 @@ import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import { childService } from "@/services/childService";
+import { institutionService } from "@/services/institutionService";
 
 export default function HomePage() {
   const { 
@@ -69,11 +70,13 @@ export default function HomePage() {
   const loadUserConversations = async () => {
     try {
       let userIdNumber: number | null = null;
+      let userType: 'usuario' | 'instituicao' | 'crianca' | null = null;
 
       if (authUser?.id) {
         const parsed = Number(authUser.id);
         if (!Number.isNaN(parsed)) {
           userIdNumber = parsed;
+          userType = authUser.tipo;
         }
       }
 
@@ -82,7 +85,8 @@ export default function HomePage() {
           const storedUser = localStorage.getItem("user-data");
           if (storedUser) {
             const parsedStored = JSON.parse(storedUser);
-            const rawId = parsedStored?.id ?? parsedStored?.usuario_id ?? parsedStored?.usuario?.id;
+            const rawId = parsedStored?.id ?? parsedStored?.usuario_id ?? parsedStored?.instituicao_id ?? parsedStored?.crianca_id ?? parsedStored?.usuario?.id;
+            userType = parsedStored?.tipo;
             if (rawId != null) {
               const parsedId = Number(rawId);
               if (!Number.isNaN(parsedId)) {
@@ -99,7 +103,20 @@ export default function HomePage() {
         return;
       }
 
-      const fullUser = await childService.getUserById(userIdNumber);
+      // Usar o serviço apropriado baseado no tipo de usuário
+      let fullUser: any;
+      
+      if (userType === 'instituicao') {
+        // Para instituições, buscar via institutionService
+        fullUser = await institutionService.getById(userIdNumber);
+      } else {
+        // Para usuários e crianças, usar childService
+        fullUser = await childService.getUserById(userIdNumber);
+      }
+
+      if (!fullUser) {
+        return;
+      }
 
       // Guarda o pessoa_id do usuário logado para uso no envio de mensagens do chat
       const pessoaIdRaw = (fullUser as any)?.pessoa_id ?? (fullUser as any)?.id_pessoa;
@@ -122,9 +139,9 @@ export default function HomePage() {
     loadUserConversations();
   }, [authUser?.id]);
 
-  // Abre a modal de cadastro de criança na PRIMEIRA visita do usuário
+  // Abre a modal de cadastro de criança na PRIMEIRA visita do usuário (apenas para responsáveis)
   useEffect(() => {
-    if (authUser?.id && !isLoading) {
+    if (authUser?.id && !isLoading && authUser?.tipo === 'usuario') {
       const firstVisitKey = `oportunyfam_first_visit_${authUser.id}`;
       const hasVisitedBefore = localStorage.getItem(firstVisitKey);
       
@@ -134,7 +151,7 @@ export default function HomePage() {
         localStorage.setItem(firstVisitKey, 'true');
       }
     }
-  }, [authUser?.id, isLoading]);
+  }, [authUser?.id, authUser?.tipo, isLoading]);
 
   const handleInstitutionSelect = (institution: Instituicao) => {
     setSelectedInstitution(institution);
@@ -274,16 +291,65 @@ export default function HomePage() {
         isNotificationsOpen={isNotificationsModalOpen}
         isConversationsOpen={isConversationsModalOpen}
         isChildRegistrationOpen={isChildRegistrationSideModalOpen}
+        userType={authUser?.tipo}
       />
       <div className="app-content-wrapper">
-        {/* Mapa ocupa toda a área */}
-        <div className={mapaStyles.mapWrapper}>
-          <Mapa 
-            highlightedInstitution={selectedInstitution} 
-            institutions={mapInstitutions}
-            onInstitutionPinClick={handleInstitutionSelect}
-          />
-        </div>
+        {/* Instituições vêem um painel de controle ao invés do mapa */}
+        {authUser?.tipo === 'instituicao' ? (
+          <div style={{ 
+            width: '100%', 
+            height: '100vh', 
+            display: 'flex', 
+            flexDirection: 'column',
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            {/* Ícone do perfil flutuante para instituições */}
+            <div style={{ 
+              position: 'absolute',
+              top: '1.5rem',
+              right: '2rem',
+              zIndex: 10
+            }}>
+              <Perfil 
+                user={{...perfilUser, tipo: authUser.tipo}}
+                hasNotifications={notifications.length > 0}
+                onMenuItemClick={handleProfileMenuClick}
+              />
+            </div>
+            
+            {/* Conteúdo principal do painel */}
+            <div style={{ 
+              width: '100%',
+              height: '100%',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              padding: '2rem'
+            }}>
+              <div>
+                <h1 style={{ marginBottom: '1rem' }}>Painel de Controle da Instituição</h1>
+                <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>Em breve: gerencie suas atividades, alunos e mensagens</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Mapa para usuários e crianças */}
+            <div className={mapaStyles.mapWrapper}>
+              <Mapa 
+                highlightedInstitution={selectedInstitution} 
+                institutions={mapInstitutions}
+                onInstitutionPinClick={handleInstitutionSelect}
+              />
+            </div>
+          </>
+        )}
 
         {/* Painel de busca */}
         {isSearchPanelOpen && (
@@ -324,27 +390,29 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Header flutuante sobre o mapa */}
-        <div className="floating-header">
-          <div className="search-wrapper">
-            <SearchBar 
-              onInstitutionSelect={handleInstitutionSelect}
-              onStartConversation={(institution) => {
-                setConversationInstitution(institution);
-                setIsConversationsModalOpen(true);
-              }}
-              onRefreshConversations={loadUserConversations}
-              onInstitutionsUpdate={(list) => setMapInstitutions(list)}
-              highlightedInstitution={selectedInstitution}
-              onCloseProfile={() => setSelectedInstitution(null)}
+        {/* Header flutuante sobre o mapa - apenas para usuários e crianças */}
+        {authUser?.tipo !== 'instituicao' && (
+          <div className="floating-header">
+            <div className="search-wrapper">
+              <SearchBar 
+                onInstitutionSelect={handleInstitutionSelect}
+                onStartConversation={(institution) => {
+                  setConversationInstitution(institution);
+                  setIsConversationsModalOpen(true);
+                }}
+                onRefreshConversations={loadUserConversations}
+                onInstitutionsUpdate={(list) => setMapInstitutions(list)}
+                highlightedInstitution={selectedInstitution}
+                onCloseProfile={() => setSelectedInstitution(null)}
+              />
+            </div>
+            <Perfil 
+              user={{...perfilUser, tipo: authUser?.tipo}}
+              hasNotifications={notifications.length > 0}
+              onMenuItemClick={handleProfileMenuClick}
             />
           </div>
-          <Perfil 
-            user={perfilUser}
-            hasNotifications={notifications.length > 0}
-            onMenuItemClick={handleProfileMenuClick}
-          />
-        </div>
+        )}
       </div>
       
       {/* Modal de notificações */}

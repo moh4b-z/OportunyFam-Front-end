@@ -13,6 +13,7 @@ interface PerfilProps {
     foto_perfil?: string;
     email?: string;
     telefone?: string;
+    tipo?: 'usuario' | 'instituicao' | 'crianca';
   } | null;
   hasNotifications?: boolean;
   onProfileClick?: () => void;
@@ -279,6 +280,7 @@ const Perfil: React.FC<PerfilProps> = ({
         email={user?.email}
         phone={user?.telefone}
         userId={user?.id || user?.usuario_id}
+        userType={user?.tipo}
       />
     </>
   );

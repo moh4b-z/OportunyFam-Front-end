@@ -12,7 +12,11 @@ interface User {
   foto_perfil?: string
   isFirstLogin?: boolean
   hasChildren?: boolean
-  tipo?: 'usuario' | 'instituicao' | 'crianca'
+  tipo: 'usuario' | 'instituicao' | 'crianca'
+  pessoa_id?: number
+  usuario_id?: number
+  instituicao_id?: number
+  crianca_id?: number
 }
 
 interface AuthContextType {
@@ -102,10 +106,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const token = `auth-token-${Date.now()}-${userIdNumber}`
 
+      // Extrai o tipo do usuário diretamente da resposta da API
       const loginTipo = (response as any)?.tipo as User['tipo'] | undefined
+      if (!loginTipo) {
+        throw new Error('Tipo de usuário não identificado na resposta do login')
+      }
+
+      // Extrai IDs específicos de cada tipo
+      const pessoa_id = userData?.pessoa_id ?? (userData as any)?.id_pessoa
+      const usuario_id = loginTipo === 'usuario' ? (userData?.usuario_id ?? (userData as any)?.id) : undefined
+      const instituicao_id = loginTipo === 'instituicao' ? (userData?.instituicao_id ?? (userData as any)?.id) : undefined
+      const crianca_id = loginTipo === 'crianca' ? (userData?.crianca_id ?? (userData as any)?.id) : undefined
 
       const rawTipoNivel = userData?.tipo_nivel ?? userData?.usuario?.tipo_nivel ?? ''
-      const isResponsible = typeof rawTipoNivel === 'string' && rawTipoNivel.toLowerCase().includes('fam')
+      const isResponsible = loginTipo === 'usuario' && (typeof rawTipoNivel === 'string' && rawTipoNivel.toLowerCase().includes('fam'))
       
       let hasChildren = false
       if (isResponsible) {
@@ -127,6 +141,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasChildren,
         isFirstLogin: isResponsible && !hasChildren,
         tipo: loginTipo,
+        pessoa_id: pessoa_id ? Number(pessoa_id) : undefined,
+        usuario_id: usuario_id ? Number(usuario_id) : undefined,
+        instituicao_id: instituicao_id ? Number(instituicao_id) : undefined,
+        crianca_id: crianca_id ? Number(crianca_id) : undefined,
       }
 
       // Define a duração do cookie baseado na opção "lembrar-se de mim"

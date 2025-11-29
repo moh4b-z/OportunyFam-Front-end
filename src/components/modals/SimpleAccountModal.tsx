@@ -16,6 +16,7 @@ interface SimpleAccountModalProps {
   userId?: number;
   childrenNames?: string[];
   onUserUpdate?: (updatedData: {email?: string, telefone?: string}) => void;
+  userType?: 'usuario' | 'instituicao' | 'crianca';
 }
 
 const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
@@ -27,6 +28,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   userId,
   childrenNames,
   onUserUpdate,
+  userType,
 }) => {
   if (!isOpen) return null;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -65,10 +67,10 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen && userId) {
+    if (isOpen && userId && userType === 'usuario') {
       loadChildren();
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, userType]);
 
   const handleAddChild = () => {
     setIsChildModalOpen(true);
@@ -90,7 +92,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   };
 
   const confirmDeleteChild = async () => {
-    const childId = childToDelete?.id_crianca;
+    const childId = childToDelete?.crianca_id ?? childToDelete?.id;
     console.log('Excluindo criança ID:', childId);
     
     setDeleteModalOpen(false);
@@ -98,7 +100,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
     
     if (childId) {
       // Remove da lista imediatamente
-      setChildren(prev => prev.filter(child => child.id_crianca !== childId));
+      setChildren(prev => prev.filter(child => (child.crianca_id ?? child.id) !== childId));
       // Fecha qualquer dropdown aberto
       setExpandedIndex(null);
       
@@ -433,19 +435,22 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
             </div>
           )}
 
-          <div className={styles.sectionHeader}>
-            <span>Filhos:</span>
-            <button className={styles.addBtn} onClick={handleAddChild} aria-label="Adicionar filho">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <line x1="19" y1="8" x2="19" y2="14"/>
-                <line x1="16" y1="11" x2="22" y2="11"/>
-              </svg>
-            </button>
-          </div>
+          {/* Seção de filhos - apenas para usuários/responsáveis */}
+          {userType === 'usuario' && (
+            <>
+              <div className={styles.sectionHeader}>
+                <span>Filhos:</span>
+                <button className={styles.addBtn} onClick={handleAddChild} aria-label="Adicionar filho">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <line x1="19" y1="8" x2="19" y2="14"/>
+                    <line x1="16" y1="11" x2="22" y2="11"/>
+                  </svg>
+                </button>
+              </div>
 
-          <div className={styles.childrenList}>
+              <div className={styles.childrenList}>
             {isLoadingChildren ? (
               <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
                 Carregando filhos...
@@ -536,10 +541,12 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
               </div>
             )}
           </div>
+            </>
+          )}
         </div>
       </div>
       
-      {userId && (
+      {userId && userType === 'usuario' && (
         <ChildRegistrationModal
           isOpen={isChildModalOpen}
           onClose={() => setIsChildModalOpen(false)}

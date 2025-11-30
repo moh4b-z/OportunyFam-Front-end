@@ -477,7 +477,15 @@ body.dark .enroll-btn-cancel:hover:not(:disabled) {
   background: #e8943f;
   border: 2px solid transparent;
   color: white;
+}
+
+/* Margin-top only when used alone, not inside enroll-actions */
+.enroll-step > .enroll-btn-done {
   margin-top: 20px;
+}
+
+.enroll-actions .enroll-btn-done {
+  margin-top: 0;
 }
 
 .enroll-btn-done:hover {

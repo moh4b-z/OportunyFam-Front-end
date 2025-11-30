@@ -48,6 +48,8 @@ export default function HomePage() {
   const [userConversations, setUserConversations] = useState<any[]>([]);
   const [userPessoaId, setUserPessoaId] = useState<number | null>(null);
   const [mapInstitutions, setMapInstitutions] = useState<Instituicao[]>([]);
+  const [mapCenterPosition, setMapCenterPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [goToHomeTimestamp, setGoToHomeTimestamp] = useState<number | null>(null);
   
   // === DADOS CARREGADOS UMA VEZ NA INICIALIZAÇÃO ===
   const [userChildren, setUserChildren] = useState<ChildDependente[]>([]);
@@ -327,21 +329,10 @@ export default function HomePage() {
             highlightedInstitution={selectedInstitution} 
             institutions={mapInstitutions}
             onInstitutionPinClick={handleInstitutionSelect}
+            centerPosition={mapCenterPosition}
+            goToHomeTimestamp={goToHomeTimestamp}
           />
         </div>
-
-        {/* Painel de busca */}
-        {isSearchPanelOpen && (
-          <div style={{ position: 'fixed', top: 0, left: 'var(--sidebar-width)', width: 'calc(100% - var(--sidebar-width))', height: '100%', display: 'flex', zIndex: 8000, background: 'rgba(0,0,0,0.1)', pointerEvents: 'none' }}>
-            <div ref={searchRef} style={{ width: 600, maxWidth: '90vw', height: '100vh', background: 'white', boxShadow: '5px 0 15px rgba(0,0,0,0.15)', overflowY: 'auto', pointerEvents: 'auto' }}>
-              <div style={{ position: 'sticky', top: 0, padding: 20, borderBottom: '1px solid #e0e0e0', background: 'white', zIndex: 1 }}>
-                <h2 style={{ margin: 0 }}>Buscar Instituições</h2>
-                <button onClick={() => setIsSearchPanelOpen(false)} style={{ position: 'absolute', right: 16, top: 16, background: 'transparent', border: 0, fontSize: 20, cursor: 'pointer' }}>✕</button>
-              </div>
-              <div style={{ padding: 20 }}>Em breve...</div>
-            </div>
-          </div>
-        )}
 
         {/* Painel de localização */}
         {isLocationPanelOpen && (
@@ -432,9 +423,12 @@ export default function HomePage() {
         email={authUser?.email}
         phone={authUser?.telefone}
         cpf={authUser?.cpf}
+        endereco={authUser?.endereco}
+        profilePhoto={authUser?.foto_perfil}
         userId={authUser ? parseInt(authUser.id) : undefined}
         initialChildren={userChildren}
         onChildrenChange={refreshUserChildren}
+        onGoToHome={() => setGoToHomeTimestamp(Date.now())}
       />
     </div>
   );

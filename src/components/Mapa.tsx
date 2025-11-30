@@ -20,9 +20,11 @@ interface MapaProps {
   highlightedInstitution?: Instituicao | null;
   institutions?: Instituicao[] | null;
   onInstitutionPinClick?: (institution: Instituicao) => void;
+  centerPosition?: { lat: number; lng: number } | null;
+  goToHomeTimestamp?: number | null;
 }
 
-export default function Mapa({ highlightedInstitution, institutions, onInstitutionPinClick }: MapaProps) {
+export default function Mapa({ highlightedInstitution, institutions, onInstitutionPinClick, centerPosition, goToHomeTimestamp }: MapaProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -125,6 +127,26 @@ export default function Mapa({ highlightedInstitution, institutions, onInstituti
     if (!w.google || !w.google.maps) return;
     googleMapRef.current.setOptions({ styles: isDark ? darkStyles : lightStyles });
   }, [isDark]);
+
+  // Centraliza o mapa quando centerPosition mudar
+  useEffect(() => {
+    if (!googleMapRef.current || !centerPosition) return;
+    if (!centerPosition.lat || !centerPosition.lng) return;
+    
+    googleMapRef.current.setCenter({ lat: centerPosition.lat, lng: centerPosition.lng });
+    googleMapRef.current.setZoom(15);
+  }, [centerPosition]);
+
+  // Centraliza no pin vermelho (casa) quando goToHomeTimestamp mudar
+  useEffect(() => {
+    if (!googleMapRef.current || !goToHomeTimestamp) return;
+    
+    const coords = homeCoordsRef.current;
+    if (coords && coords.lat && coords.lng) {
+      googleMapRef.current.setCenter({ lat: coords.lat, lng: coords.lng });
+      googleMapRef.current.setZoom(15);
+    }
+  }, [goToHomeTimestamp]);
 
   // Adiciona marcador de "casa" para o usuário logado (local salvo)
   useEffect(() => {

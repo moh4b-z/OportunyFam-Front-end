@@ -11,6 +11,8 @@ interface User {
   email: string
   telefone?: string
   cpf?: string
+  endereco?: string
+  enderecoCoords?: { lat: number; lng: number } | null
   foto_perfil?: string
   isFirstLogin?: boolean
   hasChildren?: boolean
@@ -47,12 +49,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const rawTipoNivel = userData?.tipo_nivel ?? ''
       const isResponsible = typeof rawTipoNivel === 'string' && rawTipoNivel.toLowerCase().includes('fam')
 
+      // Formata o endereço a partir de locais_salvos
+      let enderecoFormatado: string | undefined = undefined
+      let enderecoCoords: { lat: number; lng: number } | null = null
+      if (Array.isArray(userData?.locais_salvos) && userData.locais_salvos.length > 0) {
+        const local = userData.locais_salvos[0]
+        const bairro = local.bairro || ''
+        const cidade = local.cidade || ''
+        const estado = local.estado || ''
+        if (bairro || cidade || estado) {
+          enderecoFormatado = `${bairro}${cidade ? `, ${cidade}` : ''}${estado ? ` - ${estado}` : ''}`
+        }
+        // Pega coordenadas se existirem e forem válidas
+        if (local.latitude && local.longitude && local.latitude !== 0 && local.longitude !== 0) {
+          enderecoCoords = { lat: local.latitude, lng: local.longitude }
+        }
+      }
+
       return {
         id: userId.toString(),
         nome: userData?.nome ?? '',
         email: userData?.email ?? '',
         telefone: userData?.telefone ?? undefined,
         cpf: userData?.cpf ?? undefined,
+        endereco: enderecoFormatado,
+        enderecoCoords,
         foto_perfil: userData?.foto_perfil || undefined,
         hasChildren,
         isFirstLogin: isResponsible && !hasChildren,

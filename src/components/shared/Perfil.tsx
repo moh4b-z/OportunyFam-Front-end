@@ -9,6 +9,8 @@ interface PerfilProps {
   user?: {
     id?: number;
     usuario_id?: number;
+    instituicao_id?: number;
+    crianca_id?: number;
     nome?: string;
     foto_perfil?: string;
     email?: string;
@@ -87,7 +89,7 @@ const Perfil: React.FC<PerfilProps> = ({
     onProfileClick?.();
   };
 
-  const handleMenuItemClick = (action: string) => {
+  const handleMenuItemClick = async (action: string) => {
     // Ação de tema: não fechar o menu
     if (action === 'theme') {
       toggleTheme();
@@ -279,7 +281,8 @@ const Perfil: React.FC<PerfilProps> = ({
         userName={user?.nome || "Usuário"}
         email={user?.email}
         phone={user?.telefone}
-        userId={user?.id || user?.usuario_id}
+        userId={user?.instituicao_id || user?.id || user?.usuario_id}
+        foto_perfil={user?.foto_perfil}
         userType={user?.tipo}
       />
     </>

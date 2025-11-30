@@ -1,89 +1,121 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Crianca } from '@/types';
-import { childService } from '@services/childService';
 import { authService } from '@services/authService';
 import { azureStorageService } from '@services/azureStorageService';
+import { institutionService } from '@services/institutionService';
 import { maskEmail, maskPhone, getInitials } from '@/utils/formatters';
 import { saveAvatarToStorage, loadAvatarFromStorage, generateAvatarStorageKey, fileToBase64 } from '@/utils/avatarUtils';
-import ChildRegistrationModal from '../ChildRegistrationModal';
 import styles from '@/app/styles/SimpleAccountModal.module.css';
 
-interface UsuarioProfileProps {
-  id: string;
-  nome: string;
-  email: string;
-  telefone: string;
-  foto_perfil?: string;
-  onAvatarUpdate?: (url: string) => void;
-  onDataUpdate?: (updatedData: { nome?: string; email?: string; telefone?: string }) => void;
+interface EnderecoData {
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  complemento?: string;
 }
 
-const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
+interface InstituicaoProfileProps {
+  id: string;
+  onAvatarUpdate?: (url: string) => void;
+  onDataUpdate?: (updatedData: { nome?: string; email?: string; telefone?: string; endereco?: string; descricao?: string }) => void;
+}
+
+// Função auxiliar fora do componente
+const formatarEndereco = (addr?: EnderecoData): string => {
+  if (!addr) return '';
+  const parts = [
+    addr.logradouro,
+    addr.numero,
+    addr.complemento,
+    addr.bairro,
+    addr.cidade,
+    addr.estado
+  ].filter(Boolean);
+  return parts.join(', ');
+};
+
+const InstituicaoProfile: React.FC<InstituicaoProfileProps> = ({
   id,
-  nome,
-  email,
-  telefone,
-  foto_perfil,
   onAvatarUpdate,
   onDataUpdate
 }) => {
-  const [currentName, setCurrentName] = useState(nome);
-  const [currentEmail, setCurrentEmail] = useState(email);
-  const [currentPhone, setCurrentPhone] = useState(telefone);
-  const [currentAvatar, setCurrentAvatar] = useState(foto_perfil || '');
+  const [institutionData, setInstitutionData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [currentName, setCurrentName] = useState('');
+  const [currentEmail, setCurrentEmail] = useState('');
+  const [currentPhone, setCurrentPhone] = useState('');
+  const [currentAvatar, setCurrentAvatar] = useState('');
+  const [currentEndereco, setCurrentEndereco] = useState('');
+  const [currentDescricao, setCurrentDescricao] = useState('');
+  const [currentCnpj, setCurrentCnpj] = useState('');
+
+  // Carregar dados da instituição
+  useEffect(() => {
+    const loadInstitutionData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await institutionService.getById(Number(id));
+        
+        if (data) {
+          console.log('DEBUG InstituicaoProfile - Dados carregados:', data);
+          setInstitutionData(data);
+          setCurrentName(data.nome || '');
+          setCurrentEmail(data.email || '');
+          setCurrentPhone(data.telefone || '');
+          setCurrentEndereco(formatarEndereco(data.endereco));
+          setCurrentDescricao(data.descricao || '');
+          setCurrentCnpj(data.cnpj || '');
+          setCurrentAvatar(data.foto_perfil || '');
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados da instituição:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInstitutionData();
+  }, [id]);
   
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editValues, setEditValues] = useState({ nome: '', email: '', telefone: '' });
+  const [editValues, setEditValues] = useState({ nome: '', email: '', telefone: '', endereco: '', descricao: '' });
   
-  const [children, setChildren] = useState<Crianca[]>([]);
-  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  
-  const [isChildModalOpen, setIsChildModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [childToDelete, setChildToDelete] = useState<Crianca | null>(null);
 
   useEffect(() => {
-    const storedAvatar = loadAvatarFromStorage(generateAvatarStorageKey(id, 'usuario'));
+    const storedAvatar = loadAvatarFromStorage(generateAvatarStorageKey(id, 'instituicao'));
     if (storedAvatar) {
       setCurrentAvatar(storedAvatar);
     }
-    loadChildren();
   }, [id]);
-
-  const loadChildren = async () => {
-    setIsLoadingChildren(true);
-    try {
-      const data = await childService.getChildrenByUserId(Number(id));
-      setChildren(data || []);
-    } catch (error) {
-      console.error('Erro ao carregar filhos:', error);
-      setChildren([]);
-    } finally {
-      setIsLoadingChildren(false);
-    }
-  };
 
   const handleEditMode = () => {
     setIsEditMode(true);
-    setEditValues({ nome: currentName, email: currentEmail, telefone: currentPhone });
+    setEditValues({ 
+      nome: currentName, 
+      email: currentEmail, 
+      telefone: currentPhone, 
+      endereco: currentEndereco,
+      descricao: currentDescricao
+    });
   };
 
   const handleCancelEdit = () => {
     setIsEditMode(false);
-    setEditValues({ nome: '', email: '', telefone: '' });
+    setEditValues({ nome: '', email: '', telefone: '', endereco: '', descricao: '' });
   };
 
-  const handleInputChange = (field: 'nome' | 'email' | 'telefone', value: string) => {
+  const handleInputChange = (field: 'nome' | 'email' | 'telefone' | 'endereco' | 'descricao', value: string) => {
     setEditValues(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveChanges = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/usuarios/${Number(id)}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/instituicoes/${Number(id)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editValues),
@@ -94,6 +126,8 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
       setCurrentName(editValues.nome);
       setCurrentEmail(editValues.email);
       setCurrentPhone(editValues.telefone);
+      setCurrentEndereco(editValues.endereco);
+      setCurrentDescricao(editValues.descricao);
       
       onDataUpdate?.(editValues);
       
@@ -104,6 +138,8 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
       userData.nome = editValues.nome;
       userData.email = editValues.email;
       userData.telefone = editValues.telefone;
+      userData.endereco = editValues.endereco;
+      userData.descricao = editValues.descricao;
       localStorage.setItem('user-data', JSON.stringify(userData));
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
@@ -115,13 +151,13 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
     try {
       const base64 = await fileToBase64(file);
       setCurrentAvatar(base64);
-      saveAvatarToStorage(generateAvatarStorageKey(id, 'usuario'), base64);
+      saveAvatarToStorage(generateAvatarStorageKey(id, 'instituicao'), base64);
       onAvatarUpdate?.(base64);
 
       try {
         const azureUrl = await azureStorageService.uploadImage(file);
         setCurrentAvatar(azureUrl);
-        saveAvatarToStorage(generateAvatarStorageKey(id, 'usuario'), azureUrl);
+        saveAvatarToStorage(generateAvatarStorageKey(id, 'instituicao'), azureUrl);
         onAvatarUpdate?.(azureUrl);
       } catch (azureError) {
         console.warn('Falha no upload para Azure, mantendo base64:', azureError);
@@ -132,36 +168,21 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
     }
   };
 
-  const handleAddChild = () => {
-    setIsChildModalOpen(true);
-  };
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px' }}>
+        <div style={{ fontSize: '14px', color: '#6b7280' }}>Carregando dados...</div>
+      </div>
+    );
+  }
 
-  const handleChildRegistrationSuccess = () => {
-    loadChildren();
-    setIsChildModalOpen(false);
-  };
-
-  const handleDeleteChild = (child: Crianca) => {
-    setChildToDelete(child);
-    setDeleteModalOpen(true);
-  };
-
-  const confirmDeleteChild = async () => {
-    if (!childToDelete?.id) return;
-    
-    const childId = childToDelete.id;
-    setChildren(prev => prev.filter(c => c.id !== childId));
-    setDeleteModalOpen(false);
-    setChildToDelete(null);
-
-    try {
-      await childService.deleteChild(childId);
-    } catch (error) {
-      console.error('Erro ao excluir filho:', error);
-      await loadChildren();
-      alert('Erro ao excluir filho. A lista foi recarregada.');
-    }
-  };
+  if (!institutionData) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px' }}>
+        <div style={{ fontSize: '14px', color: '#ef4444' }}>Erro ao carregar dados da instituição.</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -241,6 +262,21 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
       </div>
 
       <div className={styles.fields}>
+        {currentCnpj && (
+          <div className={styles.fieldRow}>
+            <div className={styles.leftIcon}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+              </svg>
+            </div>
+            <div className={styles.fieldContent}>
+              <span className={styles.label}>CNPJ:</span>
+              <span className={styles.value}>{currentCnpj}</span>
+            </div>
+          </div>
+        )}
+
         <div className={styles.fieldRow}>
           <div className={styles.leftIcon}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -265,7 +301,7 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
                 }}
               />
             ) : (
-              <span className={styles.value}>{maskEmail(currentEmail || "usuario@dominio.com")}</span>
+              <span className={styles.value}>{maskEmail(currentEmail || "instituicao@dominio.com")}</span>
             )}
           </div>
         </div>
@@ -301,6 +337,69 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
         <div className={styles.fieldRow}>
           <div className={styles.leftIcon}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div className={styles.fieldContent}>
+            <span className={styles.label}>Endereço:</span>
+            {isEditMode ? (
+              <input 
+                type="text"
+                value={editValues.endereco || ''}
+                onChange={(e) => handleInputChange('endereco', e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  border: '2px solid #fb923c',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  outline: 'none',
+                  background: '#fef7ed'
+                }}
+              />
+            ) : (
+              <span className={styles.value}>{currentEndereco || 'Não informado'}</span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.fieldRow}>
+          <div className={styles.leftIcon}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div className={styles.fieldContent}>
+            <span className={styles.label}>Descrição:</span>
+            {isEditMode ? (
+              <textarea 
+                value={editValues.descricao || ''}
+                onChange={(e) => handleInputChange('descricao', e.target.value)}
+                rows={3}
+                style={{
+                  padding: '8px 12px',
+                  border: '2px solid #fb923c',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  outline: 'none',
+                  background: '#fef7ed',
+                  resize: 'vertical',
+                  width: '100%'
+                }}
+              />
+            ) : (
+              <span className={styles.value}>{currentDescricao || 'Não informado'}</span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.fieldRow}>
+          <div className={styles.leftIcon}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4a261" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172A2 2 0 0 0 11.414 16l.814-.814a6.5 6.5 0 1 0-4-4z"/>
               <circle cx="16.5" cy="7.5" r=".5" fill="#f4a261"/>
             </svg>
@@ -317,6 +416,48 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Seção de Publicações - estilo Instagram */}
+      {!isEditMode && institutionData?.publicacoes && institutionData.publicacoes.length > 0 && (
+        <div className={styles.publicacoesSection}>
+          <h3 className={styles.sectionTitle}>Publicações</h3>
+          <div className={styles.publicacoesList}>
+            {institutionData.publicacoes.map((pub: any) => {
+              console.log('DEBUG Publicação:', { id: pub.id, descricao: pub.descricao, imagem: pub.imagem });
+              return (
+                <div key={pub.id} className={styles.publicacaoCard}>
+                  {pub.imagem && (
+                    <div className={styles.publicacaoImagemContainer}>
+                      <img 
+                        src={pub.imagem} 
+                        alt="Publicação" 
+                        className={styles.publicacaoImagem}
+                        onError={(e) => {
+                          console.error('Erro ao carregar imagem:', pub.imagem);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        onLoad={() => console.log('Imagem carregada:', pub.imagem)}
+                      />
+                    </div>
+                  )}
+                  <div className={styles.publicacaoContent}>
+                    <div className={styles.publicacaoHeader}>
+                      <span className={styles.publicacaoData}>
+                        {new Date(pub.criado_em).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    <div className={styles.publicacaoConteudo}>{pub.descricao}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {isEditMode && (
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '20px' }}>
@@ -353,182 +494,6 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
           >
             Cancelar
           </button>
-        </div>
-      )}
-
-      <div className={styles.sectionHeader}>
-        <span>Filhos:</span>
-        <button className={styles.addBtn} onClick={handleAddChild} aria-label="Adicionar filho">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <line x1="19" y1="8" x2="19" y2="14"/>
-            <line x1="16" y1="11" x2="22" y2="11"/>
-          </svg>
-        </button>
-      </div>
-
-      <div className={styles.childrenList}>
-        {isLoadingChildren ? (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-            Carregando filhos...
-          </div>
-        ) : children.length > 0 ? (
-          children.map((child, idx) => {
-            const isOpenItem = expandedIndex === idx;
-            return (
-              <div className={styles.childCard} key={child.id || idx}>
-                <div className={styles.leftAccent} />
-                <div className={styles.childAvatar}>
-                  <img 
-                    src={child.foto_perfil || "https://cdn-icons-png.flaticon.com/512/847/847969.png"} 
-                    alt=""
-                  />
-                  <span className={styles.statusDot} />
-                </div>
-                <div className={styles.childName}>{child.nome}</div>
-                <button 
-                  className={styles.caret} 
-                  onClick={() => setExpandedIndex(isOpenItem ? null : idx)} 
-                  aria-label={isOpenItem ? "Recolher" : "Expandir"}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {isOpenItem ? (
-                      <polyline points="8 15 12 11 16 15"/>
-                    ) : (
-                      <polyline points="8 9 12 13 16 9"/>
-                    )}
-                  </svg>
-                </button>
-
-                {isOpenItem && (
-                  <div className={styles.childExpanded}>
-                    <div className={styles.expandedHeader}>Instituições que faz parte:</div>
-                    {child.atividades_matriculadas && child.atividades_matriculadas.length > 0 ? (
-                      child.atividades_matriculadas.map((atividade: any, actIdx: number) => (
-                        <div key={actIdx} className={styles.institutionItem}>
-                          <img className={styles.institutionIcon} alt="instituicoes" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWJvb2stbWFya2VkLWljb24gbHVjaWRlLWJvb2stbWFya2VkIj48cGF0aCBkPSJNMTAgMnY4bDMtMyAzIDNWMiIvPjxwYXRoIGQ9Ik00IDE5LjV2LTE1QTIuNSAyLjUgMCAwIDEgNi41IDJIMTlhMSAxIDAgMCAxIDEgMXYxOGExIDEgMCAwIDEtMSAxSDYuNWExIDEgMCAwIDEgMC01SDIwIi8+PC9zdmc+" />
-                          <div className={styles.institutionName}>{atividade.instituicao_nome || 'Instituição'}</div>
-                        </div>
-                      ))
-                    ) : (
-                      <div style={{ color: '#666', fontSize: '14px', padding: '10px 0' }}>
-                        Nenhuma instituição cadastrada
-                      </div>
-                    )}
-
-                    <div className={styles.childActions}>
-                      <button 
-                        onClick={() => handleDeleteChild(child)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <div style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          background: '#ef4444',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '14px',
-                          fontWeight: 'bold'
-                        }}>
-                          ×
-                        </div>
-                      </button>
-                      <img className={styles.actionIcon} alt="config-associacao" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXItY29nLWljb24gbHVjaWRlLXVzZXItY29nIj48cGF0aCBkPSJNMTAgMTVINmE0IDQgMCAwIDAtNCA0djIiLz48cGF0aCBkPSJtMTQuMzA1IDE2LjUzLjkyMy0uMzgyIi8+PHBhdGggZD0ibTE1LjIyOCAxMy44NTItLjkyMy0uMzgzIi8+PHBhdGggZD0ibTE2Ljg1MiAxMi4yMjgtLjM4My0uOTIzIi8+PHBhdGggZD0ibTE2Ljg1MiAxNy43NzItLjM4My45MjQiLz48cGF0aCBkPSJtMTkuMTQ4IDEyLjIyOC4zODMtLjkyMyIvPjxwYXRoIGQ9Im0xOS41MyAxOC42OTYtLjM4Mi0uOTI0Ci8+PHBhdGggZD0ibTIwLjc3MiAxMy44NTIuOTI0LS4zODMiLz48cGF0aCBkPSJtMjAuNzcyIDE2LjE0OC45MjQuMzgzIi8+PGNpcmNsZSBjeD0iMTgiIGN5PSIxNSIgcj0iMyIvPjxjaXJjbGUgY3g9IjkiIGN5PSI3IiByPSI0Ii8+PC9zdmc+" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-            Nenhum filho cadastrado ainda
-          </div>
-        )}
-      </div>
-
-      <ChildRegistrationModal
-        isOpen={isChildModalOpen}
-        onClose={() => setIsChildModalOpen(false)}
-        onSuccess={handleChildRegistrationSuccess}
-        userId={Number(id)}
-      />
-
-      {deleteModalOpen && (
-        <div 
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999
-          }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            maxWidth: '400px',
-            width: '90%',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-            textAlign: 'center'
-          }}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#1f2937', fontSize: '18px' }}>
-              Deseja excluir {childToDelete?.nome}?
-            </h3>
-            <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px' }}>
-              Esta ação não pode ser desfeita.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button 
-                onClick={() => setDeleteModalOpen(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  background: 'white',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Não
-              </button>
-              <button 
-                onClick={confirmDeleteChild}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: '#ef4444',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Sim
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -600,4 +565,4 @@ const UsuarioProfile: React.FC<UsuarioProfileProps> = ({
   );
 };
 
-export default UsuarioProfile;
+export default InstituicaoProfile;

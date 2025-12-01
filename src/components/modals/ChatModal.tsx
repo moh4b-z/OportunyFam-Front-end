@@ -31,10 +31,16 @@ const AudioPlayer: React.FC<{ audioUrl: string; duration?: number | null; isSent
   const animationRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(duration || 0);
+  const [audioDuration, setAudioDuration] = useState(
+    duration && isFinite(duration) && duration > 0 ? duration : 0
+  );
   const [hasStarted, setHasStarted] = useState(false);
 
   const formatTime = (seconds: number) => {
+    // Proteção contra valores inválidos (Infinity, NaN, negativos)
+    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) {
+      return '0:00';
+    }
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -74,8 +80,12 @@ const AudioPlayer: React.FC<{ audioUrl: string; duration?: number | null; isSent
   };
 
   const handleLoadedMetadata = () => {
-    if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration)) {
-      setAudioDuration(audioRef.current.duration);
+    if (audioRef.current) {
+      const dur = audioRef.current.duration;
+      // Só atualiza se for um número válido e finito
+      if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
+        setAudioDuration(dur);
+      }
     }
   };
 

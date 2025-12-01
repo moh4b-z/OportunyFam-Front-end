@@ -6,10 +6,18 @@ import "../../app/styles/SearchCard.css";
 import ChatModal from './ChatModal';
 import { Instituicao } from "@/types";
 
+// Contato genérico para abrir chat automaticamente (pode ser instituição, responsável, etc.)
+interface AutoOpenContact {
+  pessoa_id: number;
+  nome: string;
+  foto_perfil?: string | null;
+}
+
 interface ConversationsModalProps {
   isOpen: boolean;
   onClose: () => void;
   autoOpenInstitution?: Instituicao | null;
+  autoOpenContact?: AutoOpenContact | null; // Contato genérico para abrir chat
   conversationsFromApi?: ApiConversation[] | null;
   currentUserPessoaId?: number | null;
   onRefreshConversations?: () => void | Promise<void>;
@@ -89,6 +97,7 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({
   isOpen,
   onClose,
   autoOpenInstitution,
+  autoOpenContact,
   conversationsFromApi,
   currentUserPessoaId,
   onRefreshConversations,
@@ -98,6 +107,7 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Conversation | null>(null);
   const [hasAutoOpenedFromProfile, setHasAutoOpenedFromProfile] = useState(false);
+  const [hasAutoOpenedFromContact, setHasAutoOpenedFromContact] = useState(false);
 
   // Lista de conversas vinda da API mapeada para o formato interno
   const conversations: Conversation[] = useMemo(
@@ -257,9 +267,57 @@ const ConversationsModal: React.FC<ConversationsModalProps> = ({
     setHasAutoOpenedFromProfile(true);
   }, [autoOpenInstitution, isOpen, conversations, hasAutoOpenedFromProfile]);
 
+  // Quando um contato genérico for passado (ex.: responsável de criança),
+  // tenta encontrar a conversa correspondente e abre diretamente o chat.
+  useEffect(() => {
+    if (!isOpen || !autoOpenContact || hasAutoOpenedFromContact) return;
+
+    // Tenta localizar uma conversa cujo outro_participante corresponda ao contato
+    let matchedConversation: Conversation | undefined;
+    const contactPessoaId = autoOpenContact.pessoa_id;
+
+    if (contactPessoaId != null) {
+      matchedConversation = conversations.find(
+        (c) => c.otherParticipantId === contactPessoaId
+      );
+    }
+
+    // Fallback: tenta casar pelo nome
+    if (!matchedConversation) {
+      matchedConversation = conversations.find(
+        (c) => c.name === autoOpenContact.nome
+      );
+    }
+
+    if (matchedConversation) {
+      setSelectedContact(matchedConversation);
+      setIsChatModalOpen(true);
+      setHasAutoOpenedFromContact(true);
+      return;
+    }
+
+    // Se não encontrou conversa, cria um contato temporário
+    const name = autoOpenContact.nome || 'Contato';
+    const tempContact: Conversation = {
+      id: String(contactPessoaId),
+      conversationId: 0,
+      otherParticipantId: contactPessoaId,
+      name,
+      lastMessage: '',
+      unreadCount: undefined,
+      avatarInitial: name.trim().charAt(0).toUpperCase() || 'C',
+      avatarUrl: autoOpenContact.foto_perfil || null,
+    };
+
+    setSelectedContact(tempContact);
+    setIsChatModalOpen(true);
+    setHasAutoOpenedFromContact(true);
+  }, [autoOpenContact, isOpen, conversations, hasAutoOpenedFromContact]);
+
   useEffect(() => {
     if (!isOpen) {
       setHasAutoOpenedFromProfile(false);
+      setHasAutoOpenedFromContact(false);
       setSelectedContact(null);
       setIsChatModalOpen(false);
     }

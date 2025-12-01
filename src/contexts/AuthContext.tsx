@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authService } from '@/services/authService'
 import { childService } from '@/services/childService'
+import { API_BASE_URL } from '@/services/config'
 
 interface User {
   id: string
@@ -11,12 +12,15 @@ interface User {
   email: string
   telefone?: string
   cpf?: string
+  cnpj?: string
   endereco?: string
   enderecoCoords?: { lat: number; lng: number } | null
   foto_perfil?: string
+  logo?: string
+  descricao?: string
   isFirstLogin?: boolean
   hasChildren?: boolean
-  tipo?: 'usuario' | 'instituicao' | 'crianca'
+  tipo: 'usuario' | 'instituicao' | 'crianca'
 }
 
 interface AuthContextType {
@@ -37,47 +41,85 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showChildRegistration, setShowChildRegistration] = useState(false)
   const router = useRouter()
 
-  // Busca os dados completos do usuário pela API
-  const fetchUserData = async (userId: number): Promise<User | null> => {
+  // Busca os dados completos do usuário pela API baseado no tipo
+  const fetchUserData = async (entityId: number, tipo: User['tipo']): Promise<User | null> => {
     try {
-      const fullUserData = await childService.getUserById(userId)
-      const userData = fullUserData?.usuario ?? fullUserData
+      let entityData: any = null
       
-      if (!userData) return null
-
-      const hasChildren = Array.isArray(userData?.criancas_dependentes) && userData.criancas_dependentes.length > 0
-      const rawTipoNivel = userData?.tipo_nivel ?? ''
-      const isResponsible = typeof rawTipoNivel === 'string' && rawTipoNivel.toLowerCase().includes('fam')
-
-      // Formata o endereço a partir de locais_salvos
-      let enderecoFormatado: string | undefined = undefined
-      let enderecoCoords: { lat: number; lng: number } | null = null
-      if (Array.isArray(userData?.locais_salvos) && userData.locais_salvos.length > 0) {
-        const local = userData.locais_salvos[0]
-        const bairro = local.bairro || ''
-        const cidade = local.cidade || ''
-        const estado = local.estado || ''
-        if (bairro || cidade || estado) {
-          enderecoFormatado = `${bairro}${cidade ? `, ${cidade}` : ''}${estado ? ` - ${estado}` : ''}`
+      if (tipo === 'usuario') {
+        // Busca dados do responsável
+        const fullUserData = await childService.getUserById(entityId)
+        entityData = fullUserData?.usuario ?? fullUserData
+      } else if (tipo === 'instituicao') {
+        // Busca dados da instituição
+        const response = await fetch(`${API_BASE_URL}/instituicoes/${entityId}`)
+        if (response.ok) {
+          const data = await response.json()
+          entityData = data?.result?.instituicao ?? data?.instituicao ?? data?.result ?? data
         }
-        // Pega coordenadas se existirem e forem válidas
-        if (local.latitude && local.longitude && local.latitude !== 0 && local.longitude !== 0) {
-          enderecoCoords = { lat: local.latitude, lng: local.longitude }
+      } else if (tipo === 'crianca') {
+        // Busca dados da criança
+        const response = await fetch(`${API_BASE_URL}/criancas/${entityId}`)
+        if (response.ok) {
+          const data = await response.json()
+          entityData = data?.result?.crianca ?? data?.crianca ?? data?.result ?? data
         }
       }
+      
+      if (!entityData) return null
+
+      let hasChildren = false
+      let enderecoFormatado: string | undefined = undefined
+      let enderecoCoords: { lat: number; lng: number } | null = null
+
+      if (tipo === 'usuario') {
+        // Para responsáveis: verifica crianças e usa locais_salvos
+        hasChildren = Array.isArray(entityData?.criancas_dependentes) && entityData.criancas_dependentes.length > 0
+        
+        if (Array.isArray(entityData?.locais_salvos) && entityData.locais_salvos.length > 0) {
+          const local = entityData.locais_salvos[0]
+          const bairro = local.bairro || ''
+          const cidade = local.cidade || ''
+          const estado = local.estado || ''
+          if (bairro || cidade || estado) {
+            enderecoFormatado = `${bairro}${cidade ? `, ${cidade}` : ''}${estado ? ` - ${estado}` : ''}`
+          }
+          if (local.latitude && local.longitude && local.latitude !== 0 && local.longitude !== 0) {
+            enderecoCoords = { lat: local.latitude, lng: local.longitude }
+          }
+        }
+      } else if (tipo === 'instituicao') {
+        // Para instituições: usa endereco diretamente
+        if (entityData?.endereco) {
+          const end = entityData.endereco
+          const bairro = end.bairro || ''
+          const cidade = end.cidade || ''
+          const estado = end.estado || ''
+          if (bairro || cidade || estado) {
+            enderecoFormatado = `${bairro}${cidade ? `, ${cidade}` : ''}${estado ? ` - ${estado}` : ''}`
+          }
+          if (end.latitude && end.longitude && end.latitude !== 0 && end.longitude !== 0) {
+            enderecoCoords = { lat: end.latitude, lng: end.longitude }
+          }
+        }
+      }
+      // Para crianças: não tem endereço próprio
 
       return {
-        id: userId.toString(),
-        nome: userData?.nome ?? '',
-        email: userData?.email ?? '',
-        telefone: userData?.telefone ?? undefined,
-        cpf: userData?.cpf ?? undefined,
+        id: entityId.toString(),
+        nome: entityData?.nome ?? '',
+        email: entityData?.email ?? '',
+        telefone: entityData?.telefone ?? undefined,
+        cpf: entityData?.cpf ?? undefined,
+        cnpj: entityData?.cnpj ?? undefined,
         endereco: enderecoFormatado,
         enderecoCoords,
-        foto_perfil: userData?.foto_perfil || undefined,
+        foto_perfil: entityData?.foto_perfil ?? undefined,
+        logo: entityData?.logo ?? undefined,
+        descricao: entityData?.descricao ?? undefined,
         hasChildren,
-        isFirstLogin: isResponsible && !hasChildren,
-        tipo: isResponsible ? 'usuario' : undefined,
+        isFirstLogin: tipo === 'usuario' && !hasChildren,
+        tipo,
       }
     } catch (error) {
       console.error('Erro ao buscar dados do usuário:', error)
@@ -93,15 +135,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .find(row => row.startsWith('auth-token='))
         ?.split('=')[1]
 
-      // Agora só salva o ID no localStorage
-      const storedUserId = localStorage.getItem('user-id')
+      const storedTipo = localStorage.getItem('user-tipo') as User['tipo'] | null
       
-      if (token && storedUserId) {
+      // Busca o ID correto baseado no tipo
+      let storedId: string | null = null
+      if (storedTipo === 'usuario') {
+        storedId = localStorage.getItem('usuario_id')
+      } else if (storedTipo === 'instituicao') {
+        storedId = localStorage.getItem('instituicao_id')
+      } else if (storedTipo === 'crianca') {
+        storedId = localStorage.getItem('crianca_id')
+      }
+      
+      if (token && storedId && storedTipo) {
         try {
-          const userId = Number(storedUserId)
-          if (Number.isFinite(userId)) {
-            // Busca os dados completos do usuário via API
-            const userData = await fetchUserData(userId)
+          const entityId = Number(storedId)
+          if (Number.isFinite(entityId)) {
+            // Busca os dados completos do usuário via API baseado no tipo
+            const userData = await fetchUserData(entityId, storedTipo)
             if (userData) {
               setUser(userData)
             } else {
@@ -144,44 +195,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Dados do usuário não encontrados na resposta')
       }
 
-      const userData = response.result
-
-      const rawId =
-        (userData as any)?.id ??
-        (userData as any)?.usuario?.id ??
-        (userData as any)?.user?.id ??
-        (userData as any)?.usuario_id ??
-        (userData as any)?.id_usuario ??
-        (userData as any)?.instituicao_id ??
-        (userData as any)?.id_instituicao ??
-        (userData as any)?.pessoa_id ??
-        (userData as any)?.id_pessoa
-      if (rawId == null) {
-        throw new Error('Dados do usuário sem ID na resposta do login')
+      // O tipo vem direto na resposta: "usuario", "instituicao" ou "crianca"
+      const tipo = response.tipo as User['tipo']
+      if (!tipo || !['usuario', 'instituicao', 'crianca'].includes(tipo)) {
+        throw new Error('Tipo de usuário inválido na resposta do login')
       }
-      const userIdNumber = Number(rawId)
-      if (!Number.isFinite(userIdNumber)) {
+
+      // Os dados vêm diretamente em result (não em result.usuario, etc)
+      const entityData = response.result
+      if (!entityData) {
+        throw new Error('Dados do usuário não encontrados na resposta')
+      }
+
+      // O ID vem como instituicao_id, usuario_id ou crianca_id dependendo do tipo
+      let entityId: number
+      if (tipo === 'instituicao') {
+        entityId = Number(entityData.instituicao_id)
+      } else if (tipo === 'usuario') {
+        entityId = Number(entityData.usuario_id)
+      } else {
+        entityId = Number(entityData.crianca_id)
+      }
+      
+      if (!Number.isFinite(entityId)) {
         throw new Error('ID de usuário inválido na resposta do login')
       }
 
-      const token = `auth-token-${Date.now()}-${userIdNumber}`
-
-      const loginTipo = (response as any)?.tipo as User['tipo'] | undefined
-
-      const rawTipoNivel = userData?.tipo_nivel ?? userData?.usuario?.tipo_nivel ?? ''
-      const isResponsible = typeof rawTipoNivel === 'string' && rawTipoNivel.toLowerCase().includes('fam')
-      
-      let hasChildren = false
-      if (isResponsible) {
-        try {
-          const fullUserData = await childService.getUserById(userIdNumber)
-          hasChildren = Array.isArray(fullUserData?.criancas_dependentes) && fullUserData.criancas_dependentes.length > 0
-        } catch (error) {
-          console.error('Erro ao verificar crianças do usuário:', error)
-          const loginChildren = userData?.criancas_dependentes ?? userData?.usuario?.criancas_dependentes
-          hasChildren = Array.isArray(loginChildren) && loginChildren.length > 0
-        }
-      }
+      // Usa o accessToken real que vem da API
+      const token = response.accessToken || `auth-token-${Date.now()}-${entityId}`
       
       // Define a duração do cookie baseado na opção "lembrar-se de mim"
       const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60 // 30 dias ou 24 horas
@@ -189,22 +230,85 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Define o cookie de autenticação
       document.cookie = `auth-token=${token}; path=/; max-age=${maxAge}`
 
-      // Salva APENAS o ID do usuário no localStorage (dados são buscados da API)
-      localStorage.setItem('user-id', userIdNumber.toString())
+      // Limpa IDs antigos
+      localStorage.removeItem('usuario_id')
+      localStorage.removeItem('instituicao_id')
+      localStorage.removeItem('crianca_id')
+      
+      // Salva o ID correto baseado no tipo
+      if (tipo === 'usuario') {
+        localStorage.setItem('usuario_id', entityId.toString())
+      } else if (tipo === 'instituicao') {
+        localStorage.setItem('instituicao_id', entityId.toString())
+      } else if (tipo === 'crianca') {
+        localStorage.setItem('crianca_id', entityId.toString())
+      }
+      
+      // Salva o tipo do usuário logado
+      localStorage.setItem('user-tipo', tipo)
       
       // Salva a preferência "lembrar-se de mim"
       localStorage.setItem('remember-me', rememberMe.toString())
       
-      // Busca os dados completos do usuário via API
-      const fullUser = await fetchUserData(userIdNumber)
-      if (!fullUser) {
-        throw new Error('Falha ao carregar dados do usuário')
+      // Monta o objeto do usuário com os dados que já vieram no login
+      let hasChildren = false
+      let enderecoFormatado: string | undefined = undefined
+      let enderecoCoords: { lat: number; lng: number } | null = null
+      
+      if (tipo === 'usuario') {
+        // Para responsáveis: verifica crianças e usa locais_salvos para endereço
+        hasChildren = Array.isArray(entityData?.criancas_dependentes) && entityData.criancas_dependentes.length > 0
+        
+        if (Array.isArray(entityData?.locais_salvos) && entityData.locais_salvos.length > 0) {
+          const local = entityData.locais_salvos[0]
+          const bairro = local.bairro || ''
+          const cidade = local.cidade || ''
+          const estado = local.estado || ''
+          if (bairro || cidade || estado) {
+            enderecoFormatado = `${bairro}${cidade ? `, ${cidade}` : ''}${estado ? ` - ${estado}` : ''}`
+          }
+          if (local.latitude && local.longitude && local.latitude !== 0 && local.longitude !== 0) {
+            enderecoCoords = { lat: local.latitude, lng: local.longitude }
+          }
+        }
+      } else if (tipo === 'instituicao') {
+        // Para instituições: usa endereco diretamente
+        if (entityData?.endereco) {
+          const end = entityData.endereco
+          const bairro = end.bairro || ''
+          const cidade = end.cidade || ''
+          const estado = end.estado || ''
+          if (bairro || cidade || estado) {
+            enderecoFormatado = `${bairro}${cidade ? `, ${cidade}` : ''}${estado ? ` - ${estado}` : ''}`
+          }
+          if (end.latitude && end.longitude && end.latitude !== 0 && end.longitude !== 0) {
+            enderecoCoords = { lat: end.latitude, lng: end.longitude }
+          }
+        }
+      }
+      // Para crianças: não tem endereço próprio
+      
+      const loggedUser: User = {
+        id: entityId.toString(),
+        nome: entityData.nome ?? '',
+        email: entityData.email ?? '',
+        telefone: entityData.telefone ?? undefined,
+        cpf: entityData.cpf ?? undefined,
+        cnpj: entityData.cnpj ?? undefined,
+        endereco: enderecoFormatado,
+        enderecoCoords,
+        foto_perfil: entityData.foto_perfil ?? undefined,
+        logo: entityData.logo ?? undefined,
+        descricao: entityData.descricao ?? undefined,
+        hasChildren,
+        isFirstLogin: tipo === 'usuario' && !hasChildren,
+        tipo,
       }
       
-      setUser(fullUser)
+      setUser(loggedUser)
       
       // Se é responsável e não tem crianças, mostra modal de cadastro
-      if (isResponsible && !hasChildren) {
+      if (tipo === 'usuario' && !hasChildren) {
         setShowChildRegistration(true)
       }
       
@@ -225,8 +329,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Remove o cookie
     document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
     
-    // Remove apenas o ID do localStorage
-    localStorage.removeItem('user-id')
+    // Remove todos os IDs e dados do localStorage
+    localStorage.removeItem('usuario_id')
+    localStorage.removeItem('instituicao_id')
+    localStorage.removeItem('crianca_id')
+    localStorage.removeItem('user-tipo')
     localStorage.removeItem('remember-me')
     
     setUser(null)
@@ -237,11 +344,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Função para atualizar os dados do usuário (busca novamente da API)
   const refreshUserData = async () => {
-    const storedUserId = localStorage.getItem('user-id')
-    if (storedUserId) {
-      const userId = Number(storedUserId)
-      if (Number.isFinite(userId)) {
-        const userData = await fetchUserData(userId)
+    const storedTipo = localStorage.getItem('user-tipo') as User['tipo'] | null
+    if (!storedTipo) return
+    
+    let storedId: string | null = null
+    if (storedTipo === 'usuario') {
+      storedId = localStorage.getItem('usuario_id')
+    } else if (storedTipo === 'instituicao') {
+      storedId = localStorage.getItem('instituicao_id')
+    } else if (storedTipo === 'crianca') {
+      storedId = localStorage.getItem('crianca_id')
+    }
+    
+    if (storedId) {
+      const entityId = Number(storedId)
+      if (Number.isFinite(entityId)) {
+        const userData = await fetchUserData(entityId, storedTipo)
         if (userData) {
           setUser(userData)
         }

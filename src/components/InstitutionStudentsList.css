@@ -1,0 +1,1107 @@
+/*
+ * ===============================================
+ * Lista de Alunos Inscritos da Instituição
+ * ===============================================
+ */
+
+/* Wrapper externo */
+.students-list-wrapper {
+  width: 30%;
+  min-width: 280px;
+  max-width: 400px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+/* Título fora do card */
+.students-list-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+body.dark .students-list-title {
+  color: var(--text-dark-theme);
+}
+
+.students-list-icon {
+  color: var(--orange);
+  display: flex;
+  align-items: center;
+}
+
+.students-list-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Card com a lista */
+.students-list-card {
+  flex: 1;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+body.dark .students-list-card {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+/* Barra de pesquisa */
+.students-search-bar {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+body.dark .students-search-bar {
+  border-bottom-color: var(--border-dark);
+}
+
+/* Caixa de pesquisa - igual ao search-box */
+.students-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-light);
+  padding: 6px 10px;
+  border-radius: 24px;
+  border: 2px solid var(--border-color, #e8e8e8);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body.dark .students-search-box {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.students-search-box:focus-within {
+  border-color: var(--orange);
+}
+
+.students-search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-gray, #999);
+  display: flex;
+  align-items: center;
+}
+
+body.dark .students-search-icon {
+  color: #888;
+}
+
+.students-search-input {
+  width: 100%;
+  padding: 6px 10px 6px 40px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+  color: #333;
+}
+
+body.dark .students-search-input {
+  color: var(--text-dark-theme);
+}
+
+.students-search-input::placeholder {
+  color: #999;
+}
+
+body.dark .students-search-input::placeholder {
+  color: #666;
+}
+
+/* Filtro de status - igual ao location-filter */
+.students-filter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.students-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(244, 162, 97, 0.1);
+  border: 1px solid rgba(244, 162, 97, 0.3);
+  border-radius: 20px;
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.students-filter-btn:hover {
+  background: rgba(244, 162, 97, 0.15);
+  border-color: var(--orange);
+  transform: translateY(-1px);
+}
+
+body.dark .students-filter-btn {
+  background: rgba(244, 162, 97, 0.15);
+  border-color: rgba(244, 162, 97, 0.4);
+}
+
+body.dark .students-filter-btn:hover {
+  background: rgba(244, 162, 97, 0.25);
+}
+
+/* Seta do dropdown */
+.students-dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.students-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown do filtro - igual ao location-dropdown */
+.students-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid var(--border-color, #e8e8e8);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  min-width: 160px;
+  overflow: hidden;
+  animation: studentDropdownFadeIn 0.2s ease;
+}
+
+@keyframes studentDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.dark .students-filter-dropdown {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Opções do filtro - igual ao location-option */
+.students-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: var(--text-dark, #333);
+}
+
+.students-filter-option:hover {
+  background: rgba(244, 162, 97, 0.08);
+}
+
+body.dark .students-filter-option {
+  color: var(--text-dark-theme);
+}
+
+body.dark .students-filter-option:hover {
+  background: rgba(244, 162, 97, 0.12);
+}
+
+.students-filter-option.active {
+  background: rgba(244, 162, 97, 0.12);
+  color: var(--orange);
+  font-weight: 500;
+}
+
+.students-option-label {
+  flex: 1;
+}
+
+.students-check-icon {
+  color: var(--orange);
+}
+
+/* Conteúdo */
+.students-list-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 16px;
+}
+
+/* Grid de alunos */
+.students-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Card de aluno - mesmo design dos cards de instituição */
+.student-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-light);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e8e8e8);
+  transition: all 0.2s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+body.dark .student-card {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.student-card:hover {
+  border-color: var(--orange);
+  background: var(--bg-hover-light, #fafafa);
+  transform: translateY(-2px);
+}
+
+body.dark .student-card:hover {
+  background: var(--hover-bg-dark);
+  border-color: var(--orange);
+}
+
+/* Foto do aluno - mesmo estilo do card-logo-block */
+.student-card-photo {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(231, 111, 81, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+body.dark .student-card-photo {
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.2), rgba(231, 111, 81, 0.15));
+}
+
+.student-card:hover .student-card-photo {
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.25), rgba(231, 111, 81, 0.2));
+  transform: scale(1.05);
+}
+
+.student-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1.5px solid rgba(244, 162, 97, 0.2);
+}
+
+.student-card-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  border: 1.5px solid rgba(244, 162, 97, 0.3);
+  border-radius: 50%;
+  padding: 6px;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.student-card-photo-placeholder svg {
+  width: 65%;
+  height: 65%;
+  opacity: 0.8;
+}
+
+body.dark .student-card-photo-placeholder {
+  color: var(--orange);
+  border-color: rgba(244, 162, 97, 0.4);
+}
+
+/* Info do aluno */
+.student-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.student-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-darker, #333);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+body.dark .student-card-name {
+  color: var(--text-dark-theme);
+}
+
+/* Status da inscrição - mesmo estilo do card-category */
+.student-card-status {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 10px;
+  border-radius: 14px;
+  width: fit-content;
+}
+
+.student-card-status.approved {
+  background: rgba(76, 175, 80, 0.12);
+  color: #43a047;
+}
+
+.student-card-status.pending {
+  background: rgba(244, 162, 97, 0.12);
+  color: #e76f51;
+}
+
+.student-card-status.canceled {
+  background: rgba(158, 158, 158, 0.12);
+  color: #757575;
+}
+
+.student-card-status.denied {
+  background: rgba(244, 67, 54, 0.12);
+  color: #e53935;
+}
+
+body.dark .student-card-status.approved {
+  background: rgba(76, 175, 80, 0.2);
+  color: #66bb6a;
+}
+
+body.dark .student-card-status.pending {
+  background: rgba(244, 162, 97, 0.2);
+  color: #f4a261;
+}
+
+body.dark .student-card-status.canceled {
+  background: rgba(158, 158, 158, 0.2);
+  color: #9e9e9e;
+}
+
+body.dark .student-card-status.denied {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ef5350;
+}
+
+/* Estados */
+.students-list-loading,
+.students-list-error,
+.students-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #888;
+  text-align: center;
+  gap: 12px;
+}
+
+body.dark .students-list-loading,
+body.dark .students-list-error,
+body.dark .students-list-empty {
+  color: #aaa;
+}
+
+.students-list-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e8e8e8;
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+body.dark .students-list-spinner {
+  border-color: var(--border-dark);
+  border-top-color: var(--orange);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.students-list-error button {
+  padding: 8px 16px;
+  background: var(--orange);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.students-list-error button:hover {
+  background: #e59370;
+}
+
+/* ===============================================
+ * Modal de Detalhes do Aluno
+ * =============================================== */
+
+.student-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.student-modal {
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.dark .student-modal {
+  background: var(--bg-card-dark);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.student-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--orange);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, border 0.18s ease;
+}
+
+.student-modal-close:hover {
+  background: rgba(244, 162, 97, 0.12);
+  border: 1.5px solid rgba(244, 162, 97, 0.45);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.25);
+  transform: translateY(-1px);
+}
+
+.student-modal-close:active {
+  transform: translateY(0);
+  background: rgba(244, 162, 97, 0.25);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.4);
+}
+
+body.dark .student-modal-close {
+  background: transparent;
+  color: var(--orange);
+}
+
+body.dark .student-modal-close:hover {
+  background: rgba(244, 162, 97, 0.15);
+  border-color: rgba(244, 162, 97, 0.5);
+}
+
+.student-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: #888;
+}
+
+.student-modal-error {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+/* Header do Modal */
+.student-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 20px;
+}
+
+body.dark .student-modal-header {
+  border-bottom-color: var(--border-dark);
+}
+
+.student-modal-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(231, 111, 81, 0.1));
+}
+
+.student-modal-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-modal-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+}
+
+.student-modal-photo-placeholder.small {
+  width: 48px;
+  height: 48px;
+}
+
+.student-modal-photo-placeholder svg {
+  width: 50%;
+  height: 50%;
+}
+
+.student-modal-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-modal-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+body.dark .student-modal-name {
+  color: var(--text-dark-theme);
+}
+
+.student-modal-status {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 14px;
+  display: inline-block;
+}
+
+.student-modal-status.approved {
+  background: rgba(76, 175, 80, 0.12);
+  color: #43a047;
+}
+
+.student-modal-status.pending {
+  background: rgba(244, 162, 97, 0.12);
+  color: #e76f51;
+}
+
+.student-modal-status.canceled {
+  background: rgba(158, 158, 158, 0.12);
+  color: #757575;
+}
+
+.student-modal-status.denied {
+  background: rgba(244, 67, 54, 0.12);
+  color: #e53935;
+}
+
+body.dark .student-modal-status.approved {
+  background: rgba(76, 175, 80, 0.2);
+  color: #66bb6a;
+}
+
+body.dark .student-modal-status.pending {
+  background: rgba(244, 162, 97, 0.2);
+  color: #f4a261;
+}
+
+body.dark .student-modal-status.canceled {
+  background: rgba(158, 158, 158, 0.2);
+  color: #9e9e9e;
+}
+
+body.dark .student-modal-status.denied {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ef5350;
+}
+
+/* Seções do Modal */
+.student-modal-section {
+  margin-bottom: 20px;
+}
+
+.student-modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.student-modal-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+body.dark .student-modal-section-title {
+  color: #999;
+}
+
+/* Grid de Informações */
+.student-modal-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-modal-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f8f8;
+  border-radius: 12px;
+}
+
+body.dark .student-modal-info-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.student-modal-info-icon {
+  color: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(244, 162, 97, 0.1);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.student-modal-info-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-modal-info-label {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 2px;
+}
+
+body.dark .student-modal-info-label {
+  color: #999;
+}
+
+.student-modal-info-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+body.dark .student-modal-info-value {
+  color: var(--text-dark-theme);
+}
+
+/* Responsável */
+.student-modal-responsavel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: #f8f8f8;
+  border-radius: 12px;
+}
+
+body.dark .student-modal-responsavel {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.student-modal-responsavel-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(231, 111, 81, 0.1));
+}
+
+.student-modal-responsavel-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-modal-responsavel-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-modal-responsavel-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+body.dark .student-modal-responsavel-name {
+  color: var(--text-dark-theme);
+}
+
+.student-modal-responsavel-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-modal-responsavel-details span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.student-modal-responsavel-details svg {
+  color: var(--orange);
+  flex-shrink: 0;
+}
+
+/* Botão de mensagem para iniciar conversa */
+.student-modal-message-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--orange);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, border 0.18s ease;
+}
+
+.student-modal-message-btn:hover {
+  background: rgba(244, 162, 97, 0.12);
+  border: 1.5px solid rgba(244, 162, 97, 0.45);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.25);
+  transform: scale(1.05);
+}
+
+.student-modal-message-btn:active {
+  transform: scale(0.98);
+  background: rgba(244, 162, 97, 0.2);
+}
+
+body.dark .student-modal-message-btn {
+  color: var(--orange);
+}
+
+body.dark .student-modal-message-btn:hover {
+  background: rgba(244, 162, 97, 0.15);
+  border-color: rgba(244, 162, 97, 0.5);
+}
+
+body.dark .student-modal-responsavel-details span {
+  color: #aaa;
+}
+
+/* Alterar Status */
+.student-modal-status-change {
+  position: relative;
+}
+
+.student-modal-status-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: #f8f8f8;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: #333;
+}
+
+.student-modal-status-btn:hover {
+  border-color: var(--orange);
+}
+
+body.dark .student-modal-status-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-dark);
+  color: var(--text-dark-theme);
+}
+
+.student-modal-status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.student-modal-status-indicator.approved {
+  background: #43a047;
+}
+
+.student-modal-status-indicator.pending {
+  background: #e76f51;
+}
+
+.student-modal-status-indicator.canceled {
+  background: #757575;
+}
+
+.student-modal-status-indicator.denied {
+  background: #e53935;
+}
+
+.student-modal-status-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  overflow: hidden;
+  animation: studentDropdownFadeIn 0.2s ease;
+}
+
+body.dark .student-modal-status-dropdown {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.student-modal-status-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 14px;
+  color: #333;
+  text-align: left;
+}
+
+.student-modal-status-option:hover {
+  background: rgba(244, 162, 97, 0.08);
+}
+
+.student-modal-status-option.active {
+  background: rgba(244, 162, 97, 0.12);
+  font-weight: 500;
+}
+
+body.dark .student-modal-status-option {
+  color: var(--text-dark-theme);
+}
+
+/* Modal de Confirmação */
+.student-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.student-confirm-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+body.dark .student-confirm-modal {
+  background: var(--bg-card-dark);
+}
+
+.student-confirm-modal h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+body.dark .student-confirm-modal h3 {
+  color: var(--text-dark-theme);
+}
+
+.student-confirm-modal p {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+body.dark .student-confirm-modal p {
+  color: #aaa;
+}
+
+.student-confirm-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.student-confirm-cancel,
+.student-confirm-ok {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.student-confirm-cancel {
+  background: #f5f5f5;
+  border: none;
+  color: #666;
+}
+
+.student-confirm-cancel:hover {
+  background: #e8e8e8;
+}
+
+body.dark .student-confirm-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #aaa;
+}
+
+.student-confirm-ok {
+  background: var(--orange);
+  border: none;
+  color: white;
+}
+
+.student-confirm-ok:hover {
+  background: #e59370;
+}
+
+.student-confirm-ok:disabled,
+.student-confirm-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .students-list-wrapper {
+    width: 35%;
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .students-list-wrapper {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: 300px;
+  }
+}

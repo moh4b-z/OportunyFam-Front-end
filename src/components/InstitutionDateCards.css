@@ -1,0 +1,200 @@
+/* Wrapper principal com setas */
+.institution-date-cards-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  flex: 0 0 auto;
+  margin-top: 30px; /* Alinha com o card de alunos (pula o título) */
+}
+
+/* Setas de navegação */
+.date-cards-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid transparent;
+  color: var(--orange);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  z-index: 10;
+  margin-top: 20px; /* Centraliza verticalmente com os cards de data */
+}
+
+body.dark .date-cards-arrow {
+  background: transparent;
+  border-color: transparent;
+  color: var(--orange);
+}
+
+.date-cards-arrow:hover:not(:disabled) {
+  background: rgba(244, 162, 97, 0.12);
+  border-color: rgba(244, 162, 97, 0.45);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.25);
+}
+
+body.dark .date-cards-arrow:hover:not(:disabled) {
+  background: rgba(244, 162, 97, 0.15);
+  border-color: rgba(244, 162, 97, 0.5);
+}
+
+.date-cards-arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Container com fade nas extremidades */
+.institution-date-cards-container {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+}
+
+/* Efeito de fade nas extremidades */
+.date-cards-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.date-cards-fade-left {
+  left: 0;
+  background: linear-gradient(to right, rgba(245, 245, 245, 1) 0%, rgba(245, 245, 245, 0) 100%);
+}
+
+.date-cards-fade-right {
+  right: 0;
+  background: linear-gradient(to left, rgba(245, 245, 245, 1) 0%, rgba(245, 245, 245, 0) 100%);
+}
+
+body.dark .date-cards-fade-left {
+  background: linear-gradient(to right, rgba(30, 30, 30, 1) 0%, rgba(30, 30, 30, 0) 100%);
+}
+
+body.dark .date-cards-fade-right {
+  background: linear-gradient(to left, rgba(30, 30, 30, 1) 0%, rgba(30, 30, 30, 0) 100%);
+}
+
+.institution-date-cards-scroll {
+  display: flex;
+  gap: 10px;
+  padding: 4px 4px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.institution-date-cards-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.institution-date-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 65px;
+  height: 76px;
+  padding: 8px 10px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+body.dark .institution-date-card {
+  background: var(--bg-card-dark);
+  border-color: var(--border-dark);
+}
+
+.institution-date-card:hover {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+}
+
+.institution-date-card.today {
+  border-color: var(--orange);
+  background: rgba(244, 162, 97, 0.08);
+}
+
+body.dark .institution-date-card.today {
+  background: rgba(244, 162, 97, 0.15);
+}
+
+.institution-date-card.selected {
+  background: var(--orange);
+  border-color: var(--orange);
+}
+
+body.dark .institution-date-card.selected {
+  background: var(--orange);
+  border-color: var(--orange);
+}
+
+.institution-date-card.selected .date-weekday,
+.institution-date-card.selected .date-day,
+.institution-date-card.selected .date-month {
+  color: white !important;
+}
+
+.date-weekday {
+  font-size: 10px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+body.dark .date-weekday {
+  color: #999;
+}
+
+.institution-date-card.today .date-weekday {
+  color: var(--orange);
+}
+
+.date-day {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+body.dark .date-day {
+  color: #f3f4f6;
+}
+
+.institution-date-card.today .date-day {
+  color: var(--orange);
+}
+
+.date-month {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  text-transform: lowercase;
+}
+
+body.dark .date-month {
+  color: #999;
+}
+
+.institution-date-card.today .date-month {
+  color: var(--orange);
+}

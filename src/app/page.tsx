@@ -15,6 +15,11 @@ import mapaStyles from "./styles/Mapa.module.css";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import { childService } from "@/services/childService";
+import { API_BASE_URL } from "@/services/config";
+import InstitutionActivitiesCarousel, { Atividade } from "@/components/InstitutionActivitiesCarousel";
+import InstitutionStudentsList from "@/components/InstitutionStudentsList";
+import InstitutionDateCards from "@/components/InstitutionDateCards";
+import InstitutionClassesList from "@/components/InstitutionClassesList";
 
 // Interface para crianças dependentes (formato da API)
 interface ChildDependente {
@@ -35,6 +40,7 @@ export default function HomePage() {
   } = useAuth();
   const [selectedInstitution, setSelectedInstitution] = useState<Instituicao | null>(null);
   const [conversationInstitution, setConversationInstitution] = useState<Instituicao | null>(null);
+  const [conversationContact, setConversationContact] = useState<{ pessoa_id: number; nome: string; foto_perfil?: string | null } | null>(null);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
@@ -56,6 +62,10 @@ export default function HomePage() {
   const [userSavedLocations, setUserSavedLocations] = useState<any[]>([]);
   const [sexoOptions, setSexoOptions] = useState<SexoOption[]>([]);
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
+
+  // === DADOS DA INSTITUIÇÃO ===
+  const [selectedActivity, setSelectedActivity] = useState<Atividade | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date()); // Added state
 
   // refs para fechar ao clicar fora
   const searchRef = useRef<HTMLDivElement>(null);
@@ -87,6 +97,7 @@ export default function HomePage() {
   const loadAllUserData = async () => {
     try {
       let userIdNumber: number | null = null;
+      let userTipo: string | null = authUser?.tipo || null;
 
       if (authUser?.id) {
         const parsed = Number(authUser.id);
@@ -96,9 +107,19 @@ export default function HomePage() {
       }
 
       if (!userIdNumber && typeof window !== "undefined") {
-        const storedUserId = localStorage.getItem("user-id");
-        if (storedUserId) {
-          const parsedId = Number(storedUserId);
+        // Busca ID baseado no tipo de usuário
+        const storedTipo = localStorage.getItem("user-tipo");
+        userTipo = storedTipo;
+        let storedId: string | null = null;
+        if (storedTipo === 'usuario') {
+          storedId = localStorage.getItem("usuario_id");
+        } else if (storedTipo === 'instituicao') {
+          storedId = localStorage.getItem("instituicao_id");
+        } else if (storedTipo === 'crianca') {
+          storedId = localStorage.getItem("crianca_id");
+        }
+        if (storedId) {
+          const parsedId = Number(storedId);
           if (!Number.isNaN(parsedId)) {
             userIdNumber = parsedId;
           }
@@ -109,8 +130,16 @@ export default function HomePage() {
         return;
       }
 
-      // UMA única chamada para getUserById - extrai TODOS os dados
-      const fullUser = await childService.getUserById(userIdNumber);
+      // Busca dados baseado no tipo de usuário
+      let fullUser: any;
+      
+      if (userTipo === 'instituicao') {
+        // Para instituições, busca de /instituicoes/{id}
+        fullUser = await childService.getInstitutionById(userIdNumber);
+      } else {
+        // Para usuários e crianças, busca de /usuarios/{id}
+        fullUser = await childService.getUserById(userIdNumber);
+      }
 
       // pessoa_id para chat
       const pessoaIdRaw = (fullUser as any)?.pessoa_id ?? (fullUser as any)?.id_pessoa;
@@ -125,17 +154,21 @@ export default function HomePage() {
         : [];
       setUserConversations(conversas);
 
-      // Crianças dependentes
-      const criancas = Array.isArray((fullUser as any)?.criancas_dependentes)
-        ? (fullUser as any).criancas_dependentes
-        : [];
-      setUserChildren(criancas);
+      // Crianças dependentes (apenas para usuários, não instituições)
+      if (userTipo !== 'instituicao') {
+        const criancas = Array.isArray((fullUser as any)?.criancas_dependentes)
+          ? (fullUser as any).criancas_dependentes
+          : [];
+        setUserChildren(criancas);
+      }
 
-      // Locais salvos (para o mapa)
-      const locais = Array.isArray((fullUser as any)?.locais_salvos)
-        ? (fullUser as any).locais_salvos
-        : [];
-      setUserSavedLocations(locais);
+      // Locais salvos (para o mapa) - apenas para usuários
+      if (userTipo !== 'instituicao') {
+        const locais = Array.isArray((fullUser as any)?.locais_salvos)
+          ? (fullUser as any).locais_salvos
+          : [];
+        setUserSavedLocations(locais);
+      }
 
       setIsUserDataLoaded(true);
     } catch (error) {
@@ -171,7 +204,16 @@ export default function HomePage() {
   const loadUserConversations = async () => {
     if (!authUser?.id) return;
     try {
-      const fullUser = await childService.getUserById(parseInt(authUser.id));
+      let fullUser: any;
+      
+      if (authUser?.tipo === 'instituicao') {
+        // Para instituições, busca de /instituicoes/{id}
+        fullUser = await childService.getInstitutionById(parseInt(authUser.id));
+      } else {
+        // Para usuários e crianças, busca de /usuarios/{id}
+        fullUser = await childService.getUserById(parseInt(authUser.id));
+      }
+      
       const conversas = Array.isArray((fullUser as any)?.conversas)
         ? (fullUser as any).conversas
         : [];
@@ -181,15 +223,58 @@ export default function HomePage() {
     }
   };
 
+  // Criar conversa com um responsável (usado pela instituição)
+  const handleStartConversationWithResponsible = async (responsavelPessoaId: number, responsavelNome: string, responsavelFoto?: string | null) => {
+    if (!userPessoaId) {
+      console.error('pessoa_id da instituição não encontrado');
+      return;
+    }
+
+    try {
+      // Cria a conversa via API
+      const payload = {
+        participantes: [userPessoaId, responsavelPessoaId]
+      };
+
+      const response = await fetch(`${API_BASE_URL}/conversas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        console.error('Falha ao criar conversa:', response.status, response.statusText);
+        return;
+      }
+
+      // Atualiza a lista de conversas
+      await loadUserConversations();
+
+      // Define o contato para abrir automaticamente o chat
+      setConversationContact({
+        pessoa_id: responsavelPessoaId,
+        nome: responsavelNome,
+        foto_perfil: responsavelFoto || null
+      });
+
+      // Abre a modal de conversas
+      setIsConversationsModalOpen(true);
+    } catch (error) {
+      console.error('Erro ao criar conversa com responsável:', error);
+    }
+  };
+
   // Carrega TUDO na inicialização (uma única vez)
   useEffect(() => {
     loadAllUserData();
     loadSexoOptions();
   }, [authUser?.id]);
 
-  // Abre a modal de cadastro de criança na PRIMEIRA visita do usuário
+  // Abre a modal de cadastro de criança na PRIMEIRA visita do usuário (apenas para responsáveis)
   useEffect(() => {
-    if (authUser?.id && !isLoading) {
+    if (authUser?.id && !isLoading && authUser?.tipo === 'usuario') {
       const firstVisitKey = `oportunyfam_first_visit_${authUser.id}`;
       const hasVisitedBefore = localStorage.getItem(firstVisitKey);
       
@@ -199,7 +284,7 @@ export default function HomePage() {
         localStorage.setItem(firstVisitKey, 'true');
       }
     }
-  }, [authUser?.id, isLoading]);
+  }, [authUser?.id, authUser?.tipo, isLoading]);
 
   const handleInstitutionSelect = (institution: Instituicao) => {
     setSelectedInstitution(institution);
@@ -246,6 +331,7 @@ export default function HomePage() {
   const closeConversationsModal = () => {
     setIsConversationsModalOpen(false);
     setConversationInstitution(null);
+    setConversationContact(null);
   };
 
   const handleChildRegistrationClick = () => {
@@ -321,18 +407,53 @@ export default function HomePage() {
         isConversationsOpen={isConversationsModalOpen}
         isChildRegistrationOpen={isChildRegistrationSideModalOpen}
         isAccountOpen={isAccountModalOpen}
+        userTipo={authUser?.tipo}
       />
       <div className="app-content-wrapper">
-        {/* Mapa ocupa toda a área */}
-        <div className={mapaStyles.mapWrapper}>
-          <Mapa 
-            highlightedInstitution={selectedInstitution} 
-            institutions={mapInstitutions}
-            onInstitutionPinClick={handleInstitutionSelect}
-            centerPosition={mapCenterPosition}
-            goToHomeTimestamp={goToHomeTimestamp}
-          />
-        </div>
+        {/* Mapa - apenas para usuários e crianças, não para instituições */}
+        {authUser?.tipo !== 'instituicao' && (
+          <div className={mapaStyles.mapWrapper}>
+            <Mapa 
+              highlightedInstitution={selectedInstitution} 
+              institutions={mapInstitutions}
+              onInstitutionPinClick={handleInstitutionSelect}
+              centerPosition={mapCenterPosition}
+              goToHomeTimestamp={goToHomeTimestamp}
+            />
+          </div>
+        )}
+
+        {/* Área principal para instituições (onde ficava o mapa) */}
+        {authUser?.tipo === 'instituicao' && (
+          <div className="institution-dashboard">
+            <InstitutionActivitiesCarousel 
+              instituicaoId={authUser?.id ? parseInt(authUser.id) : 0}
+              onActivityChange={setSelectedActivity}
+            />
+            <div className="institution-dashboard-content">
+              <InstitutionStudentsList
+                instituicaoId={authUser?.id ? parseInt(authUser.id) : 0}
+                atividadeId={selectedActivity?.atividade_id || null}
+                atividadeTitulo={selectedActivity?.titulo || null}
+                onStartConversation={handleStartConversationWithResponsible}
+                instituicaoPessoaId={userPessoaId}
+              />
+              <div className="institution-dashboard-right">
+                <InstitutionDateCards 
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                />
+                <div className="institution-dashboard-main">
+                  <InstitutionClassesList
+                    aulas={selectedActivity?.aulas || []}
+                    selectedDate={selectedDate}
+                    atividadeTitulo={selectedActivity?.titulo}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Painel de localização */}
         {isLocationPanelOpen && (
@@ -360,24 +481,26 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Header flutuante sobre o mapa */}
-        <div className="floating-header">
-          <div className="search-wrapper">
-            <SearchBar 
-              onInstitutionSelect={handleInstitutionSelect}
-              onStartConversation={(institution) => {
-                setConversationInstitution(institution);
-                setIsConversationsModalOpen(true);
-              }}
-              onRefreshConversations={loadUserConversations}
-              onInstitutionsUpdate={(list) => setMapInstitutions(list)}
-              highlightedInstitution={selectedInstitution}
-              onCloseProfile={() => setSelectedInstitution(null)}
-              onOpenChildRegistration={handleChildRegistrationClick}
-              preloadedChildren={userChildren}
-            />
+        {/* Header flutuante sobre o mapa - apenas para usuários e crianças */}
+        {authUser?.tipo !== 'instituicao' && (
+          <div className="floating-header">
+            <div className="search-wrapper">
+              <SearchBar 
+                onInstitutionSelect={handleInstitutionSelect}
+                onStartConversation={(institution) => {
+                  setConversationInstitution(institution);
+                  setIsConversationsModalOpen(true);
+                }}
+                onRefreshConversations={loadUserConversations}
+                onInstitutionsUpdate={(list) => setMapInstitutions(list)}
+                highlightedInstitution={selectedInstitution}
+                onCloseProfile={() => setSelectedInstitution(null)}
+                onOpenChildRegistration={handleChildRegistrationClick}
+                preloadedChildren={userChildren}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {/* Modal de notificações */}
@@ -399,21 +522,24 @@ export default function HomePage() {
         isOpen={isConversationsModalOpen}
         onClose={closeConversationsModal}
         autoOpenInstitution={conversationInstitution}
+        autoOpenContact={conversationContact}
         conversationsFromApi={userConversations}
         currentUserPessoaId={userPessoaId}
         onRefreshConversations={loadUserConversations}
       />
 
-      {/* Modal lateral de cadastro de criança */}
-      <ChildRegistrationSideModal
-        isOpen={isChildRegistrationSideModalOpen}
-        onClose={closeChildRegistrationSideModal}
-        onSuccess={handleChildRegistrationSuccess}
-        userId={authUser ? parseInt(authUser.id) : 999}
-        initialChildren={userChildren}
-        initialSexoOptions={sexoOptions}
-        onChildrenChange={refreshUserChildren}
-      />
+      {/* Modal lateral de cadastro de criança - apenas para responsáveis */}
+      {authUser?.tipo === 'usuario' && (
+        <ChildRegistrationSideModal
+          isOpen={isChildRegistrationSideModalOpen}
+          onClose={closeChildRegistrationSideModal}
+          onSuccess={handleChildRegistrationSuccess}
+          userId={authUser ? parseInt(authUser.id) : 999}
+          initialChildren={userChildren}
+          initialSexoOptions={sexoOptions}
+          onChildrenChange={refreshUserChildren}
+        />
+      )}
 
       {/* Modal lateral de conta */}
       <SimpleAccountModal
@@ -423,6 +549,7 @@ export default function HomePage() {
         email={authUser?.email}
         phone={authUser?.telefone}
         cpf={authUser?.cpf}
+        cnpj={authUser?.cnpj}
         endereco={authUser?.endereco}
         profilePhoto={authUser?.foto_perfil}
         userId={authUser ? parseInt(authUser.id) : undefined}

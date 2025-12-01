@@ -376,7 +376,7 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
     if (hasLoadedAll || loading) return;
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/instituicoes`);
+      const response = await fetch(`${API_BASE_URL}/instituicoes/?tamanho=500`);
 
       if (!response.ok) {
         throw new Error('Erro ao carregar instituições');
@@ -588,14 +588,24 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
       const instPessoaIdRaw = instData?.instituicao?.pessoa_id ?? instData?.pessoa_id;
 
       // Busca pessoa_id do usuário logado a partir do id salvo no localStorage
-      const userIdFromStorage = typeof window !== 'undefined' ? localStorage.getItem('user-id') : null;
+      const storedTipo = typeof window !== 'undefined' ? localStorage.getItem('user-tipo') : null;
+      let userIdFromStorage: string | null = null;
+      if (storedTipo === 'usuario') {
+        userIdFromStorage = localStorage.getItem('usuario_id');
+      } else if (storedTipo === 'instituicao') {
+        userIdFromStorage = localStorage.getItem('instituicao_id');
+      } else if (storedTipo === 'crianca') {
+        userIdFromStorage = localStorage.getItem('crianca_id');
+      }
 
-      if (!userIdFromStorage) {
+      if (!userIdFromStorage || !storedTipo) {
         console.error('Não foi possível obter o id do usuário logado a partir do localStorage');
         return;
       }
 
-      const userResponse = await fetch(`${API_BASE_URL}/usuarios/${userIdFromStorage}`);
+      // Define o endpoint correto baseado no tipo
+      const endpoint = storedTipo === 'instituicao' ? 'instituicoes' : storedTipo === 'crianca' ? 'criancas' : 'usuarios';
+      const userResponse = await fetch(`${API_BASE_URL}/${endpoint}/${userIdFromStorage}`);
       if (!userResponse.ok) {
         console.error('Falha ao buscar usuário para conversa:', userResponse.status, userResponse.statusText);
         return;
@@ -707,7 +717,7 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
       // Fallback: busca da API apenas se não tiver dados pré-carregados
       setEnrollLoading(true);
       try {
-        const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') : null;
+        const userId = typeof window !== 'undefined' ? localStorage.getItem('usuario_id') : null;
         if (userId) {
           const children = await childService.getChildrenByUserId(Number(userId));
           setUserChildren(children || []);

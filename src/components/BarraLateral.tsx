@@ -10,6 +10,7 @@ interface BarraLateralProps {
   isConversationsOpen?: boolean;
   isChildRegistrationOpen?: boolean;
   isAccountOpen?: boolean;
+  userTipo?: 'usuario' | 'instituicao' | 'crianca';
 }
 
 export default function BarraLateral({ 
@@ -19,8 +20,11 @@ export default function BarraLateral({
   onLogoutClick,
   isConversationsOpen, 
   isChildRegistrationOpen,
-  isAccountOpen
+  isAccountOpen,
+  userTipo
 }: BarraLateralProps) {
+  // Instituições não têm botão de crianças
+  const showChildrenButton = userTipo !== 'instituicao';
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -91,29 +95,31 @@ export default function BarraLateral({
           </svg>
         </button>
 
-        {/* Crianças */}
-        <button
-          className={`icon-btn ${activeIcon === "child-registration" ? "active" : ""}`}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => { handleIconClick("child-registration"); onChildRegistrationClick?.(); }}
-          aria-label="Crianças"
-          title="Crianças"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            {/* Rosto da criança */}
-            <circle cx="12" cy="9" r="7" />
-            {/* Cabelo/topete */}
-            <path d="M8 3c2-2 6-2 8 0" />
-            {/* Olhos */}
-            <circle cx="9.5" cy="8" r="1.2" fill="currentColor" />
-            <circle cx="14.5" cy="8" r="1.2" fill="currentColor" />
-            {/* Sorriso */}
-            <path d="M9 12c1.5 2 4.5 2 6 0" />
-            {/* Corpo */}
-            <path d="M12 16v5" />
-            <path d="M8 21h8" />
-          </svg>
-        </button>
+        {/* Crianças - apenas para usuários (responsáveis), não para instituições */}
+        {showChildrenButton && (
+          <button
+            className={`icon-btn ${activeIcon === "child-registration" ? "active" : ""}`}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() => { handleIconClick("child-registration"); onChildRegistrationClick?.(); }}
+            aria-label="Crianças"
+            title="Crianças"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {/* Rosto da criança */}
+              <circle cx="12" cy="9" r="7" />
+              {/* Cabelo/topete */}
+              <path d="M8 3c2-2 6-2 8 0" />
+              {/* Olhos */}
+              <circle cx="9.5" cy="8" r="1.2" fill="currentColor" />
+              <circle cx="14.5" cy="8" r="1.2" fill="currentColor" />
+              {/* Sorriso */}
+              <path d="M9 12c1.5 2 4.5 2 6 0" />
+              {/* Corpo */}
+              <path d="M12 16v5" />
+              <path d="M8 21h8" />
+            </svg>
+          </button>
+        )}
 
         {/* Conta */}
         <button

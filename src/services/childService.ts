@@ -3,6 +3,33 @@ import { API_BASE_URL } from './config'
 
 // Serviços para crianças e usuários
 export const childService = {
+  // Busca dados de instituição por ID
+  async getInstitutionById(institutionId: number) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/instituicoes/${institutionId}`)
+      
+      if (!response.ok) {
+        if (response.status >= 500) {
+          throw new Error('Erro no servidor. Tente novamente mais tarde.')
+        }
+        throw new Error('Erro ao carregar dados da instituição')
+      }
+
+      const data = await response.json()
+      
+      if (data.status && data.instituicao) {
+        return data.instituicao
+      }
+      
+      throw new Error('Dados da instituição não encontrados')
+    } catch (err: any) {
+      const msg = (typeof err?.message === 'string' && /failed to fetch|network|fetch/i.test(err.message))
+        ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+        : (err?.message || 'Erro ao carregar dados da instituição')
+      throw new Error(msg)
+    }
+  },
+
   async getUserById(userId: number) {
     try {
       const response = await fetch(`${API_BASE_URL}/usuarios/${userId}`)

@@ -5,6 +5,7 @@ import { ChildData, SexoOption } from '@/types';
 import { childService } from '@/services/childService';
 import { utilsService } from '@/services/utilsService';
 import { azureStorageService } from '@/services/azureStorageService';
+import { API_BASE_URL } from '@/services/config';
 import "../../app/styles/ConversationsModal.css";
 
 interface ChildDependente {
@@ -13,6 +14,28 @@ interface ChildDependente {
   id_crianca: number;
   foto_perfil: string | null;
   id_responsavel: number;
+}
+
+// Interface para aula da atividade
+interface AulaAtividade {
+  aula_id: number;
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+  vagas_total: number;
+  vagas_disponiveis: number;
+}
+
+// Interface para atividade matriculada
+interface AtividadeMatriculada {
+  id_inscricao: number;
+  atividade_id: number;
+  titulo: string;
+  instituicao: string;
+  categoria: string;
+  status_id: number;
+  status_inscricao: string;
+  aulas: AulaAtividade[];
 }
 
 interface ChildRegistrationSideModalProps {
@@ -35,10 +58,22 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
   initialSexoOptions,
   onChildrenChange,
 }) => {
-  // Controle de view: 'list' = lista de crianças, 'form' = formulário de cadastro
-  const [currentView, setCurrentView] = useState<'list' | 'form'>('list');
+  // Controle de view: 'list' = lista de crianças, 'form' = formulário de cadastro, 'profile' = perfil da criança
+  const [currentView, setCurrentView] = useState<'list' | 'form' | 'profile'>('list');
   const [children, setChildren] = useState<ChildDependente[]>([]);
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
+  
+  // Estados para perfil da criança
+  const [selectedChild, setSelectedChild] = useState<ChildDependente | null>(null);
+  const [childEmail, setChildEmail] = useState<string | null>(null);
+  const [childActivities, setChildActivities] = useState<AtividadeMatriculada[]>([]);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(false);
+  
+  // Estados para popup de inscrição em aula
+  const [showClassEnrollPopup, setShowClassEnrollPopup] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<AtividadeMatriculada | null>(null);
+  const [availableClasses, setAvailableClasses] = useState<AulaAtividade[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   
   // Falas da mascote Sofia
   const [currentSpeechIndex, setCurrentSpeechIndex] = useState(0);
@@ -230,6 +265,177 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Abre o perfil da criança e busca suas atividades
+  const handleOpenChildProfile = async (child: ChildDependente) => {
+    setSelectedChild(child);
+    setCurrentView('profile');
+    setIsLoadingActivities(true);
+    setChildActivities([]);
+    setChildEmail(null);
+    
+    try {
+      // Busca os dados da criança incluindo atividades matriculadas
+      const response = await fetch(`${API_BASE_URL}/criancas/${child.id_crianca}`);
+      if (response.ok) {
+        const data = await response.json();
+        const crianca = data?.crianca;
+        const atividades = crianca?.atividades_matriculadas || [];
+        setChildActivities(atividades);
+        setChildEmail(crianca?.email || null);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar atividades da criança:', err);
+    } finally {
+      setIsLoadingActivities(false);
+    }
+  };
+
+  // Volta do perfil para a lista
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedChild(null);
+    setChildActivities([]);
+    setChildEmail(null);
+  };
+
+  // Estado de loading para busca de aulas
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+
+  // Abre popup de aulas para uma atividade aprovada
+  const handleOpenClassEnrollPopup = async (activity: AtividadeMatriculada) => {
+    setSelectedActivity(activity);
+    setShowClassEnrollPopup(true);
+    setSelectedClassId(null);
+    setAvailableClasses([]);
+    setIsLoadingClasses(true);
+    
+    try {
+      // Busca os detalhes da atividade incluindo as aulas
+      const response = await fetch(`${API_BASE_URL}/atividades/${activity.atividade_id}`);
+      if (response.ok) {
+        const json = await response.json();
+        const atividade = json?.atividade ?? json;
+        const aulas: AulaAtividade[] = Array.isArray(atividade?.aulas) 
+          ? atividade.aulas.map((a: any) => ({
+              aula_id: a.aula_id,
+              data: a.data,
+              hora_inicio: a.hora_inicio,
+              hora_fim: a.hora_fim,
+              vagas_total: a.vagas_total,
+              vagas_disponiveis: a.vagas_disponiveis,
+            }))
+          : [];
+        
+        // Filtra apenas aulas futuras com vagas disponíveis
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const futureClasses = aulas.filter((aula: AulaAtividade) => {
+          // Tenta parse de formato YYYY-MM-DD ou DD/MM/YYYY
+          let aulaDate: Date;
+          if (aula.data.includes('-')) {
+            aulaDate = new Date(aula.data + 'T00:00:00');
+          } else {
+            const parts = aula.data.split('/');
+            if (parts.length === 3) {
+              aulaDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            } else {
+              return false;
+            }
+          }
+          return aulaDate >= today && aula.vagas_disponiveis > 0;
+        });
+        
+        setAvailableClasses(futureClasses);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar aulas da atividade:', err);
+    } finally {
+      setIsLoadingClasses(false);
+    }
+  };
+
+  // Fecha o popup de aulas
+  const handleCloseClassEnrollPopup = () => {
+    setShowClassEnrollPopup(false);
+    setSelectedActivity(null);
+    setAvailableClasses([]);
+    setSelectedClassId(null);
+    setIsEnrollingClass(false);
+  };
+
+  // Estado de loading para inscrição em aula
+  const [isEnrollingClass, setIsEnrollingClass] = useState(false);
+
+  // Confirma inscrição na aula selecionada
+  const handleConfirmClassEnroll = async () => {
+    if (!selectedClassId || !selectedActivity) return;
+    if (isEnrollingClass) return; // Proteção contra duplo clique
+    
+    setIsEnrollingClass(true);
+    
+    try {
+      const payload = {
+        id_inscricao_atividade: selectedActivity.id_inscricao,
+        id_aula_atividade: selectedClassId,
+        presente: false,
+        nota_observacao: ""
+      };
+      
+      const response = await fetch(`${API_BASE_URL}/matriculas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.ok) {
+        // Sucesso - fecha o popup e atualiza os dados
+        handleCloseClassEnrollPopup();
+        
+        // Recarrega os dados da criança para atualizar a lista de atividades
+        if (selectedChild) {
+          handleOpenChildProfile(selectedChild);
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Erro ao matricular na aula:', errorData);
+        alert('Não foi possível realizar a matrícula. Tente novamente.');
+      }
+    } catch (err) {
+      console.error('Erro ao matricular na aula:', err);
+      alert('Erro de conexão. Verifique sua internet e tente novamente.');
+    } finally {
+      setIsEnrollingClass(false);
+    }
+  };
+
+  // Retorna a cor do status baseado no texto
+  const getStatusColor = (statusText: string): string => {
+    const status = statusText?.toLowerCase() || '';
+    if (status.includes('aprovad')) return 'status-approved';
+    if (status.includes('rejeitad') || status.includes('recusad')) return 'status-rejected';
+    if (status.includes('pendente') || status.includes('aguardando')) return 'status-pending';
+    return 'status-pending';
+  };
+
+  // Formata data DD/MM/YYYY para exibição
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      return `${parts[0]}/${parts[1]}`;
+    }
+    return dateStr;
+  };
+
+  // Formata hora HH:MM:SS para HH:MM
+  const formatTime = (timeStr: string): string => {
+    if (!timeStr) return '';
+    return timeStr.substring(0, 5);
   };
 
   if (!isOpen) return null;
@@ -1099,6 +1305,546 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
         :global(body.dark) .child-success-message {
           color: var(--text-secondary-dark);
         }
+
+        /* === PERFIL DA CRIANÇA === */
+        .child-profile-container {
+          padding: 20px;
+        }
+
+        .child-profile-header {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding-bottom: 20px;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+          margin-bottom: 20px;
+          position: relative;
+        }
+
+        :global(body.dark) .child-profile-header {
+          border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-back-profile {
+          position: absolute;
+          left: 0;
+          top: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 1px solid transparent;
+          background: transparent;
+          color: var(--orange);
+          cursor: pointer;
+          transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+        }
+
+        .btn-back-profile:hover {
+          background: rgba(244, 162, 97, 0.12);
+          border-color: rgba(244, 162, 97, 0.45);
+          transform: translateY(-1px);
+        }
+
+        :global(body.dark) .btn-back-profile:hover {
+          background: rgba(244, 162, 97, 0.2);
+          border-color: rgba(244, 162, 97, 0.55);
+        }
+
+        .child-profile-avatar {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          overflow: hidden;
+          margin-bottom: 12px;
+        }
+
+        .child-profile-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+          border: 2px solid rgba(244, 162, 97, 0.3);
+        }
+
+        .child-profile-avatar .default-institution-icon {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--orange);
+          background: transparent;
+          border: 1.5px solid rgba(244, 162, 97, 0.3);
+          border-radius: 50%;
+          padding: 8px;
+          box-sizing: border-box;
+        }
+
+        .child-profile-avatar .default-institution-icon svg {
+          width: 70%;
+          height: 70%;
+          opacity: 0.8;
+        }
+
+        .child-profile-name {
+          font-size: 20px;
+          font-weight: 600;
+          color: #333;
+          margin: 0;
+        }
+
+        :global(body.dark) .child-profile-name {
+          color: #f5f5f5;
+        }
+
+        .child-profile-email {
+          font-size: 13px;
+          color: #888;
+          margin-top: 4px;
+        }
+
+        :global(body.dark) .child-profile-email {
+          color: #999;
+        }
+
+        .child-activities-section {
+          margin-top: 8px;
+        }
+
+        .child-activities-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #333;
+          margin: 0 0 16px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .child-activities-title svg {
+          color: var(--orange);
+        }
+
+        :global(body.dark) .child-activities-title {
+          color: #f5f5f5;
+        }
+
+        .child-activities-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .child-activity-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px 16px;
+          background: var(--bg-light);
+          border-radius: 12px;
+          border: 1px solid var(--border-color);
+          gap: 12px;
+        }
+
+        :global(body.dark) .child-activity-card {
+          background: var(--bg-card-dark);
+          border-color: var(--border-dark);
+        }
+
+        .child-activity-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .child-activity-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        :global(body.dark) .child-activity-name {
+          color: #f5f5f5;
+        }
+
+        .child-activity-institution {
+          font-size: 12px;
+          color: #666;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        :global(body.dark) .child-activity-institution {
+          color: #999;
+        }
+
+        .child-activity-status {
+          font-size: 11px;
+          font-weight: 600;
+          padding: 3px 8px;
+          border-radius: 12px;
+          display: inline-block;
+          width: fit-content;
+        }
+
+        .child-activity-status.status-pending {
+          background: rgba(251, 191, 36, 0.15);
+          color: #d97706;
+        }
+
+        .child-activity-status.status-approved {
+          background: rgba(16, 185, 129, 0.15);
+          color: #059669;
+        }
+
+        .child-activity-status.status-rejected {
+          background: rgba(239, 68, 68, 0.15);
+          color: #dc2626;
+        }
+
+        .btn-enroll-class {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: none;
+          background: var(--orange);
+          color: white;
+          font-size: 12px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .btn-enroll-class:hover {
+          background: #e76f51;
+          transform: translateY(-1px);
+        }
+
+        .loading-activities,
+        .empty-activities {
+          text-align: center;
+          padding: 30px 20px;
+          color: #666;
+        }
+
+        .empty-activities p {
+          font-size: 15px;
+          font-weight: 500;
+          margin: 0 0 6px 0;
+          color: #444;
+        }
+
+        .empty-activities span {
+          font-size: 13px;
+          color: #888;
+        }
+
+        :global(body.dark) .loading-activities,
+        :global(body.dark) .empty-activities {
+          color: #999;
+        }
+
+        :global(body.dark) .empty-activities p {
+          color: #ccc;
+        }
+
+        :global(body.dark) .empty-activities span {
+          color: #888;
+        }
+
+        /* === POPUP DE INSCRIÇÃO EM AULA === */
+        .class-enroll-popup-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+        }
+
+        .class-enroll-popup {
+          background: white;
+          border-radius: 16px;
+          width: 90%;
+          max-width: 420px;
+          max-height: 80vh;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        :global(body.dark) .class-enroll-popup {
+          background: var(--bg-card-dark);
+        }
+
+        .class-enroll-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 18px 20px;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        :global(body.dark) .class-enroll-header {
+          border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .class-enroll-header h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        :global(body.dark) .class-enroll-header h3 {
+          color: #f5f5f5;
+        }
+
+        .class-enroll-close {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: none;
+          background: transparent;
+          color: #666;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+
+        .class-enroll-close:hover {
+          background: rgba(0, 0, 0, 0.05);
+          color: #333;
+        }
+
+        :global(body.dark) .class-enroll-close {
+          color: #999;
+        }
+
+        :global(body.dark) .class-enroll-close:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #f5f5f5;
+        }
+
+        .class-enroll-subtitle {
+          padding: 12px 20px;
+          margin: 0;
+          font-size: 14px;
+          color: #666;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        :global(body.dark) .class-enroll-subtitle {
+          color: #999;
+          border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .class-enroll-subtitle strong {
+          color: var(--orange);
+        }
+
+        .available-classes-list {
+          flex: 1;
+          overflow-y: auto;
+          padding: 12px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-height: 300px;
+        }
+
+        .available-class-card {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 12px 14px;
+          border-radius: 10px;
+          border: 1.5px solid #e0e0e0;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .available-class-card:hover {
+          border-color: rgba(244, 162, 97, 0.5);
+          background: rgba(244, 162, 97, 0.03);
+        }
+
+        .available-class-card.selected {
+          border-color: var(--orange);
+          background: rgba(244, 162, 97, 0.08);
+        }
+
+        :global(body.dark) .available-class-card {
+          border-color: var(--border-dark);
+        }
+
+        :global(body.dark) .available-class-card:hover {
+          border-color: rgba(244, 162, 97, 0.5);
+          background: rgba(244, 162, 97, 0.08);
+        }
+
+        :global(body.dark) .available-class-card.selected {
+          border-color: var(--orange);
+          background: rgba(244, 162, 97, 0.12);
+        }
+
+        .class-card-date {
+          width: 50px;
+          height: 50px;
+          border-radius: 10px;
+          background: rgba(244, 162, 97, 0.12);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .class-date-day {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--orange);
+        }
+
+        .class-card-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .class-time {
+          font-size: 14px;
+          font-weight: 500;
+          color: #333;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .class-time svg {
+          color: #888;
+        }
+
+        :global(body.dark) .class-time {
+          color: #f5f5f5;
+        }
+
+        .class-vacancies {
+          font-size: 12px;
+          color: #059669;
+        }
+
+        .class-card-check {
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--orange);
+        }
+
+        .loading-classes,
+        .empty-classes {
+          text-align: center;
+          padding: 30px 20px;
+          color: #666;
+        }
+
+        .empty-classes p {
+          font-size: 15px;
+          font-weight: 500;
+          margin: 0 0 6px 0;
+          color: #444;
+        }
+
+        .empty-classes span {
+          font-size: 13px;
+          color: #888;
+        }
+
+        :global(body.dark) .loading-classes,
+        :global(body.dark) .empty-classes {
+          color: #999;
+        }
+
+        :global(body.dark) .empty-classes p {
+          color: #ccc;
+        }
+
+        .class-enroll-footer {
+          display: flex;
+          gap: 12px;
+          padding: 16px 20px;
+          border-top: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        :global(body.dark) .class-enroll-footer {
+          border-top-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-cancel-enroll {
+          flex: 1;
+          padding: 12px 20px;
+          border-radius: 10px;
+          border: 1.5px solid #e0e0e0;
+          background: transparent;
+          color: #666;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .btn-cancel-enroll:hover {
+          border-color: #999;
+          background: rgba(0, 0, 0, 0.03);
+        }
+
+        :global(body.dark) .btn-cancel-enroll {
+          border-color: var(--border-dark);
+          color: #999;
+        }
+
+        .btn-confirm-enroll {
+          flex: 1;
+          padding: 12px 20px;
+          border-radius: 10px;
+          border: none;
+          background: var(--orange);
+          color: white;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .btn-confirm-enroll:hover:not(:disabled) {
+          background: #e76f51;
+        }
+
+        .btn-confirm-enroll:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
       `}</style>
       <div className="conversations-modal-card" style={{ display: 'flex', flexDirection: 'column' }}>
         {/* Header com título e botão X */}
@@ -1128,7 +1874,7 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
               <path d="M12 16v5" />
               <path d="M8 21h8" />
             </svg>
-            <span>{currentView === 'list' ? 'Suas Crianças' : 'Cadastrar Criança'}</span>
+            <span>{currentView === 'list' ? 'Suas Crianças' : currentView === 'profile' ? selectedChild?.nome || 'Perfil' : 'Cadastrar Criança'}</span>
           </h1>
           <button className="conversations-modal-close" onClick={onClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1148,7 +1894,7 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
                 <>
                   <div className="children-list">
                     {children.map((child) => (
-                      <div key={child.id_crianca} className="child-item">
+                      <div key={child.id_crianca} className="child-item" onClick={() => handleOpenChildProfile(child)}>
                         <div className="child-avatar">
                           {child.foto_perfil ? (
                             <img src={child.foto_perfil} alt={child.nome} />
@@ -1251,6 +1997,170 @@ const ChildRegistrationSideModal: React.FC<ChildRegistrationSideModalProps> = ({
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* === TELA DE PERFIL DA CRIANÇA === */}
+        {currentView === 'profile' && selectedChild && (
+          <div className="conversations-main view-form-enter" style={{ padding: '0', overflowY: 'auto', position: 'relative', flex: 1 }}>
+            <div className="child-profile-container">
+              {/* Header do perfil com foto e nome */}
+              <div className="child-profile-header">
+                <button className="btn-back-profile" onClick={handleBackToList}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <div className="child-profile-avatar">
+                  {selectedChild.foto_perfil ? (
+                    <img src={selectedChild.foto_perfil} alt={selectedChild.nome} />
+                  ) : (
+                    <div className="default-institution-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <h2 className="child-profile-name">{selectedChild.nome}</h2>
+                {childEmail && (
+                  <span className="child-profile-email">{childEmail}</span>
+                )}
+              </div>
+
+              {/* Seção de Atividades */}
+              <div className="child-activities-section">
+                <h3 className="child-activities-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  Atividades Inscritas
+                </h3>
+
+                {isLoadingActivities ? (
+                  <div className="loading-activities">Carregando atividades...</div>
+                ) : childActivities.length > 0 ? (
+                  <div className="child-activities-list">
+                    {childActivities.map((activity, index) => (
+                      <div key={activity.id_inscricao || `activity-${index}`} className="child-activity-card">
+                        <div className="child-activity-info">
+                          <span className="child-activity-name">{activity.titulo}</span>
+                          <span className="child-activity-institution">{activity.instituicao}</span>
+                          <span className={`child-activity-status ${getStatusColor(activity.status_inscricao)}`}>
+                            {activity.status_inscricao}
+                          </span>
+                        </div>
+                        {/* Botão de inscrever em aula - apenas para aprovados */}
+                        {activity.status_inscricao?.toLowerCase() === 'aprovada' && (
+                          <button 
+                            className="btn-enroll-class"
+                            onClick={() => handleOpenClassEnrollPopup(activity)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                              <line x1="16" y1="2" x2="16" y2="6"></line>
+                              <line x1="8" y1="2" x2="8" y2="6"></line>
+                              <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            Inscrever em aula
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-activities">
+                    <p>Nenhuma atividade inscrita</p>
+                    <span>Inscreva a criança em atividades através do mapa</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Popup de inscrição em aula */}
+        {showClassEnrollPopup && selectedActivity && (
+          <div className="class-enroll-popup-overlay" onClick={handleCloseClassEnrollPopup}>
+            <div className="class-enroll-popup" onClick={(e) => e.stopPropagation()}>
+              <div className="class-enroll-header">
+                <h3>Aulas Disponíveis</h3>
+                <button className="class-enroll-close" onClick={handleCloseClassEnrollPopup}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <p className="class-enroll-subtitle">
+                Selecione uma aula para <strong>{selectedChild?.nome}</strong> na atividade <strong>{selectedActivity.titulo}</strong>
+              </p>
+
+              {isLoadingClasses ? (
+                <div className="loading-classes">
+                  <div className="loading-spinner"></div>
+                  <p>Carregando aulas...</p>
+                </div>
+              ) : availableClasses.length > 0 ? (
+                <div className="available-classes-list">
+                  {availableClasses.map((aula) => (
+                    <div 
+                      key={aula.aula_id} 
+                      className={`available-class-card ${selectedClassId === aula.aula_id ? 'selected' : ''}`}
+                      onClick={() => setSelectedClassId(aula.aula_id)}
+                    >
+                      <div className="class-card-date">
+                        <span className="class-date-day">{formatDate(aula.data)}</span>
+                      </div>
+                      <div className="class-card-info">
+                        <span className="class-time">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                          {formatTime(aula.hora_inicio)} - {formatTime(aula.hora_fim)}
+                        </span>
+                        <span className="class-vacancies">
+                          {aula.vagas_disponiveis} vaga{aula.vagas_disponiveis !== 1 ? 's' : ''} disponível
+                        </span>
+                      </div>
+                      <div className="class-card-check">
+                        {selectedClassId === aula.aula_id && (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-classes">
+                  <p>Nenhuma aula disponível</p>
+                  <span>Não há aulas futuras com vagas para esta atividade</span>
+                </div>
+              )}
+
+              <div className="class-enroll-footer">
+                <button 
+                  className="btn-cancel-enroll"
+                  onClick={handleCloseClassEnrollPopup}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="btn-confirm-enroll"
+                  disabled={!selectedClassId || isEnrollingClass}
+                  onClick={handleConfirmClassEnroll}
+                >
+                  {isEnrollingClass ? 'Inscrevendo...' : 'Inscrever na aula'}
+                </button>
+              </div>
             </div>
           </div>
         )}

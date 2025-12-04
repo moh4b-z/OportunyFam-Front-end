@@ -6,10 +6,12 @@ interface BarraLateralProps {
   onConversationsClick?: () => void;
   onChildRegistrationClick?: () => void;
   onAccountClick?: () => void;
+  onPublicationsClick?: () => void;
   onLogoutClick?: () => void;
   isConversationsOpen?: boolean;
   isChildRegistrationOpen?: boolean;
   isAccountOpen?: boolean;
+  isPublicationsOpen?: boolean;
   userTipo?: 'usuario' | 'instituicao' | 'crianca';
 }
 
@@ -17,14 +19,17 @@ export default function BarraLateral({
   onConversationsClick, 
   onChildRegistrationClick, 
   onAccountClick,
+  onPublicationsClick,
   onLogoutClick,
   isConversationsOpen, 
   isChildRegistrationOpen,
   isAccountOpen,
+  isPublicationsOpen,
   userTipo
 }: BarraLateralProps) {
-  // Instituições não têm botão de crianças
+  // Instituições não têm botão de crianças, mas têm botão de publicações
   const showChildrenButton = userTipo !== 'instituicao';
+  const showPublicationsButton = userTipo === 'instituicao';
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -69,11 +74,13 @@ export default function BarraLateral({
     if (isConversationsOpen === false && activeIcon === 'messages') setActiveIcon(null);
     if (isChildRegistrationOpen === false && activeIcon === 'child-registration') setActiveIcon(null);
     if (isAccountOpen === false && activeIcon === 'account') setActiveIcon(null);
+    if (isPublicationsOpen === false && activeIcon === 'publications') setActiveIcon(null);
 
     if (isConversationsOpen) setActiveIcon('messages');
     if (isChildRegistrationOpen) setActiveIcon('child-registration');
     if (isAccountOpen) setActiveIcon('account');
-  }, [isConversationsOpen, isChildRegistrationOpen, isAccountOpen]);
+    if (isPublicationsOpen) setActiveIcon('publications');
+  }, [isConversationsOpen, isChildRegistrationOpen, isAccountOpen, isPublicationsOpen]);
 
   return (
     <aside className="sidebar">
@@ -117,6 +124,25 @@ export default function BarraLateral({
               {/* Corpo */}
               <path d="M12 16v5" />
               <path d="M8 21h8" />
+            </svg>
+          </button>
+        )}
+
+        {/* Publicações - apenas para instituições */}
+        {showPublicationsButton && (
+          <button
+            className={`icon-btn ${activeIcon === "publications" ? "active" : ""}`}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() => { handleIconClick("publications"); onPublicationsClick?.(); }}
+            aria-label="Publicações"
+            title="Publicações"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
             </svg>
           </button>
         )}

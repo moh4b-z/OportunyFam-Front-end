@@ -3,9 +3,21 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './InstitutionDateCards.css';
 
+// Interface para aula
+interface Aula {
+  aula_id: number;
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+  status_aula: string;
+  vagas_total: number;
+  vagas_disponiveis: number;
+}
+
 interface InstitutionDateCardsProps {
   selectedDate?: Date | null;
   onDateSelect?: (date: Date) => void;
+  aulas?: Aula[];
 }
 
 // Ícone de seta esquerda
@@ -24,7 +36,8 @@ const ChevronRightIcon = () => (
 
 const InstitutionDateCards: React.FC<InstitutionDateCardsProps> = ({
   selectedDate,
-  onDateSelect
+  onDateSelect,
+  aulas = []
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentSelectedDate, setCurrentSelectedDate] = useState<Date>(selectedDate || new Date());
@@ -80,6 +93,29 @@ const InstitutionDateCards: React.FC<InstitutionDateCardsProps> = ({
            date.getFullYear() === currentSelectedDate.getFullYear();
   };
 
+  // Formata data para DD/MM/YYYY (formato da API)
+  const formatDateToBR = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Verifica se há aulas em uma data específica
+  const hasClassOnDate = (date: Date): boolean => {
+    const dateStr = formatDateToBR(date); // formato DD/MM/YYYY
+    return aulas.some(aula => aula.data === dateStr);
+  };
+
+  // Verifica se a data é futura (após hoje)
+  const isFutureDate = (date: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    return checkDate > today;
+  };
+
   // Atualiza estado de scroll
   const updateScrollState = () => {
     if (!scrollContainerRef.current) return;
@@ -87,6 +123,52 @@ const InstitutionDateCards: React.FC<InstitutionDateCardsProps> = ({
     setCanScrollLeft(scrollLeft > 5);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
   };
+
+  // Função para centralizar em uma data específica
+  const scrollToDate = (targetDate: Date) => {
+    if (!scrollContainerRef.current) return;
+    
+    const container = scrollContainerRef.current;
+    const cards = container.querySelectorAll('.institution-date-card');
+    
+    if (cards.length === 0) return;
+    
+    // Encontra o índice da data no array
+    const targetIndex = dates.findIndex(d => 
+      d.getDate() === targetDate.getDate() &&
+      d.getMonth() === targetDate.getMonth() &&
+      d.getFullYear() === targetDate.getFullYear()
+    );
+    
+    if (targetIndex === -1) return;
+    
+    const targetCard = cards[targetIndex] as HTMLElement;
+    if (!targetCard) return;
+    
+    // Calcula posição para centralizar
+    const containerWidth = container.clientWidth;
+    const cardLeft = targetCard.offsetLeft;
+    const cardWidth = targetCard.offsetWidth;
+    
+    const scrollPosition = cardLeft - (containerWidth / 2) + (cardWidth / 2);
+    
+    container.scrollTo({
+      left: scrollPosition,
+      behavior: 'smooth'
+    });
+    
+    // Atualiza estado após scroll
+    setTimeout(updateScrollState, 300);
+  };
+
+  // Sincroniza com a prop selectedDate quando ela muda
+  useEffect(() => {
+    if (selectedDate) {
+      setCurrentSelectedDate(selectedDate);
+      // Rola para a data selecionada
+      setTimeout(() => scrollToDate(selectedDate), 150);
+    }
+  }, [selectedDate]);
 
   // Centraliza na data atual quando o componente monta
   useEffect(() => {
@@ -98,14 +180,21 @@ const InstitutionDateCards: React.FC<InstitutionDateCardsProps> = ({
       
       if (cards.length === 0) return;
       
-      // Encontra o card de hoje
-      const todayCard = cards[todayIndex] as HTMLElement;
-      if (!todayCard) return;
+      // Encontra o card de hoje ou da data selecionada
+      const initialDate = selectedDate || new Date();
+      const targetIndex = dates.findIndex(d => 
+        d.getDate() === initialDate.getDate() &&
+        d.getMonth() === initialDate.getMonth() &&
+        d.getFullYear() === initialDate.getFullYear()
+      );
+      
+      const targetCard = cards[targetIndex !== -1 ? targetIndex : todayIndex] as HTMLElement;
+      if (!targetCard) return;
       
       // Calcula posição para centralizar
       const containerWidth = container.clientWidth;
-      const cardLeft = todayCard.offsetLeft;
-      const cardWidth = todayCard.offsetWidth;
+      const cardLeft = targetCard.offsetLeft;
+      const cardWidth = targetCard.offsetWidth;
       
       const scrollPosition = cardLeft - (containerWidth / 2) + (cardWidth / 2);
       
@@ -181,6 +270,10 @@ const InstitutionDateCards: React.FC<InstitutionDateCardsProps> = ({
               <span className="date-weekday">{formatWeekday(date)}</span>
               <span className="date-day">{formatDay(date)}</span>
               <span className="date-month">{formatMonth(date)}</span>
+              {/* Bolinha indicadora de aula - some quando selecionado */}
+              {!isSelected(date) && hasClassOnDate(date) && (
+                <span className={`date-class-indicator ${isFutureDate(date) ? 'future' : 'past'}`} />
+              )}
             </button>
           ))}
         </div>

@@ -20,6 +20,7 @@ import InstitutionActivitiesCarousel, { Atividade } from "@/components/Instituti
 import InstitutionStudentsList from "@/components/InstitutionStudentsList";
 import InstitutionDateCards from "@/components/InstitutionDateCards";
 import InstitutionClassesList from "@/components/InstitutionClassesList";
+import InstitutionPublicationsModal from "@/components/modals/InstitutionPublicationsModal";
 
 // Interface para crianças dependentes (formato da API)
 interface ChildDependente {
@@ -51,6 +52,7 @@ export default function HomePage() {
   const [isCommunityPanelOpen, setIsCommunityPanelOpen] = useState<boolean>(false);
   const [isChildRegistrationSideModalOpen, setIsChildRegistrationSideModalOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
+  const [isPublicationsModalOpen, setIsPublicationsModalOpen] = useState<boolean>(false);
   const [userConversations, setUserConversations] = useState<any[]>([]);
   const [userPessoaId, setUserPessoaId] = useState<number | null>(null);
   const [mapInstitutions, setMapInstitutions] = useState<Instituicao[]>([]);
@@ -65,7 +67,40 @@ export default function HomePage() {
 
   // === DADOS DA INSTITUIÇÃO ===
   const [selectedActivity, setSelectedActivity] = useState<Atividade | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date()); // Added state
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [allAtividades, setAllAtividades] = useState<Atividade[]>([]);
+  const [activitiesRefreshTrigger, setActivitiesRefreshTrigger] = useState(0);
+
+  // Função para encontrar a próxima aula futura e selecionar a data
+  const handleActivityChange = (atividade: Atividade | null) => {
+    setSelectedActivity(atividade);
+    
+    if (atividade && atividade.aulas && atividade.aulas.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Filtra aulas futuras e ordena por data
+      const futureAulas = atividade.aulas
+        .map(aula => {
+          // Converte DD/MM/YYYY para Date
+          const parts = aula.data.split('/');
+          if (parts.length === 3) {
+            const aulaDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            return { aula, date: aulaDate };
+          }
+          return null;
+        })
+        .filter((item): item is { aula: typeof atividade.aulas[0]; date: Date } => 
+          item !== null && item.date >= today
+        )
+        .sort((a, b) => a.date.getTime() - b.date.getTime());
+      
+      if (futureAulas.length > 0) {
+        // Seleciona a data da próxima aula futura
+        setSelectedDate(futureAulas[0].date);
+      }
+    }
+  };
 
   // refs para fechar ao clicar fora
   const searchRef = useRef<HTMLDivElement>(null);
@@ -362,6 +397,7 @@ export default function HomePage() {
     setIsNotificationsModalOpen(false);
     setIsConversationsModalOpen(false);
     setIsChildRegistrationSideModalOpen(false);
+    setIsPublicationsModalOpen(false);
     setConversationInstitution(null);
     setIsAccountModalOpen(true);
   };
@@ -370,12 +406,30 @@ export default function HomePage() {
     setIsAccountModalOpen(false);
   };
 
-  const handleLogoutConfirm = (): void => {
-    logout();
-    setIsLogoutModalOpen(false);
+  // Handler para publicações (apenas instituições)
+  const handlePublicationsClick = () => {
+    if (isPublicationsModalOpen) {
+      setIsPublicationsModalOpen(false);
+      return;
+    }
+    setIsNotificationsModalOpen(false);
+    setIsConversationsModalOpen(false);
+    setIsChildRegistrationSideModalOpen(false);
+    setIsAccountModalOpen(false);
+    setConversationInstitution(null);
+    setIsPublicationsModalOpen(true);
+  };
+
+  const closePublicationsModal = () => {
+    setIsPublicationsModalOpen(false);
   };
 
   const handleLogoutCancel = (): void => {
+    setIsLogoutModalOpen(false);
+  };
+
+  const handleLogoutConfirm = (): void => {
+    logout();
     setIsLogoutModalOpen(false);
   };
 
@@ -403,10 +457,12 @@ export default function HomePage() {
         onConversationsClick={handleConversationsClick}
         onChildRegistrationClick={handleChildRegistrationClick}
         onAccountClick={handleAccountClick}
+        onPublicationsClick={handlePublicationsClick}
         onLogoutClick={() => setIsLogoutModalOpen(true)}
         isConversationsOpen={isConversationsModalOpen}
         isChildRegistrationOpen={isChildRegistrationSideModalOpen}
         isAccountOpen={isAccountModalOpen}
+        isPublicationsOpen={isPublicationsModalOpen}
         userTipo={authUser?.tipo}
       />
       <div className="app-content-wrapper">
@@ -428,7 +484,9 @@ export default function HomePage() {
           <div className="institution-dashboard">
             <InstitutionActivitiesCarousel 
               instituicaoId={authUser?.id ? parseInt(authUser.id) : 0}
-              onActivityChange={setSelectedActivity}
+              onActivityChange={handleActivityChange}
+              onActivitiesLoad={setAllAtividades}
+              refreshTrigger={activitiesRefreshTrigger}
             />
             <div className="institution-dashboard-content">
               <InstitutionStudentsList
@@ -442,12 +500,16 @@ export default function HomePage() {
                 <InstitutionDateCards 
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
+                  aulas={selectedActivity?.aulas || []}
                 />
                 <div className="institution-dashboard-main">
                   <InstitutionClassesList
                     aulas={selectedActivity?.aulas || []}
                     selectedDate={selectedDate}
                     atividadeTitulo={selectedActivity?.titulo}
+                    atividades={allAtividades}
+                    selectedAtividadeId={selectedActivity?.atividade_id || null}
+                    onAulasCreated={() => setActivitiesRefreshTrigger(prev => prev + 1)}
                   />
                 </div>
               </div>
@@ -556,7 +618,17 @@ export default function HomePage() {
         initialChildren={userChildren}
         onChildrenChange={refreshUserChildren}
         onGoToHome={() => setGoToHomeTimestamp(Date.now())}
+        onStartConversation={handleStartConversationWithResponsible}
       />
+
+      {/* Modal de publicações - apenas para instituições */}
+      {authUser?.tipo === 'instituicao' && (
+        <InstitutionPublicationsModal
+          isOpen={isPublicationsModalOpen}
+          onClose={closePublicationsModal}
+          instituicaoId={authUser?.id ? parseInt(authUser.id) : 0}
+        />
+      )}
     </div>
   );
 }

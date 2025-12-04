@@ -27,6 +27,8 @@ interface SimpleAccountModalProps {
   initialChildren?: Crianca[];
   onChildrenChange?: () => void;
   onGoToHome?: () => void;
+  // Função para iniciar conversa com responsável
+  onStartConversation?: (responsavelPessoaId: number, responsavelNome: string, responsavelFoto?: string | null) => void;
 }
 
 const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
@@ -45,6 +47,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   initialChildren,
   onChildrenChange,
   onGoToHome,
+  onStartConversation,
 }) => {
   const { refreshUserData, user: authUser } = useAuth();
   const isInstitution = authUser?.tipo === 'instituicao';
@@ -71,7 +74,19 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
   
   // Estados para alunos da instituição
   const [institutionStudents, setInstitutionStudents] = useState<any[]>([]);
+  const [groupedStudents, setGroupedStudents] = useState<{[key: number]: any}>({});
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  
+  // Estados para detalhes das crianças (carregados sob demanda)
+  const [childrenDetails, setChildrenDetails] = useState<{[key: number]: any}>({});
+  const [loadingChildId, setLoadingChildId] = useState<number | null>(null);
+  
+  // Estados para modal de informações pessoais do aluno
+  const [showStudentInfoModal, setShowStudentInfoModal] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const [studentInfoLoading, setStudentInfoLoading] = useState(false);
+  const [studentInfo, setStudentInfo] = useState<any>(null);
+  const [responsavelInfo, setResponsavelInfo] = useState<any>(null);
 
   // Sincroniza estados locais quando props mudam (após refresh)
   useEffect(() => {
@@ -106,7 +121,31 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
       const response = await fetch(`${API_BASE_URL}/instituicoes/alunos/?instituicao_id=${userId}&atividade_id=&status_id=`);
       if (response.ok) {
         const data = await response.json();
-        setInstitutionStudents(data.alunos || []);
+        const alunos = data.alunos || [];
+        setInstitutionStudents(alunos);
+        
+        // Agrupa alunos por crianca_id para evitar duplicatas
+        const grouped: {[key: number]: any} = {};
+        alunos.forEach((aluno: any) => {
+          const id = aluno.crianca_id;
+          if (!grouped[id]) {
+            grouped[id] = {
+              crianca_id: id,
+              crianca_nome: aluno.crianca_nome,
+              crianca_foto: aluno.crianca_foto,
+              atividades: []
+            };
+          }
+          grouped[id].atividades.push({
+            atividade_id: aluno.atividade_id,
+            atividade_titulo: aluno.atividade_titulo,
+            status_id: aluno.status_id,
+            status_inscricao: aluno.status_inscricao,
+            id_inscricao: aluno.id_inscricao,
+            data_inscricao: aluno.data_inscricao
+          });
+        });
+        setGroupedStudents(grouped);
       }
     } catch (error) {
       console.error('Erro ao carregar alunos:', error);
@@ -114,12 +153,92 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
       setIsLoadingStudents(false);
     }
   };
+  
+  // Abre modal de informações pessoais do aluno
+  const handleOpenStudentInfo = async (criancaId: number) => {
+    setSelectedStudentId(criancaId);
+    setShowStudentInfoModal(true);
+    setStudentInfoLoading(true);
+    setStudentInfo(null);
+    setResponsavelInfo(null);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/criancas/${criancaId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const crianca = data?.crianca;
+        if (crianca) {
+          setStudentInfo(crianca);
+          
+          // Se tem responsável, buscar dados do usuário
+          if (crianca.responsaveis?.length > 0) {
+            const idUsuario = crianca.responsaveis[0].id_usuario;
+            const usuarioResponse = await fetch(`${API_BASE_URL}/usuarios/${idUsuario}`);
+            if (usuarioResponse.ok) {
+              const usuarioData = await usuarioResponse.json();
+              if (usuarioData?.usuario) {
+                setResponsavelInfo(usuarioData.usuario);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar informações do aluno:', error);
+    } finally {
+      setStudentInfoLoading(false);
+    }
+  };
+  
+  // Fecha modal de informações pessoais
+  const handleCloseStudentInfo = () => {
+    setShowStudentInfoModal(false);
+    setSelectedStudentId(null);
+    setStudentInfo(null);
+    setResponsavelInfo(null);
+  };
 
   useEffect(() => {
     if (isOpen && isInstitution) {
       loadInstitutionStudents();
     }
   }, [isOpen, isInstitution, userId]);
+
+  // Busca detalhes de uma criança específica
+  const fetchChildDetails = async (childId: number) => {
+    // Se já tem os detalhes em cache, não busca novamente
+    if (childrenDetails[childId]) return;
+    
+    setLoadingChildId(childId);
+    try {
+      const response = await fetch(`${API_BASE_URL}/criancas/${childId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const crianca = data?.crianca;
+        if (crianca) {
+          setChildrenDetails(prev => ({
+            ...prev,
+            [childId]: crianca
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar detalhes da criança:', error);
+    } finally {
+      setLoadingChildId(null);
+    }
+  };
+
+  // Quando expandir um item, busca os detalhes
+  const handleExpandChild = (idx: number, childId: number) => {
+    const isCurrentlyOpen = expandedIndex === idx;
+    setExpandedIndex(isCurrentlyOpen ? null : idx);
+    
+    // Se está abrindo, busca os detalhes
+    if (!isCurrentlyOpen) {
+      fetchChildDetails(childId);
+    }
+  };
 
   const handleDeleteChild = (child: Crianca) => {
     setChildToDelete(child);
@@ -823,7 +942,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                 </span>
                 <span style={{ fontSize: '13px', color: '#888' }}>
                   {isInstitution 
-                    ? (isLoadingStudents ? 'Carregando...' : `${institutionStudents.length} ${institutionStudents.length === 1 ? 'aluno' : 'alunos'}`)
+                    ? (isLoadingStudents ? 'Carregando...' : `${Object.keys(groupedStudents).length} ${Object.keys(groupedStudents).length === 1 ? 'aluno' : 'alunos'}`)
                     : (isLoadingChildren ? 'Carregando...' : `${children.length} ${children.length === 1 ? 'criança' : 'crianças'}`)
                   }
                 </span>
@@ -858,18 +977,18 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
             }}
           >
             {isInstitution ? (
-              /* Lista de alunos para instituições */
+              /* Lista de alunos para instituições (agrupados por criança) */
               isLoadingStudents ? (
                 <div className="enroll-loading">
                   <span className="enroll-spinner"></span>
                   <span>Carregando alunos...</span>
                 </div>
-              ) : institutionStudents.length > 0 ? (
-                institutionStudents.map((aluno, idx) => {
+              ) : Object.keys(groupedStudents).length > 0 ? (
+                Object.values(groupedStudents).map((student: any, idx: number) => {
                   const isOpenItem = expandedIndex === idx;
                   return (
                     <div 
-                      key={aluno.id_inscricao || idx}
+                      key={student.crianca_id}
                       className="enroll-child-item"
                       style={{
                         flexDirection: 'column',
@@ -884,8 +1003,8 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
                         <div className="enroll-child-avatar">
-                          {aluno.crianca_foto ? (
-                            <img src={aluno.crianca_foto} alt={aluno.crianca_nome} />
+                          {student.crianca_foto ? (
+                            <img src={student.crianca_foto} alt={student.crianca_nome} />
                           ) : (
                             <div className="default-institution-icon">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -896,9 +1015,9 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                           )}
                         </div>
                         <div style={{ flex: 1 }}>
-                          <span className="enroll-child-name">{aluno.crianca_nome}</span>
+                          <span className="enroll-child-name">{student.crianca_nome}</span>
                           <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
-                            {aluno.atividade_titulo || 'Atividade não especificada'}
+                            {student.atividades.length} {student.atividades.length === 1 ? 'atividade' : 'atividades'}
                           </div>
                         </div>
                         <svg 
@@ -928,52 +1047,75 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                             borderTop: '1px dashed rgba(232, 148, 63, 0.3)'
                           }}
                         >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div 
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                padding: '10px 12px',
-                                background: 'rgba(232, 148, 63, 0.08)',
-                                borderRadius: '10px',
-                                border: '1px solid rgba(232, 148, 63, 0.15)'
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="2">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                <polyline points="9 22 9 12 15 12 15 22"/>
-                              </svg>
-                              <div style={{ flex: 1 }}>
-                                <span style={{ fontSize: '12px', color: '#888' }}>Atividade:</span>
-                                <span className="enroll-child-name" style={{ fontSize: '14px', display: 'block' }}>
-                                  {aluno.atividade_titulo || 'Não informada'}
-                                </span>
-                              </div>
-                            </div>
-                            <div 
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                padding: '10px 12px',
-                                background: 'rgba(232, 148, 63, 0.08)',
-                                borderRadius: '10px',
-                                border: '1px solid rgba(232, 148, 63, 0.15)'
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                              </svg>
-                              <div style={{ flex: 1 }}>
-                                <span style={{ fontSize: '12px', color: '#888' }}>Status:</span>
-                                <span className="enroll-child-name" style={{ fontSize: '14px', display: 'block' }}>
-                                  {aluno.status_inscricao || 'Pendente'}
-                                </span>
-                              </div>
-                            </div>
+                          <div className="enroll-confirm-text" style={{ fontWeight: '600', marginBottom: '10px' }}>
+                            Atividades inscritas:
                           </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {student.atividades.map((atividade: any, actIdx: number) => (
+                              <div 
+                                key={atividade.id_inscricao || actIdx}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  padding: '10px 12px',
+                                  background: 'rgba(232, 148, 63, 0.08)',
+                                  borderRadius: '10px',
+                                  border: '1px solid rgba(232, 148, 63, 0.15)'
+                                }}
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="2">
+                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <div style={{ flex: 1 }}>
+                                  <span className="enroll-child-name" style={{ fontSize: '14px' }}>
+                                    {atividade.atividade_titulo}
+                                  </span>
+                                  <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+                                    {atividade.status_inscricao}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Botão de informações pessoais */}
+                          <button 
+                            type="button"
+                            className="enroll-btn"
+                            onClick={(e) => { e.stopPropagation(); handleOpenStudentInfo(student.crianca_id); }}
+                            style={{
+                              marginTop: '14px',
+                              width: '100%',
+                              background: 'transparent',
+                              border: '1px solid #e8943f',
+                              color: '#e8943f',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              padding: '10px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(232, 148, 63, 0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent';
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"/>
+                              <path d="M12 16v-4"/>
+                              <path d="M12 8h.01"/>
+                            </svg>
+                            Ver informações pessoais
+                          </button>
                         </div>
                       )}
                     </div>
@@ -1001,9 +1143,14 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
               ) : children.length > 0 ? (
                 children.map((child, idx) => {
                   const isOpenItem = expandedIndex === idx;
+                  const childId: number = child.crianca_id ?? 0;
+                  const details = childId > 0 ? childrenDetails[childId] : null;
+                  const atividades = details?.atividades_matriculadas || [];
+                  const isLoadingDetails = childId > 0 && loadingChildId === childId;
+                  
                   return (
                     <div 
-                      key={child.id || idx}
+                      key={childId || idx}
                       className="enroll-child-item"
                       style={{
                         flexDirection: 'column',
@@ -1014,7 +1161,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                         width: '95%',
                         margin: '0 auto'
                       }}
-                      onClick={() => setExpandedIndex(isOpenItem ? null : idx)}
+                      onClick={() => childId && handleExpandChild(idx, childId)}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
                         <div className="enroll-child-avatar">
@@ -1032,7 +1179,7 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                         <div style={{ flex: 1 }}>
                           <span className="enroll-child-name">{child.nome}</span>
                           <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
-                            {child.atividades_matriculadas?.length || 0} atividades
+                            {details ? `${atividades.length} atividades` : 'Clique para ver detalhes'}
                           </div>
                         </div>
                         <svg 
@@ -1062,38 +1209,52 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                             borderTop: '1px dashed rgba(232, 148, 63, 0.3)'
                           }}
                         >
-                          <div className="enroll-confirm-text" style={{ fontWeight: '600', marginBottom: '10px' }}>
-                            Instituições que faz parte:
-                          </div>
-                          {child.atividades_matriculadas && child.atividades_matriculadas.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {child.atividades_matriculadas.map((atividade: any, actIdx: number) => (
-                                <div 
-                                  key={actIdx} 
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px',
-                                    padding: '10px 12px',
-                                    background: 'rgba(232, 148, 63, 0.08)',
-                                    borderRadius: '10px',
-                                    border: '1px solid rgba(232, 148, 63, 0.15)'
-                                  }}
-                                >
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="2">
-                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                    <polyline points="9 22 9 12 15 12 15 22"/>
-                                  </svg>
-                                  <span className="enroll-child-name" style={{ fontSize: '14px' }}>
-                                    {atividade.instituicao_nome || 'Instituição'}
-                                  </span>
-                                </div>
-                              ))}
+                          {isLoadingDetails ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#888' }}>
+                              <span className="enroll-spinner" style={{ width: '16px', height: '16px' }}></span>
+                              <span>Carregando detalhes...</span>
                             </div>
                           ) : (
-                            <div className="enroll-confirm-text" style={{ fontStyle: 'italic' }}>
-                              Nenhuma instituição cadastrada
-                            </div>
+                            <>
+                              <div className="enroll-confirm-text" style={{ fontWeight: '600', marginBottom: '10px' }}>
+                                Atividades inscritas:
+                              </div>
+                              {atividades.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  {atividades.map((atividade: any, actIdx: number) => (
+                                    <div 
+                                      key={atividade.id_inscricao || actIdx} 
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        padding: '10px 12px',
+                                        background: 'rgba(232, 148, 63, 0.08)',
+                                        borderRadius: '10px',
+                                        border: '1px solid rgba(232, 148, 63, 0.15)'
+                                      }}
+                                    >
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="2">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                        <polyline points="9 22 9 12 15 12 15 22"/>
+                                      </svg>
+                                      <div style={{ flex: 1 }}>
+                                        <span className="enroll-child-name" style={{ fontSize: '14px' }}>
+                                          {atividade.titulo}
+                                        </span>
+                                        <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+                                          {atividade.instituicao} • {atividade.status_inscricao}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="enroll-confirm-text" style={{ fontStyle: 'italic' }}>
+                                  Nenhuma atividade cadastrada
+                                </div>
+                              )}
+                            </>
                           )}
 
                           {/* Botão de excluir */}
@@ -1324,6 +1485,240 @@ const SimpleAccountModal: React.FC<SimpleAccountModalProps> = ({
                 </button>
               </div>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal de Informações Pessoais do Aluno */}
+      {showStudentInfoModal && ReactDOM.createPortal(
+        <div 
+          className="enroll-popup-overlay"
+          onClick={handleCloseStudentInfo}
+          style={{ zIndex: 100000 }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '20px',
+              width: '90%',
+              maxWidth: '480px',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              position: 'relative',
+              padding: '24px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <button
+              type="button"
+              onClick={handleCloseStudentInfo}
+              aria-label="Fechar"
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                border: 'none',
+                background: 'transparent',
+                color: '#e8943f',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            
+            {studentInfoLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '16px', color: '#888' }}>
+                <span className="enroll-spinner"></span>
+                <span>Carregando informações...</span>
+              </div>
+            ) : studentInfo ? (
+              <>
+                {/* Header com foto e nome */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid #f0f0f0', marginBottom: '20px' }}>
+                  <div style={{ 
+                    width: '72px', 
+                    height: '72px', 
+                    borderRadius: '50%', 
+                    overflow: 'hidden', 
+                    flexShrink: 0,
+                    background: 'linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(231, 111, 81, 0.1))'
+                  }}>
+                    {studentInfo.foto_perfil ? (
+                      <img src={studentInfo.foto_perfil} alt={studentInfo.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8943f' }}>
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#333', margin: '0' }}>{studentInfo.nome}</h2>
+                  </div>
+                </div>
+
+                {/* Seção: Informações do Aluno */}
+                <div style={{ marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px 0' }}>
+                    Informações do Aluno
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#f8f8f8', borderRadius: '12px' }}>
+                      <span style={{ color: '#e8943f', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(244, 162, 97, 0.1)', borderRadius: '8px', flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                          <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '11px', color: '#888', marginBottom: '2px' }}>Email</span>
+                        <span style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#333' }}>{studentInfo.email || 'Não informado'}</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#f8f8f8', borderRadius: '12px' }}>
+                      <span style={{ color: '#e8943f', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(244, 162, 97, 0.1)', borderRadius: '8px', flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '11px', color: '#888', marginBottom: '2px' }}>Idade</span>
+                        <span style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#333' }}>{studentInfo.idade} {studentInfo.idade === 1 ? 'ano' : 'anos'}</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#f8f8f8', borderRadius: '12px' }}>
+                      <span style={{ color: '#e8943f', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(244, 162, 97, 0.1)', borderRadius: '8px', flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <path d="M12 8v8"/>
+                          <path d="M8 12h8"/>
+                        </svg>
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '11px', color: '#888', marginBottom: '2px' }}>Sexo</span>
+                        <span style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#333' }}>{studentInfo.sexo || 'Não informado'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seção: Responsável */}
+                {(studentInfo.responsaveis?.length > 0 || responsavelInfo) && (
+                  <div>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px 0' }}>
+                      Responsável
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+                      <div style={{ 
+                        width: '48px', 
+                        height: '48px', 
+                        borderRadius: '50%', 
+                        overflow: 'hidden', 
+                        flexShrink: 0,
+                        background: 'linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(231, 111, 81, 0.1))'
+                      }}>
+                        {(responsavelInfo?.foto_perfil || studentInfo.responsaveis?.[0]?.foto_perfil) ? (
+                          <img 
+                            src={responsavelInfo?.foto_perfil || studentInfo.responsaveis?.[0]?.foto_perfil} 
+                            alt="Responsável" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8943f' }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '6px' }}>
+                          {responsavelInfo?.nome || studentInfo.responsaveis?.[0]?.nome}
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#666' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="2">
+                              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                              <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            {responsavelInfo?.email || studentInfo.responsaveis?.[0]?.email}
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#666' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8943f" strokeWidth="2">
+                              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                            {responsavelInfo?.telefone || studentInfo.responsaveis?.[0]?.telefone}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Botão de mensagem */}
+                      {onStartConversation && studentInfo.responsaveis?.[0]?.id_pessoa && (
+                        <button
+                          onClick={() => {
+                            const resp = studentInfo.responsaveis[0];
+                            handleCloseStudentInfo();
+                            onClose(); // Fecha o modal de conta
+                            onStartConversation(
+                              resp.id_pessoa,
+                              responsavelInfo?.nome || resp.nome,
+                              responsavelInfo?.foto_perfil || resp.foto_perfil
+                            );
+                          }}
+                          title="Iniciar conversa com o responsável"
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#e8943f',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            transition: 'background-color 0.18s ease, transform 0.18s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(244, 162, 97, 0.12)';
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#888' }}>
+                Não foi possível carregar as informações
+              </div>
+            )}
           </div>
         </div>,
         document.body

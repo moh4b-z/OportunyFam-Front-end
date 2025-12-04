@@ -736,6 +736,8 @@ export default function SearchBar({ onInstitutionSelect, onStartConversation, on
   };
 
   const handleConfirmEnroll = async () => {
+    // Proteção contra duplo clique - se já está carregando, não envia novamente
+    if (enrollLoading) return;
     if (!selectedChild || !enrollActivityId) return;
 
     setEnrollLoading(true);

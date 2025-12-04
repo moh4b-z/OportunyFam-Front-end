@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { API_BASE_URL } from '@/services/config';
 import { azureStorageService } from '@/services/azureStorageService';
+import SuccessModal from '@/components/modals/SuccessModal';
 import './InstitutionActivitiesCarousel.css';
 
 // Interface para categoria
@@ -44,6 +45,8 @@ interface Atividade {
 interface InstitutionActivitiesCarouselProps {
   instituicaoId: number;
   onActivityChange?: (atividade: Atividade | null) => void;
+  onActivitiesLoad?: (atividades: Atividade[]) => void;
+  refreshTrigger?: number;
 }
 
 export type { Atividade };
@@ -141,9 +144,21 @@ const ImageUploadIcon = () => (
   </svg>
 );
 
+// Ícone de lixeira para deletar
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    <line x1="10" y1="11" x2="10" y2="17"></line>
+    <line x1="14" y1="11" x2="14" y2="17"></line>
+  </svg>
+);
+
 const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps> = ({ 
   instituicaoId,
-  onActivityChange 
+  onActivityChange,
+  onActivitiesLoad,
+  refreshTrigger
 }) => {
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,6 +187,13 @@ const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps
   const [formFotoPreview, setFormFotoPreview] = useState<string | null>(null);
   const [isUploadingFoto, setIsUploadingFoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  
+  // Estados para delete
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [atividadeToDelete, setAtividadeToDelete] = useState<Atividade | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
 
   // Buscar atividades da instituição
   const fetchAtividades = useCallback(async () => {
@@ -190,6 +212,9 @@ const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps
       const atividadesData = data?.atividades || [];
       setAtividades(atividadesData);
       
+      // Notifica o componente pai sobre as atividades carregadas
+      onActivitiesLoad?.(atividadesData);
+      
       // Centraliza no meio se houver atividades
       if (atividadesData.length > 0) {
         setCenterIndex(Math.floor(atividadesData.length / 2));
@@ -200,11 +225,18 @@ const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps
     } finally {
       setIsLoading(false);
     }
-  }, [instituicaoId]);
+  }, [instituicaoId, onActivitiesLoad]);
 
   useEffect(() => {
     fetchAtividades();
   }, [fetchAtividades]);
+
+  // Recarrega atividades quando refreshTrigger mudar
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchAtividades();
+    }
+  }, [refreshTrigger]);
 
   // Buscar categorias
   const fetchCategorias = async () => {
@@ -286,6 +318,14 @@ const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps
       setCreateError('Selecione uma categoria');
       return;
     }
+    if (!formFaixaMin || formFaixaMin < 1) {
+      setCreateError('Informe a idade mínima');
+      return;
+    }
+    if (!formFaixaMax || formFaixaMax < 1) {
+      setCreateError('Informe a idade máxima');
+      return;
+    }
     if (formFaixaMin >= formFaixaMax) {
       setCreateError('A idade mínima deve ser menor que a máxima');
       return;
@@ -342,15 +382,60 @@ const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps
         throw new Error(errorData.message || 'Erro ao criar atividade');
       }
       
-      // Sucesso - fecha modal e recarrega atividades
+      // Sucesso - fecha modal, recarrega atividades e mostra sucesso
       closeCreateModal();
       await fetchAtividades();
+      setShowSuccessModal(true);
       
     } catch (err: any) {
       console.error('Erro ao criar atividade:', err);
       setCreateError(err.message || 'Erro ao criar atividade. Tente novamente.');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  // Abre modal de confirmação de delete
+  const openDeleteModal = (atividade: Atividade, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que o clique propague para o card
+    setAtividadeToDelete(atividade);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Fecha modal de delete
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setAtividadeToDelete(null);
+  };
+
+  // Deleta a atividade
+  const handleDeleteAtividade = async () => {
+    if (!atividadeToDelete) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/atividades/${atividadeToDelete.atividade_id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao deletar atividade');
+      }
+      
+      // Sucesso - fecha modal e mostra sucesso
+      closeDeleteModal();
+      setShowDeleteSuccessModal(true);
+      
+      // Aguarda um tempo para garantir que a API processou a exclusão
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await fetchAtividades();
+      
+    } catch (err: any) {
+      console.error('Erro ao deletar atividade:', err);
+      alert(err.message || 'Erro ao deletar atividade. Tente novamente.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -584,6 +669,15 @@ const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps
                   className={`activities-carousel-card ${index === centerIndex ? 'active' : ''} ${!isAtivo ? 'inactive' : ''}`}
                   style={style}
                 >
+                  {/* Botão de deletar */}
+                  <button
+                    className="activity-card-delete-btn"
+                    onClick={(e) => openDeleteModal(atividade, e)}
+                    title="Deletar atividade"
+                  >
+                    <TrashIcon />
+                  </button>
+
                   {/* Foto da atividade */}
                   <div className="activity-card-image">
                     {atividade.foto ? (
@@ -847,6 +941,58 @@ const InstitutionActivitiesCarousel: React.FC<InstitutionActivitiesCarouselProps
           </div>
         </div>
       )}
+
+      {/* Modal de sucesso - criação */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        title="Atividade Criada!"
+        message="A atividade foi criada com sucesso."
+        onClose={() => setShowSuccessModal(false)}
+        autoCloseDelay={3000}
+      />
+
+      {/* Modal de confirmação de delete */}
+      {isDeleteModalOpen && (
+        <div className="create-activity-modal-overlay" onClick={() => !isDeleting && closeDeleteModal()}>
+          <div className="delete-activity-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-activity-confirm-icon">
+              <TrashIcon />
+            </div>
+            <h3>Deletar atividade</h3>
+            <p>
+              Tem certeza que deseja deletar a atividade <strong>{atividadeToDelete?.titulo}</strong>?
+            </p>
+            <p className="delete-activity-warning">
+              Esta ação não pode ser desfeita. Todas as aulas associadas também serão removidas.
+            </p>
+            <div className="delete-activity-confirm-buttons">
+              <button 
+                className="delete-activity-btn-cancel"
+                onClick={closeDeleteModal}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="delete-activity-btn-confirm"
+                onClick={handleDeleteAtividade}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deletando...' : 'Deletar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de sucesso - delete */}
+      <SuccessModal
+        isOpen={showDeleteSuccessModal}
+        title="Atividade Deletada!"
+        message="A atividade foi removida com sucesso."
+        onClose={() => setShowDeleteSuccessModal(false)}
+        autoCloseDelay={3000}
+      />
     </div>
   );
 };

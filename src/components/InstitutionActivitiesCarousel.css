@@ -41,8 +41,8 @@ body.dark .activities-carousel-title {
 
 /* Botão de adicionar atividade */
 .activities-carousel-add-btn {
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--orange);
   border: none;
@@ -178,6 +178,46 @@ body.dark .activities-carousel-card {
 
 body.dark .activities-carousel-card:hover {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+/* Botão de deletar atividade */
+.activity-card-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.activities-carousel-card:hover .activity-card-delete-btn {
+  opacity: 1;
+}
+
+.activity-card-delete-btn:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.1);
+}
+
+body.dark .activity-card-delete-btn {
+  background: rgba(50, 50, 50, 0.9);
+  color: #999;
+}
+
+body.dark .activity-card-delete-btn:hover {
+  background: #ef4444;
+  color: white;
 }
 
 /* Imagem do card */
@@ -887,6 +927,129 @@ body.dark .create-activity-btn-cancel:hover:not(:disabled) {
 }
 
 .create-activity-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===============================================
+ * Modal de confirmação de delete
+ * =============================================== */
+.delete-activity-confirm-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .delete-activity-confirm-modal {
+  background: var(--bg-card-dark);
+}
+
+.delete-activity-confirm-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: #ef4444;
+}
+
+.delete-activity-confirm-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.delete-activity-confirm-modal h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px;
+}
+
+body.dark .delete-activity-confirm-modal h3 {
+  color: var(--text-dark-theme);
+}
+
+.delete-activity-confirm-modal p {
+  font-size: 15px;
+  color: #666;
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+body.dark .delete-activity-confirm-modal p {
+  color: #999;
+}
+
+.delete-activity-warning {
+  font-size: 13px !important;
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 15px !important;
+}
+
+.delete-activity-confirm-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.delete-activity-btn-cancel {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #e0e0e0;
+  background: transparent;
+  color: #666;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-activity-btn-cancel:hover:not(:disabled) {
+  border-color: #999;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.dark .delete-activity-btn-cancel {
+  border-color: var(--border-dark);
+  color: #999;
+}
+
+body.dark .delete-activity-btn-cancel:hover:not(:disabled) {
+  border-color: #666;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.delete-activity-btn-confirm {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #ef4444;
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-activity-btn-confirm:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.delete-activity-btn-confirm:disabled,
+.delete-activity-btn-cancel:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

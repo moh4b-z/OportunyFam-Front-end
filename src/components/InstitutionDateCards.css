@@ -108,14 +108,15 @@ body.dark .date-cards-fade-right {
   align-items: center;
   justify-content: center;
   min-width: 65px;
-  height: 76px;
-  padding: 8px 10px;
+  height: 82px;
+  padding: 10px 10px 8px;
   background: white;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  position: relative;
 }
 
 body.dark .institution-date-card {
@@ -159,6 +160,7 @@ body.dark .institution-date-card.selected {
   color: #888;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-top: 2px;
 }
 
 body.dark .date-weekday {
@@ -197,4 +199,30 @@ body.dark .date-month {
 
 .institution-date-card.today .date-month {
   color: var(--orange);
+}
+
+/* Bolinha indicadora de aula */
+.date-class-indicator {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: opacity 0.2s ease;
+}
+
+/* Bolinha laranja para aulas futuras */
+.date-class-indicator.future {
+  background-color: var(--orange);
+}
+
+/* Bolinha cinza para aulas passadas */
+.date-class-indicator.past {
+  background-color: #6b7280;
+}
+
+body.dark .date-class-indicator.past {
+  background-color: #9ca3af;
 }

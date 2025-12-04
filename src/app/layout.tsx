@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "OportunyFam",
   description: "OportunyFam - conectando famílias e instituições",
   icons: {
-    icon: "/img/logo.png",
+    icon: "/favicon.ico",
   },
 };
 

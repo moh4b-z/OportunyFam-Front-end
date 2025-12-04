@@ -196,6 +196,11 @@ export interface Instituicao {
     bairro?: string
     cidade?: string
     estado?: string
+    // Flag para instituições do Google Places (não cadastradas)
+    isGooglePlace?: boolean
+    googlePlaceId?: string
+    googleRating?: number
+    googleTypes?: string[]
 }
 
 export interface InstituicaoRequest {
